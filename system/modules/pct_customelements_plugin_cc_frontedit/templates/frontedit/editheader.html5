@@ -1,0 +1,11 @@
+<?php
+/**
+ * Renders the edit buttons for a CustomCatalog entry
+ */
+?>
+
+<div class="operations">
+<?php foreach($this->buttons as $button): ?>
+<?= $button['html']; ?>
+<?php endforeach; ?>
+</div>

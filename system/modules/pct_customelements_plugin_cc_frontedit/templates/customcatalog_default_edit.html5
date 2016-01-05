@@ -1,0 +1,38 @@
+<?php
+/**
+ * Custom catalog template with frontend editing example file
+ */
+?>
+
+<div class="<?php echo $this->class; ?> block" <?php echo $this->cssID; ?>>
+<div class="title"><?php echo $this->title; ?></div>
+<?php if(!$this->empty): ?>
+<div class="content block">
+<?php foreach($this->entries as $entry): ?>
+<div class="<?php echo $entry->get('class'); ?> block">
+	
+	<?php if($entry->editable()) :?>
+	<!-- // include the fronteditor header -->
+	<?php echo $entry->editButtons(); ?>
+	
+	<?php endif; ?>
+	
+	<?php foreach($entry->get('fields') as $field): ?>	
+	<?php if($field->hidden) {continue;} ?>
+	<div class="<?php echo $field->class; ?>">
+		<div class="label"><?php echo $field->label; ?></div>
+		<div class="value"><?php echo $field->html(); ?></div>
+	</div>
+	<?php endforeach; ?>
+	
+	<?php if($entry->get('more')): ?>
+	<p class="more"><?php echo $entry->get('more'); ?></p>
+	<?php endif; ?>
+	
+</div>
+<?php endforeach; ?>
+</div>
+<?php else: ?>
+<p class="info empty"><?php echo $this->empty; ?></p>
+<?php endif;?>
+</div>
