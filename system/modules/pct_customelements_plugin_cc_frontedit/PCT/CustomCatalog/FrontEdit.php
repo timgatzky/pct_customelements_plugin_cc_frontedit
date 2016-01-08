@@ -203,12 +203,6 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			}
 		}
 		
-		if(count($arrButtons) < 1)
-		{
-			return '';
-		}
-		
-		// render buttons
 		$objTemplate->empty = (count($arrButtons) < 1 ? true : false);
 		$objTemplate->module = $objModule;
 		$objTemplate->config = $objConfig;
@@ -293,7 +287,10 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		if(\Input::get('act') == 'copy')
 		{
 			$objDC->copy($blnDoNotSwitchToEdit);
-			\Controller::redirect( \Controller::getReferer() );
+			if($blnDoNotSwitchToEdit)
+			{
+				\Controller::redirect( \Controller::getReferer() );
+			}
 		}
 	}
 }
