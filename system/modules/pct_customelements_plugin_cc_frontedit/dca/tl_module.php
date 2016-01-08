@@ -32,17 +32,9 @@ $arrPalettes = $objDcaHelper->getPalettesAsArray('customcataloglist');
 $arrPalettes['config_legend'][] = 'customcatalog_edit_jumpTo';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['customcataloglist'] = $objDcaHelper->generatePalettes($arrPalettes);
 // customcatalogfrontedit
-#$arrPalettes = $objDcaHelper->getPalettesAsArray('default');
-#array_insert($arrPalettes['title_legend'],1,'headline');
-#$arrPalettes['config_legend'] 				= array('customcatalog');
-#$arrPalettes['list_legend']					= array('customcatalog_setVisibles');
-#$arrPalettes['filter_legend']				= array('customcatalog_filter_actLang');
-#$arrPalettes['template_legend:hide'] 		= array('customcatalog_template','customcatalog_mod_template');
-#$arrPalettes['comment_legend:hide'] 		= array('com_template');
-#$arrPalettes['expert_legend:hide'] 			= array('cssID','space');
-#$GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogfrontedit'] = $objDcaHelper->generatePalettes($arrPalettes);
-
-
+$arrPalettes = $objDcaHelper->getPalettesAsArray('customcatalogreader');
+$arrPalettes = $objDcaHelper->removePalette('comment_legend:hide');
+$GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogfrontedit'] = $objDcaHelper->generatePalettes($arrPalettes);
 
 /**
  * Fields

@@ -31,6 +31,10 @@ ClassLoader::addClasses(array
 (
 	// Core
 	'PCT\CustomCatalog\FrontEdit'											=> $path.'/PCT/CustomCatalog/FrontEdit.php',
+	'PCT\CustomCatalog\FrontEdit\CustomCatalog'								=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalog.php',
+	'PCT\CustomCatalog\FrontEdit\CustomCatalogFactory'						=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalogFactory.php',
+	'PCT\CustomCatalog\FrontEdit\AttributeCallbacks'						=> $path.'/PCT/CustomCatalog/FrontEdit/AttributeCallbacks.php',
+	
 	'PCT\CustomCatalog\FrontEdit\RowTemplate'								=> $path.'/PCT/CustomCatalog/FrontEdit/RowTemplate.php',
 	'PCT\CustomCatalog\FrontEdit\TemplateAttribute'							=> $path.'/PCT/CustomCatalog/FrontEdit/TemplateAttribute.php',
 	
@@ -48,10 +52,11 @@ ClassLoader::addClasses(array
  */
 TemplateLoader::addFiles(array
 (
-	// frontend
-	'mod_customcatalogeditor'		=> $path.'/templates',
-	'customcatalog_default_edit'	=> $path.'/templates',
+	'mod_customcatalogfrontedit'		=> $path.'/templates',
+	'customcatalog_default_edit'		=> $path.'/templates',
+	
+	'scripts'				=> $path.'/templates/frontend',
 	
 	// frontedit
-	'editheader'					=> $path.'/templates/frontedit',
+	'buttons'							=> $path.'/templates/frontedit',
 ));

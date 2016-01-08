@@ -1,0 +1,16 @@
+<?php
+/**
+ * Renders the edit buttons for a CustomCatalog entry
+ */
+
+$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/scripts.js';
+
+?>
+
+
+
+<div class="operations">
+<?php foreach($this->buttons as $key => $button): ?>
+<span class="button <?= $key; ?>"><?= $button['html']; ?></span>
+<?php endforeach; ?>
+</div>

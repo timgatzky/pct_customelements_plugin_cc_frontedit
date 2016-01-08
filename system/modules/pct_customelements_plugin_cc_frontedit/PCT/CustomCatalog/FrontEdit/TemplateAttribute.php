@@ -58,4 +58,49 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		return $arrReturn;
 	}
+	
+		
+	
+	/**
+	 * Generates the formular widget
+	 */
+	public function widget()
+	{
+		$objAttribute = $this->attribute();
+		if($objAttribute === null)
+		{
+			return $strBuffer;
+		}
+		
+		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
+		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
+		$objDC->id = \Input::get('id');
+		$objDC->field = $objAttribute->get('alias');
+		$objDC->activeRecord = $objAttribute->getActiveRecord();
+		
+		if(!\PCT\CustomCatalog\FrontEdit::isEditable($objDC->table,$objDC->id))
+		{
+			return $strBuffer;
+		}
+		
+		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
+		
+		$objActiveRecord = $objAttribute->getActiveRecord();
+		
+		$objOrigin = \PCT\CustomElements\Core\Origin::getInstance();
+		$objOrigin->set('intPid',$objActiveRecord->id);
+		$objOrigin->set('strTable',$objDC->table);
+		
+		$objAttribute->setOrigin($objOrigin);
+		$objAttribute->setValue($this->value());
+		
+		// generate the widget. Calls the CE parseWidget Hook
+		$strWidget = $objAttribute->generateWidget($objDC);
+		
+		// append output with the editing widget
+		$strBuffer .= '<div class="frontedit_widget widget">'.$strWidget.'</div>';
+		
+		return $strBuffer;
+
+	}
 }

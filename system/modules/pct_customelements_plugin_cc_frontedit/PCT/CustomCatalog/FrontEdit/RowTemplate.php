@@ -74,7 +74,7 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	 * @param string		The output template
 	 * @return string
 	 */
-	public function getEditButtons($strTemplate='editheader')
+	public function getEditButtons($strTemplate='buttons')
 	{
 		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
 		

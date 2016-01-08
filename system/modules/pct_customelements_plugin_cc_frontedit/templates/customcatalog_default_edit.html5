@@ -14,7 +14,6 @@
 	<?php if($entry->editable()) :?>
 	<!-- // include the fronteditor header -->
 	<?php echo $entry->editButtons(); ?>
-	
 	<?php endif; ?>
 	
 	<?php foreach($entry->get('fields') as $field): ?>	
@@ -22,6 +21,9 @@
 	<div class="<?php echo $field->class; ?>">
 		<div class="label"><?php echo $field->label; ?></div>
 		<div class="value"><?php echo $field->html(); ?></div>
+		
+		<!-- // include the fronteditor widget -->
+		<div class="widget"><?php echo $field->widget(); ?></div>
 	</div>
 	<?php endforeach; ?>
 	

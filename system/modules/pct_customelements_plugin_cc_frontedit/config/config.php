@@ -19,6 +19,13 @@
 define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH,'system/modules/pct_customelements_plugin_cc_frontedit');
 define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.0.0');
 
+
+/**
+ * Globals
+ */
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations'] 	= array('edit','delete','copy','show');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']		= array('show');
+
 /**
  * Register plugin
  */
@@ -35,7 +42,7 @@ $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
 $blnInitialize = true;
 if( TL_MODE == 'BE' && count(\Session::getInstance()->getData()) > 0 )
 {
-	if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()) && \Input::get('do') != 'repository_manager' )
+	if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()) && !in_array(\Input::get('do'), array('repository_manager','composer')) )
 	{
 		$blnInitialize = false;
 	}
@@ -57,4 +64,6 @@ if($blnInitialize)
 {
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\TemplateAttribute','__override');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\RowTemplate','__override');
+	#$GLOBALS['CUSTOMELEMENTS_HOOKS']['prepareRendering'][]  = array('PCT\CustomCatalog\FrontEdit\Attribute','renderCallback');
+	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit','applyOperationsOnGeneratePage');
 }
