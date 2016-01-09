@@ -23,8 +23,9 @@ define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.0.0');
 /**
  * Globals
  */
-$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations'] 	= array('edit','delete','copy','show');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations'] 	= array('edit','delete','copy','show','paste');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']		= array('show');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] = true;
 
 /**
  * Register plugin

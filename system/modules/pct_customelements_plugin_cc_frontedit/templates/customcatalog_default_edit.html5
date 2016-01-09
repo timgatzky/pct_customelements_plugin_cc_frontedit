@@ -23,7 +23,7 @@
 		<div class="value"><?php echo $field->html(); ?></div>
 		
 		<!-- // include the fronteditor widget -->
-		<div class="widget"><?php echo $field->widget(); ?></div>
+		<div class="widget"><?php #echo $field->widget(); ?></div>
 	</div>
 	<?php endforeach; ?>
 	

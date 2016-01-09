@@ -134,14 +134,59 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objModule = $objConfig->module;
 		$arrDefaultDCA = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getDefaultDataContainerArray();
 		
-		\System::loadLanguageFile('tl_pct_customcatalog');
-		
 		$strAliasField = $objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
+		$strTable = $objCC->getTable();
+		
+		\System::loadLanguageFile('tl_pct_customcatalog');
+		\System::loadLanguageFile('tl_content');
+		\System::loadLanguageFile($strTable);
+		
+		// load the data container to the frontend
+		if(!$GLOBALS['TL_DCA'][$strTable])
+		{
+			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
+			
+			// fallback CC <= 1.4.14
+			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
+			{
+				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
+				
+				$objSystem->loadCustomCatalog($strTable,true);
+				
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
+			}
+			else
+			{
+				$objSystem->loadDCA($strTable);
+			}
+		}
+		
+		// Create a datacontainer
+		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($strTable);
+		$objDC->User = $objUser;
+		
+		$arrOperations = $arrDefaultDCA['list']['operations'];
+		
+		// reorder
+		if(count( deserialize($objCC->get('list_operations')) ) > 0)
+		{
+			$tmp = array();
+			foreach(deserialize($objCC->get('list_operations')) as $i => $key)
+			{
+				if(isset($arrOperations[$key]))
+				{
+					$tmp[$key] = $arrOperations[$key];
+				}
+			}
+			$arrOperations = $tmp;
+			unset($tmp);
+		}
 		
 		$arrButtons = array();
 		$i = 0;
-		foreach($arrDefaultDCA['list']['operations'] as $key => $button)
+		foreach($arrOperations as $key => $button)
 		{
 			if(in_array($key,$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']))
 			{
@@ -149,14 +194,25 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			}
 			
 			$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
-		
+			
+			// overwrite the jumpTo page when editing should be done on a different page
 			if($key == 'edit' && $objModule->customcatalog_edit_jumpTo > 0)
 			{
 				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_edit_jumpTo)->row() );
 			}
 			
+			// copy,cut button in mode 4,5,5.1 should call the paste button
+			if($key == 'copy' && in_array($objCC->get('list_mode'),array(4,5,'5.1')))
+			{
+				$button['href'] = 'act=paste&amp;mode=copy';
+			}
+			else if($key == 'cut' && in_array($objCC->get('list_mode'),array(4,5,'5.1')))
+			{
+				$button['href'] = 'act=paste&amp;mode=cut';
+			}
+			
 			$title = sprintf($button['label'][1],$objRow->id);
-			$href = $objFunction->addToUrl($button['href'].'&amp;do='.$strAlias.'&amp;table='.$objCC->getTable().'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
+			$href = $objFunction->addToUrl($button['href'].'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
 			// add the items parameter to the url
 			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			// add the request token
@@ -188,9 +244,50 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			// html
 			$button['html'] = sprintf('<a href="%s" title="%s" class="%s" %s>%s</a>',$href,$title,$class,$attributes,$linkText);
 			
+			// trigger the button callbacks
+			if(is_array($button['button_callback']))
+			{
+				$button['html'] = \System::importStatic($button['button_callback'][0])->{$button['button_callback'][1]}($objRow->row(),$href,$title,$icon,$attributes,$strTable);
+			}
+			
 			$arrButtons[$key] = $button;
 			
 			$i++;
+		}
+		
+		// append the clipboard buttons
+		if(\Input::get('act') == 'paste')
+		{
+			#		// neues element
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=create&mode=1&pid=204&id=1&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=16401839
+	
+		// cut
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=cut&mode=1&pid=136&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=0283e035
+	
+		// duplizieren
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=copy&mode=1&pid=204&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=ff7a70d8
+
+			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			
+			$arrClipboard = $arrSession[$strTable];
+			
+			$imagePasteAfter = \Image::getHtml('system/themes/default/images/pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
+			$imagePasteInto = \Image::getHtml('system/themes/default/images/pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
+			
+			$href = '';
+			if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $objRow->id)  || ($arrClipboard['mode'] == 'cutAll' && in_array($objRow->id, $arrClipboard['id'])) )
+			{
+				$html = \Image::getHtml('pasteafter_.gif');
+			}
+			else
+			{
+				$href = $objFunction->addToUrl('act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$objRow->id.(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
+				$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$imagePasteAfter.'</a>';
+			}
+			
+			$pasteAfter = array('html'=>$html,'href'=>$href,'class'=>'paste');
+			
+			array_insert($arrButtons,count($arrButtons),array('paste_after'=>$pasteAfter));
 		}
 		
 		// Hook: Modify buttons
@@ -214,6 +311,12 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	}
 	
 	
+	/**
+	 * General check if editing is allowed and/or active
+	 * @param string	Tablename
+	 * @param integer	A certain entry id that should be checked
+	 * @return boolean
+	 */
 	public static function isEditable($strTable='', $intId='')
 	{
 		// check if modes are active
@@ -222,10 +325,21 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			return false;
 		}
 		
+		// check if editing is allowed for all or in general for FE Users only
+		else if( isset($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll']) && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === false && !FE_USER_LOGGED_IN )
+		{
+			return false;
+		}
+		
 		return true;
 	}
 	
 	
+	/**
+	 * Generate the widget by an attribute
+	 * @param object	Attribute object
+	 * @return string	Html widget output
+	 */
 	public function generateWidgetByAttribute($objAttribute)
 	{
 		\FB::log($objAttribute);
@@ -245,19 +359,41 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			return;
 		}
 		
+		
 		// check request token 
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && ( !\Input::get('rt') == REQUEST_TOKEN || strlen(\Input::get('rt') < 1) ) )
+		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
 		{
 			header('HTTP/1.1 400 Bad Request');
 			die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
 		}
 		
-		$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
+		$strTable = \Input::get('table');
+		
+		// check if the table is allowed to be edited
+		if(!$this->isEditable($strTable))
+		{
+			return;
+		}
 		
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable])
 		{
-			$objSystem->loadCustomCatalog(\Input::get('table'),true);
+			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
+			
+			// fallback CC <= 1.4.14
+			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
+			{
+				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
+				
+				$objSystem->loadCustomCatalog($strTable,true);
+				
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
+			}
+			else
+			{
+				$objSystem->loadDCA($strTable);
+			}
 		}
 		
 		$objCC = CustomCatalogFactory::findCurrent();
@@ -267,7 +403,9 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			return;
 		}
 		
-		#$this->import('FrontendUser','User');
+		if(!defined(CURRENT_ID)) {define(CURRENT_ID, \Input::get('id'));}
+		
+		\System::importStatic('FrontendUser','User');
 		
 		$objUser = new \StdClass;
 		$objUser->id = 1;
@@ -292,5 +430,27 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 				\Controller::redirect( \Controller::getReferer() );
 			}
 		}
+
+		// set the clipboard session
+		if(\Input::get('act') == 'paste')
+		{
+			$objSession = \Session::getInstance();
+			$arrSession = $objSession->get('CLIPBOARD');
+			$arrSession[$strTable] = array
+			(
+				'id' 	=> \Input::get('id'),
+				'mode' 	=> \Input::get('mode'),
+			);
+			$objSession->set('CLIPBOARD',$arrSession);
+		}
+		
+		// neues element
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=create&mode=1&pid=204&id=1&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=16401839
+	
+		// cut
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=cut&mode=1&pid=136&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=0283e035
+	
+		// duplizieren
+		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=copy&mode=1&pid=204&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=ff7a70d8
 	}
 }
