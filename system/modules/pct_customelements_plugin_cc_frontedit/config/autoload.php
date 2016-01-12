@@ -34,15 +34,18 @@ ClassLoader::addClasses(array
 	'PCT\CustomCatalog\FrontEdit\CustomCatalog'								=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalog.php',
 	'PCT\CustomCatalog\FrontEdit\CustomCatalogFactory'						=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalogFactory.php',
 	'PCT\CustomCatalog\FrontEdit\AttributeCallbacks'						=> $path.'/PCT/CustomCatalog/FrontEdit/AttributeCallbacks.php',
+	'PCT\CustomCatalog\FrontEdit\Helper'									=> $path.'/PCT/CustomCatalog/FrontEdit/Helper.php',
 	
 	'PCT\CustomCatalog\FrontEdit\RowTemplate'								=> $path.'/PCT/CustomCatalog/FrontEdit/RowTemplate.php',
 	'PCT\CustomCatalog\FrontEdit\TemplateAttribute'							=> $path.'/PCT/CustomCatalog/FrontEdit/TemplateAttribute.php',
+	'PCT\CustomCatalog\FrontEdit\FrontendTemplate'							=> $path.'/PCT/CustomCatalog/FrontEdit/FrontendTemplate.php',
 	
 	// Models
 	'PCT\CustomElements\Models\FrontEditModel'								=> $path.'/PCT/CustomElements/Models/FrontEditModel.php',
 
 	// Frontend
 	'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEdit'		=> $path.'/PCT/CustomElements/Plugins/CustomCatalog/Frontend/ModuleFrontEdit.php',
+	'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEditList'		=> $path.'/PCT/CustomElements/Plugins/CustomCatalog/Frontend/ModuleFrontEditList.php',
 
 
 ));

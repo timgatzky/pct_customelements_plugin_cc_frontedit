@@ -23,6 +23,7 @@ namespace PCT\CustomCatalog;
  * Imports
  */
 use PCT\CustomCatalog\FrontEdit\CustomCatalogFactory as CustomCatalogFactory;
+use PCT\CustomCatalog\FrontEdit\Helper as Helper; // just a helper class for outsourcing code
 
 
 /**
@@ -130,6 +131,8 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objConfig = $this->getConfig();
 		
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
+		$objHelper = new Helper();
+		
 		$objCC = $objConfig->customcatalog;
 		$objModule = $objConfig->module;
 		$arrDefaultDCA = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getDefaultDataContainerArray();
@@ -258,37 +261,22 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		// append the clipboard buttons
 		if(\Input::get('act') == 'paste')
 		{
-			#		// neues element
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=create&mode=1&pid=204&id=1&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=16401839
-	
-		// cut
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=cut&mode=1&pid=136&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=0283e035
-	
-		// duplizieren
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=copy&mode=1&pid=204&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=ff7a70d8
-
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			array_insert($arrButtons,count($arrButtons),array('paste_after' => $objHelper->getPasteAfterButton($objRow->row(),$strTable) ));
 			
-			$arrClipboard = $arrSession[$strTable];
-			
-			$imagePasteAfter = \Image::getHtml('system/themes/default/images/pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-			$imagePasteInto = \Image::getHtml('system/themes/default/images/pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
-			
-			$href = '';
-			if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $objRow->id)  || ($arrClipboard['mode'] == 'cutAll' && in_array($objRow->id, $arrClipboard['id'])) )
+			if($objCC->get('list_mode') == 5)
 			{
-				$html = \Image::getHtml('pasteafter_.gif');
+				array_insert($arrButtons,count($arrButtons),array('paste_into'=> $objHelper->getPasteIntoButton($objRow->row(),$strTable) ));
 			}
-			else
-			{
-				$href = $objFunction->addToUrl('act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$objRow->id.(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
-				$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$imagePasteAfter.'</a>';
-			}
-			
-			$pasteAfter = array('html'=>$html,'href'=>$href,'class'=>'paste');
-			
-			array_insert($arrButtons,count($arrButtons),array('paste_after'=>$pasteAfter));
 		}
+		
+		// append the multiple select checkbox
+		if(\Input::get('act') == 'select')
+		{
+			$html = '<input id="ids_'.$objRow->id.'" class="tl_tree_checkbox checkbox" type="checkbox" value="'.$objRow->id.'" name="IDS[]">';
+			$select = array('html'=>$html,'class'=>'select');
+			array_insert($arrButtons,count($arrButtons),array('select'=>$select));
+		}
+		
 		
 		// Hook: Modify buttons
 		if (isset($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['getButtons']) && count($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['getButtons']) > 0)
@@ -320,9 +308,15 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	public static function isEditable($strTable='', $intId='')
 	{
 		// check if modes are active
-		if(!in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations']))
+		if(!in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']) && !\Input::get('clear_clipboard'))
 		{
 			return false;
+		}
+		
+		// clearing the clipboard is allowed
+		else if(strlen($strTable) > 0 && \Input::get('clear_clipboard') != '')
+		{
+			return true;
 		}
 		
 		// check if editing is allowed for all or in general for FE Users only
@@ -347,18 +341,47 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	
 	
 	/**
+	 * Generates a button and returns the html anchor element
+	 * @param string
+	 * @param string	Optional the table name
+	 * @param integer	Optional an entry id
+	 * @return string
+	 */
+	public function generateButton($strButton,$strTable='',$intId=0)
+	{
+		$objConfig = $this->getConfig();
+				
+		switch($strButton)
+		{
+			case 'new':
+			case 'new_element':
+				
+				break;
+			case 'editAll':
+			case 'edit_all':
+				break;
+				
+			default:
+				return '';
+				break;
+		}
+		
+		return '';
+	}
+	
+	
+	/**
 	 * POST and GET action listener
 	 * Apply operations
 	 * called from generatePage Hook
 	 */
 	public function applyOperationsOnGeneratePage($objPage)
 	{
-		// check in general if editing is active and allowed
+		// check if the table is allowed to be edited
 		if(!$this->isEditable())
 		{
 			return;
 		}
-		
 		
 		// check request token 
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
@@ -367,7 +390,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
 		}
 		
-		$strTable = \Input::get('table');
+		$strTable = \Input::get('table') ?: \Input::get('do');
 		
 		// check if the table is allowed to be edited
 		if(!$this->isEditable($strTable))
@@ -402,7 +425,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		{
 			return;
 		}
-		
+			
 		if(!defined(CURRENT_ID)) {define(CURRENT_ID, \Input::get('id'));}
 		
 		\System::importStatic('FrontendUser','User');
@@ -413,16 +436,28 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
-				
-		// DELETE
+		
+		// CREATE
+		$blnDoNotSwitchToEdit = true;
+		if(\Input::get('act') == 'create')
+		{
+			$objDC->create();
+			if($blnDoNotSwitchToEdit)
+			{
+				\Controller::redirect( \Controller::getReferer() );
+			}
+		}
+		
+		$blnDoNotSwitchToEdit = true;
+		
+		// !DELETE
 		if(\Input::get('act') == 'delete')
 		{
 			$objDC->delete();
 		}
 		
-		// COPY
-		$blnDoNotSwitchToEdit = true;
-		if(\Input::get('act') == 'copy')
+		// !COPY
+		else if(\Input::get('act') == 'copy')
 		{
 			$objDC->copy($blnDoNotSwitchToEdit);
 			if($blnDoNotSwitchToEdit)
@@ -430,27 +465,44 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 				\Controller::redirect( \Controller::getReferer() );
 			}
 		}
-
-		// set the clipboard session
-		if(\Input::get('act') == 'paste')
+		
+		// !PASTE set the clipboard session
+		else if(\Input::get('act') == 'paste')
 		{
+			$reload = false;
 			$objSession = \Session::getInstance();
 			$arrSession = $objSession->get('CLIPBOARD');
+			
+			if(count($arrSession[$strTable]) < 1)
+			{
+				$reload = true;
+			}
+			
 			$arrSession[$strTable] = array
 			(
 				'id' 	=> \Input::get('id'),
 				'mode' 	=> \Input::get('mode'),
 			);
+			
 			$objSession->set('CLIPBOARD',$arrSession);
+			
+			if($reload)
+			{
+				\Controller::reload();
+			}
 		}
 		
-		// neues element
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=create&mode=1&pid=204&id=1&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=16401839
-	
-		// cut
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=cut&mode=1&pid=136&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=0283e035
-	
-		// duplizieren
-		#http://dev.contao3-5:8888/contao/main.php?do=article&table=tl_content&act=copy&mode=1&pid=204&id=204&rt=ac0757d27b9cdd495f5e2bd9443d2c2f&ref=ff7a70d8
+		// !CLIPBOARD clear
+		if(strlen($strTable) > 0 && \Input::get('clear_clipboard'))
+		{
+			$objSession = \Session::getInstance();
+			$arrSession = $objSession->get('CLIPBOARD');
+			
+			$arrSession[$strTable] = array();
+			
+			$objSession->set('CLIPBOARD',$arrSession);
+			
+			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+		}
 	}
 }

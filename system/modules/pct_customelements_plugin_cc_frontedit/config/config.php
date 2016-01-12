@@ -23,7 +23,7 @@ define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.0.0');
 /**
  * Globals
  */
-$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations'] 	= array('edit','delete','copy','show','paste');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations'] 	= array('edit','delete','copy','show','paste','select','create');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']		= array('show');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] = true;
 
@@ -54,7 +54,9 @@ if($blnInitialize)
 	/**
 	 * Front end modules
 	 */
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogfrontedit'] = 'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEdit';
+	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogfrontedit'] 	= 'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEdit';
+	// new customcataloglist class
+	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEditList';
 }
 
 
@@ -65,6 +67,11 @@ if($blnInitialize)
 {
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\TemplateAttribute','__override');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\RowTemplate','__override');
+	#$GLOBALS['CUSTOMCATALOG_HOOKS']['renderCatalog'][] 		= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate','__override');
+	#$GLOBALS['TL_HOOKS']['getFrontendModule'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'overrideByModule');
+	#$GLOBALS['TL_HOOKS']['getContentElement'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'overrideByContentElement');
+	#$GLOBALS['TL_HOOKS']['parseTemplate'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'parseTemplateCallback');
+
 	#$GLOBALS['CUSTOMELEMENTS_HOOKS']['prepareRendering'][]  = array('PCT\CustomCatalog\FrontEdit\Attribute','renderCallback');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit','applyOperationsOnGeneratePage');
 }

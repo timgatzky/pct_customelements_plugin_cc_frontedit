@@ -4,6 +4,15 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
+<ul class="global_edit_header tl_buttons">
+<?php if(!$this->clipboard) :?>
+<li class="new"><?= $this->newElementButton(); ?></li>
+<li class="edit_all"><?= $this->editAllButton(); ?></li>
+<?php else: ?>
+<li class="clear_clipboard"><?= $this->clearClipboardButton(); ?></li>
+<?php endif; ?>
+</ul>
+
 <!-- indexer::stop -->
 <div class="<?php echo $this->formClass; ?> <?php echo $this->tableless ? 'tableless' : 'tableform'; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
 
@@ -16,8 +25,14 @@
 		<?php echo $this->customcatalog; ?>
 		
 		<?php if($this->hasSave): ?>
-		<div class="widget submit_container submit">
+		<div class="widget submit_container submit save">
 		<?php echo $this->saveSubmit; ?>
+		</div>
+		<?php endif;?>
+		
+		<?php if($this->hasDelete): ?>
+		<div class="widget submit_container submit delete">
+		<?php echo $this->deleteSubmit; ?>
 		</div>
 		<?php endif;?>
       
