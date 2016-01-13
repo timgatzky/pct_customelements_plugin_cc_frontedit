@@ -71,6 +71,12 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			$this->Template->clipboard = true;
 		}
 		
+		// check if select mode is active
+		if(\Input::get('act') == 'select')
+		{
+			$this->Template->selectMode = true;
+		}
+		
 		// form vars
 		$formName = 'cc_frontedit_'.$this->id;
 		
@@ -86,7 +92,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		);
 		$objSaveSubmit = new \FormSubmit($arr);
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
-		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['label_save'] ?: 'Save';
+		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
 		
 		// delete button
 		$this->Template->hasDelete = true;
@@ -101,9 +107,53 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			'onclick' => "return confirm('".$GLOBALS['TL_LANG']['MSC']['delAllConfirm']."');"
 		);
 		$objDeleteSubmit = new \FormSubmit($arr);
-		$objDeleteSubmit->__set('name','delete');
 		$this->Template->deleteSubmit = $objDeleteSubmit->parse();
-		$this->Template->deleteLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['label_delete'] ?: 'Delete';
+		$this->Template->deleteLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete'] ?: 'Delete';
+		
+		// copy button
+		$this->Template->hasCopy = true;
+		$arr = array
+		(
+			'id'	=> $formName.'_copy',
+			'name'	=> 'copy',
+			'strName'	=> 'copy',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'copy',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'Copy',
+			'class' => 'submit',
+		);
+		$objCopySubmit = new \FormSubmit($arr);
+		$this->Template->copySubmit = $objCopySubmit->parse();
+		$this->Template->copyLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'Copy';
+		
+		// edit/editall button
+		$this->Template->hasEdit = true;
+		$arr = array
+		(
+			'id'	=> $formName.'_edit',
+			'name'	=> 'edit',
+			'strName'	=> 'edit',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'edit',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'Edit',
+			'class' => 'submit',
+		);
+		$objEditSubmit = new \FormSubmit($arr);
+		$this->Template->editSubmit = $objEditSubmit->parse();
+		$this->Template->editLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'Edit';
+		
+		// override button
+		$this->Template->hasOverride = true;
+		$arr = array
+		(
+			'id'	=> $formName.'_override',
+			'name'	=> 'override',
+			'strName'	=> 'override',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'override',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'Override',
+			'class' => 'submit',
+		);
+		$objEditSubmit = new \FormSubmit($arr);
+		$this->Template->overrideSubmit = $objEditSubmit->parse();
+		$this->Template->overrideLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'Override';
 		
 		// hidden fields
 		$arrHidden = array
@@ -149,7 +199,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			$arrSession['CURRENT']['IDS'] = $arrIds;
 			$objSession->setData($arrSession);
 			
-			// DELETE
+			// DELETE selected
 			if(isset($_POST[$objDeleteSubmit->__get('name')]))
 			{
 				foreach ($arrIds as $id)
@@ -159,8 +209,21 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 				}
 				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 			}
-			
-			throw new \Exception('--- STOP ---');
+			else if(isset($_POST[$objCopySubmit->__get('name')]))
+			{
+				// shop paste button
+				if(in_array($objCC->get('list_mode'), array(4,5,'5.1')))
+				{
+					$url = \Environment::get('request');
+					$objFunction = new \PCT\CustomElements\Helper\Functions;
+					
+					// redirect to paste
+					\Controller::redirect( $objFunction->addToUrl('act=paste&mode=copyAll', \Environment::get('request')) );
+				}
+				
+				
+				#$objDC->copyAll();
+			}
 		}
 		
 		

@@ -465,26 +465,56 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 				\Controller::redirect( \Controller::getReferer() );
 			}
 		}
+		// !COPY ALL
+		else if(\Input::get('act') == 'copyAll')
+		{
+			#$objDC->copyAll();
+			$arrClipboard = \Session::getInstance()->get('CLIPBOARD');
+
+			if (is_array($arrClipboard[$strTable]['id']))
+			{
+				foreach($arrClipboard[$strTable]['id'] as $id)
+				{
+					$objDC->intId = $id;
+					$id = $objDC->copy(true);
+					\Input::setGet('pid', $id);
+					\Input::setGet('mode', 1);
+				}
+			}
+						
+			if($blnDoNotSwitchToEdit)
+			{
+				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+			}
+		}
 		
 		// !PASTE set the clipboard session
 		else if(\Input::get('act') == 'paste')
 		{
 			$reload = false;
 			$objSession = \Session::getInstance();
-			$arrSession = $objSession->get('CLIPBOARD');
+			$arrClipboard = $objSession->get('CLIPBOARD');
 			
-			if(count($arrSession[$strTable]) < 1)
+			if(count($arrClipboard[$strTable]) < 1)
 			{
 				$reload = true;
 			}
 			
-			$arrSession[$strTable] = array
+			$ids = \Input::get('id');
+			
+			$arrCurrent = $objSession->get('CURRENT');
+			if(count($arrCurrent['IDS']) > 0 && is_array($arrCurrent['IDS']))
+			{
+				$ids = $arrCurrent['IDS'];
+			}
+			
+			$arrClipboard[$strTable] = array
 			(
-				'id' 	=> \Input::get('id'),
+				'id' 	=> $ids,
 				'mode' 	=> \Input::get('mode'),
 			);
 			
-			$objSession->set('CLIPBOARD',$arrSession);
+			$objSession->set('CLIPBOARD',$arrClipboard);
 			
 			if($reload)
 			{

@@ -6,10 +6,10 @@
 
 <ul class="global_edit_header tl_buttons">
 <?php if(!$this->clipboard) :?>
-<li class="new"><?= $this->newElementButton(); ?></li>
-<li class="edit_all"><?= $this->editAllButton(); ?></li>
+<li class="new"><?php echo $this->newElementButton(); ?></li>
+<li class="edit_all"><?php echo $this->editAllButton(); ?></li>
 <?php else: ?>
-<li class="clear_clipboard"><?= $this->clearClipboardButton(); ?></li>
+<li class="clear_clipboard"><?php echo $this->clearClipboardButton(); ?></li>
 <?php endif; ?>
 </ul>
 
@@ -24,18 +24,31 @@
 	  
 		<?php echo $this->customcatalog; ?>
 		
-		<?php if($this->hasSave): ?>
-		<div class="widget submit_container submit save">
-		<?php echo $this->saveSubmit; ?>
-		</div>
-		<?php endif;?>
-		
-		<?php if($this->hasDelete): ?>
-		<div class="widget submit_container submit delete">
-		<?php echo $this->deleteSubmit; ?>
-		</div>
-		<?php endif;?>
-      
+		<?php if($this->selectMode): ?>
+		<ul class="tl_submits">
+			
+			<?php if($this->hasSave): ?>
+			<li class="save"><div class="widget submit_container submit"><?php echo $this->saveSubmit; ?></div></li>
+			<?php endif;?>
+			
+			<?php if($this->hasDelete): ?>
+			<li class="delete"><div class="widget submit_container submit"><?php echo $this->deleteSubmit; ?></div></li>
+			<?php endif;?>
+			
+			<?php if($this->hasCopy): ?>
+			<li class="copy"><div class="widget submit_container submit"><?php echo $this->copySubmit; ?></div></li>
+			<?php endif;?>
+			
+			<?php if($this->hasOverride): ?>
+			<li class="override"><div class="widget submit_container submit override"><?php echo $this->overrideSubmit; ?></div></li>
+			<?php endif;?>
+			
+			<?php if($this->hasEdit): ?>
+			<li class="edit"><div class="widget submit_container submit edit"><?php echo $this->editSubmit; ?></div></li>
+			<?php endif;?>
+			
+		</ul>
+		<?php endif; ?>
     </div>
   </form>
 

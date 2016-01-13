@@ -21,13 +21,8 @@ $GLOBALS['TL_LANG']['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array('Cu
 /**
  * Frontend texts
  */
-#$GLOBALS['TL_LANG']['customelements_notelist']['submitLabel'] 			= 'Auf Merkliste';
-#$GLOBALS['TL_LANG']['customelements_notelist']['amountLabel'] 			= 'Menge';
-#$GLOBALS['TL_LANG']['customelements_notelist']['removeLabel'] 			= 'Entfernen';
-#$GLOBALS['TL_LANG']['customelements_notelist']['updateLabel'] 			= 'Aktualisieren';
-#$GLOBALS['TL_LANG']['customelements_notelist']['emptyLabel'] 			= '-';
-#$GLOBALS['TL_LANG']['customelements_notelist']['emptyInfo'] 			= 'Ihre Merkliste ist leer.';
-#$GLOBALS['TL_LANG']['customelements_notelist']['pleaseSelect'] 			= 'Bitte wählen Sie';
-#$GLOBALS['TL_LANG']['customelements_notelist']['itemAdded'] 			= 'Der Eintrag wurde auf die Merkliste gelegt.';
-#$GLOBALS['TL_LANG']['customelements_notelist']['itemUpdated'] 			= 'Der Eintrag wurde aktualisiert.';
-#$GLOBALS['TL_LANG']['customelements_notelist']['blankOption'] 			= '-';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save']	 = 'Speichern';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete']	 = 'Löschen';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit']	 = 'Bearbeiten';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] = 'Überschreiben';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy']	 = 'Kopieren';
