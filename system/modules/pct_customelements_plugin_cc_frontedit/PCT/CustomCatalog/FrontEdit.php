@@ -90,6 +90,10 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	}
 	
 	
+	/**
+	 * Return the current config object
+	 * @return object|null
+	 */
 	public function getConfig()
 	{
 		return $this->get('objConfig');
@@ -336,6 +340,9 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	 */
 	public function generateWidgetByAttribute($objAttribute)
 	{
+		
+		
+		
 		\FB::log($objAttribute);
 	}
 	
@@ -367,6 +374,35 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		}
 		
 		return '';
+	}
+	
+	
+	public function formActionListener()
+	{
+		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
+		
+		$strTable = \Input::get('table');
+		
+		
+		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
+		{
+			$objFunction = new \PCT\CustomElements\Helper\Functions;
+			$strJumpTo = \PageModel::findByPk(\Input::get('jumpto'))->row();
+			$parse = parse_url(\Environment::get('request'));
+			$redirect = $objFunction->addToUrl($parse['query'].'&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
+			// add the items parameter to the url
+			if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
+			{
+				$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
+			}	
+			// remove session
+			unset($arrSession[$strTable]);
+			
+			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			
+			// redirect to edit page
+			\Controller::redirect($redirect);
+		}
 	}
 	
 	
@@ -437,15 +473,12 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
 		
+		
+		
 		// CREATE
-		$blnDoNotSwitchToEdit = true;
 		if(\Input::get('act') == 'create')
 		{
 			$objDC->create();
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::getReferer() );
-			}
 		}
 		
 		$blnDoNotSwitchToEdit = true;
@@ -510,11 +543,14 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			
 			$arrClipboard[$strTable] = array
 			(
-				'id' 	=> $ids,
-				'mode' 	=> \Input::get('mode'),
+				'id' 		=> $ids,
+				'mode' 		=> \Input::get('mode'),
 			);
 			
 			$objSession->set('CLIPBOARD',$arrClipboard);
+			
+			// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
+			$objSession->set('CLIPBOARD_HELPER',$arrClipboard);
 			
 			if($reload)
 			{

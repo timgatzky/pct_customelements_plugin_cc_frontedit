@@ -26,6 +26,7 @@ define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.0.0');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations'] 	= array('edit','delete','copy','copyAll','show','paste','select','create');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']		= array('show');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] = true;
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditMode'] = true;
 
 /**
  * Register plugin
@@ -71,7 +72,7 @@ if($blnInitialize)
 	#$GLOBALS['TL_HOOKS']['getFrontendModule'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'overrideByModule');
 	#$GLOBALS['TL_HOOKS']['getContentElement'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'overrideByContentElement');
 	#$GLOBALS['TL_HOOKS']['parseTemplate'][] 			= array('PCT\CustomCatalog\FrontEdit\FrontendTemplate', 'parseTemplateCallback');
-
 	#$GLOBALS['CUSTOMELEMENTS_HOOKS']['prepareRendering'][]  = array('PCT\CustomCatalog\FrontEdit\Attribute','renderCallback');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit','applyOperationsOnGeneratePage');
+	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit','formActionListener');
 }

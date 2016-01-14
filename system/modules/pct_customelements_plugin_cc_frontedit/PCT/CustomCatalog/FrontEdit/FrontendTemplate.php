@@ -34,53 +34,6 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		return parent::__construct($strTemplate);
 	}
 	
-#	public function parseTemplateCallback($objTemplate)
-#	{
-#		if($objTemplate->type == 'customcataloglist')
-#		{
-#			\FB::log($this);
-#			\FB::log($objTemplate);
-#		}
-#	}
-#	
-#	public function overrideByContentElement($objRow,$strBuffer,$objElement)
-#	{
-#		if(TL_MODE == 'FE' && $objRow->type == 'module' && \ModuleModel::findByPk($objRow->module)->type == 'customcataloglist')
-#		{
-#			\FB::log(\ModuleModel::findByPk($objRow->module)->id);
-#			$objNew = new \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleList($objRow);
-#			\FB::log('-----------');
-#			$objNew->generate();
-#			\FB::log($objNew->Template);
-#			
-#			$objNew->Template = new self();
-#			
-#			$strBuffer = $objNew->Template->parse();
-#		}
-#		
-#		return $strBuffer;
-#	}
-#	
-#	public function __overrideTemplate($objRow,$strBuffer,$objElement)
-#	{
-#		if($objRow->type == 'customcataloglist')
-#		{
-#			$objNewTemplate = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($objTemplate->strTemplate);
-#			$objNewTemplate->getData($objTemplate->getData());
-#			
-#			foreach($objTemplate as $key => $val) 
-#			{
-#	            $objNewTemplate->{$key} = $val;
-#	        }
-#	        
-#	        #\FB::log($this);
-#	        
-#	        return $this;
-#		}
-#		
-#	}
-	
-	
 	/**
 	 * Generate the global new element button
 	 * @return string
@@ -89,6 +42,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	{
 		global $objPage;
 		$objCC = $this->getCustomCatalog();
+		
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
 		$strAlias = $objCC->getCustomElement()->get('alias');
@@ -96,6 +50,12 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		
 		$image = \Image::getHtml('new.gif',$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0]);
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable,\Controller::generateFrontendUrl($objPage->row()));
+		
+		// add the edit jump to page id to the url
+		if($objCC->getOrigin()->customcatalog_edit_jumpTo)
+		{
+			$href = $objFunction->addToUrl('jumpto='.$objCC->getOrigin()->customcatalog_edit_jumpTo,$href);
+		}
 		
 		if(in_array($objCC->get('list_mode'),array(4,5,'5.1')))
 		{

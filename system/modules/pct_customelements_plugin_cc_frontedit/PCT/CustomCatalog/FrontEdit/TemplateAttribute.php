@@ -62,43 +62,84 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 	
 	/**
-	 * Generates the formular widget
+	 * Generates the widget
+	 * @return string
 	 */
 	public function widget()
 	{
+		if(strlen($this->widget) > 0)
+		{
+			return $this->widget;
+		}
+		
+		// return when edit mode is not active
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditMode'] && !in_array(\Input::get('act'), array('edit','editAll','overrideAll')))
+		{
+			return '';
+		}
+		
 		$objAttribute = $this->attribute();
 		if($objAttribute === null)
 		{
-			return $strBuffer;
+			return '';
 		}
 		
+		$strBuffer = '';
+		
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
+		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
 		$objDC->id = \Input::get('id');
 		$objDC->field = $objAttribute->get('alias');
 		$objDC->activeRecord = $objAttribute->getActiveRecord();
 		
-		if(!\PCT\CustomCatalog\FrontEdit::isEditable($objDC->table,$objDC->id))
+		// get the attributes field definition
+		$arrFieldDef = $objAttribute->getFieldDefinition();
+		
+		$strInputType = $arrFieldDef['inputType'] ?: $objAttribute->get('type');
+		
+		$strLabel = $objAttribute->get('title');
+		if(is_array($objAttribute->getTranslatedLabel()) && count($objAttribute->getTranslatedLabel()))
 		{
-			return $strBuffer;
+			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
-		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
+		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
+		{
+			// create the widget
+			$strClass = $GLOBALS['BE_FFL'][$arrFieldDef['inputType']];
+			
+			$arrAttributes = $strClass::getAttributesFromDca($arrFieldDef,$objDC->field,$objDC->value,$objDC->field,$objDC->table,$objDC);
 		
-		$objActiveRecord = $objAttribute->getActiveRecord();
+			$objWidget = new $strClass($arrAttributes);
+			$objWidget->__set('activeRecord',$objActiveRecord);
+			
+			// trigger the attributes parseWidgetCallback
+			if(method_exists($objAttribute,'parseWidgetCallback'))
+			{
+				$strBuffer = $this->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+			}
+			else
+			{	
+				$strBuffer = $objWidget->generateLabel();
+				$strBuffer .= $objWidget->generateWithError();
+			}
+		}
+		// HOOK let attribute generate their own widgets
+		else if(method_exists($objAttribute,'generateFrontendWidget'))
+		{
+			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
+		}
 		
-		$objOrigin = \PCT\CustomElements\Core\Origin::getInstance();
-		$objOrigin->set('intPid',$objActiveRecord->id);
-		$objOrigin->set('strTable',$objDC->table);
+		// trigger CEs parseWidget HOOk
+		$strBufferFromHook = \PCT\CustomElements\Core\Hooks::callstatic('parseWidgetHook',array($objWidget,$objDC->field,$arrFieldDef,$objDC));
+		if(strlen($strBufferFromHook))
+		{
+			$strBuffer = $strBufferFromHook;
+		}		
 		
-		$objAttribute->setOrigin($objOrigin);
-		$objAttribute->setValue($this->value());
-		
-		// generate the widget. Calls the CE parseWidget Hook
-		$strWidget = $objAttribute->generateWidget($objDC);
-		
-		// append output with the editing widget
-		$strBuffer .= '<div class="frontedit_widget widget">'.$strWidget.'</div>';
+		// cache
+		$this->widget = $strBuffer;
 		
 		return $strBuffer;
 

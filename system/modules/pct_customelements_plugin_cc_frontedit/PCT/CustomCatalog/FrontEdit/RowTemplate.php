@@ -74,7 +74,7 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	 * @param string		The output template
 	 * @return string
 	 */
-	public function editButtons($strTemplate='buttons')
+	public function buttons($strTemplate='buttons')
 	{
 		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
 		
@@ -87,22 +87,4 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		
 		return $objTemplate->parse();
 	}
-	
-	
-	/**
-	 * Create the new element button
-	 */
-	public function newButton()
-	{
-		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
-		
-		// config object
-		$objConfig = new \StdClass;
-		$objConfig->customcatalog = $this->getCustomCatalog();
-		$objConfig->activeRecord = $this->get('objActiveRecord');
-		
-		return $objFrontEdit->generateButton('global_new');
-	}
-	
-	
 }

@@ -24,7 +24,7 @@
 	  
 		<?php echo $this->customcatalog; ?>
 		
-		<?php if($this->selectMode): ?>
+		<?php if($this->selectMode || $this->editMode): ?>
 		<ul class="tl_submits">
 			
 			<?php if($this->hasSave): ?>

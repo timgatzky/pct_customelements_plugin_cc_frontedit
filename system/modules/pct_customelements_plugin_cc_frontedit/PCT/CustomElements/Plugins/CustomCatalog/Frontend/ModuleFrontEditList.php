@@ -65,7 +65,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
         }
         
         // check if clipboard is active
-		$arrClipboard = \Session::getInstance()->get('CLIPBOARD');
+		$arrClipboard = $this->Session->get('CLIPBOARD');
 		if(count($arrClipboard[$objCC->getTable()]) > 0 || \Input::get('act') == 'select')
 		{
 			$this->Template->clipboard = true;
@@ -80,7 +80,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		// form vars
 		$formName = 'cc_frontedit_'.$this->id;
 		
-		// save button
+		//-- save button
 		$this->Template->hasSave = true;
 		$arr = array(
 			'id'	=> $formName.'_save',
@@ -94,7 +94,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
 		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
 		
-		// delete button
+		//-- delete button
 		$this->Template->hasDelete = true;
 		$arr = array
 		(
@@ -110,7 +110,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		$this->Template->deleteSubmit = $objDeleteSubmit->parse();
 		$this->Template->deleteLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete'] ?: 'Delete';
 		
-		// copy button
+		//-- copy button
 		$this->Template->hasCopy = true;
 		$arr = array
 		(
@@ -125,7 +125,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		$this->Template->copySubmit = $objCopySubmit->parse();
 		$this->Template->copyLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'Copy';
 		
-		// edit/editall button
+		//-- edit/editall button
 		$this->Template->hasEdit = true;
 		$arr = array
 		(
@@ -140,7 +140,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 		$this->Template->editSubmit = $objEditSubmit->parse();
 		$this->Template->editLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'Edit';
 		
-		// override button
+		//-- override button
 		$this->Template->hasOverride = true;
 		$arr = array
 		(
@@ -194,8 +194,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
 			$objDC->User = $objUser;
 			
-			$objSession = \Session::getInstance();
-			$arrSession = $objSession->getData();
+			$arrSession = $this->Session->getData();
 			$arrSession['CURRENT']['IDS'] = $arrIds;
 			$objSession->setData($arrSession);
 			
@@ -211,7 +210,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			}
 			else if(isset($_POST[$objCopySubmit->__get('name')]))
 			{
-				// shop paste button
+				// show paste button
 				if(in_array($objCC->get('list_mode'), array(4,5,'5.1')))
 				{
 					$url = \Environment::get('request');
@@ -220,9 +219,6 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 					// redirect to paste
 					\Controller::redirect( $objFunction->addToUrl('act=paste&mode=copyAll', \Environment::get('request')) );
 				}
-				
-				
-				#$objDC->copyAll();
 			}
 		}
 		
@@ -233,7 +229,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 	protected function isEditable()
 	{
 		// check if edit modes are active
-		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations']))
+		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']))
 		{
 			return false;
 		}

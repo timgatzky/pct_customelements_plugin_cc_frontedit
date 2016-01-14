@@ -82,7 +82,9 @@ class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend
 	{
 		parent::compile();
 		
+		global $objPage;
 		$objCC = $this->CustomCatalog;
+		
 		if(!$objCC)
 		{
 			global $objPage;
@@ -95,20 +97,36 @@ class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend
 			return '';
 		}
 		
+		$objOrigTemplate = $this->Template;
+		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
+		$this->Template->setData($objOrigTemplate->getData());
+		$this->Template->raw = $objCC;
+		foreach($objOrigTemplate as $key => $val) 
+		{
+            $this->Template->{$key} = $val;
+        }
+        
+        if( in_array(\Input::get('act'), array('edit','editAll','overrideAll')) )
+		{
+			$this->Template->editMode = true;
+		}
+		
 		// form vars
 		$formName = 'cc_frontedit_'.$this->id;
 		
-		// save button
+		//-- save button
 		$this->Template->hasSave = true;
-			
-		$objSubmit = new \FormSubmit();
-		$objSubmit->__set('id', $formName.'_save');
-		$objSubmit->__set('name', 'save');
-		$objSubmit->__set('value', $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'save');
-		$objSubmit->__set('label', $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save');
-		$objSubmit->__set('class','submit');
-		$this->Template->saveSubmit = $objSubmit->generateWithError();
-		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['label_save'] ?: 'Save';
+		$arr = array(
+			'id'	=> $formName.'_save',
+			'name'	=> 'save', 
+			'strName' => 'save',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'save',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save',
+			'class' => 'submit'
+		);
+		$objSaveSubmit = new \FormSubmit($arr);
+		$this->Template->saveSubmit = $objSaveSubmit->parse();
+		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
 		
 		// hidden fields
 		$arrHidden = array
@@ -134,16 +152,50 @@ class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend
 		$this->Template->hidden = $strHidden;
 		
 		//-- handle form actions
-		
-		
-		
+		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable())
+		{
+			if($_POST[$objSaveSubmit->__get('name')])
+			{
+				// validate
+				if(\Input::get('act') == 'edit' && \Input::get('id') != \Input::post('id'))
+				{
+					\Controller::reload();
+				}
+				
+				$arrAttributes = $objCC->getCustomElement()->getAttributes();
+				if(count($arrAttributes) < 1)
+				{
+					\Controller::reload();
+				}
+				
+				$time = time();
+				
+				$arrSet = array('tstamp'=>$time);
+				
+				foreach($arrAttributes as $objAttribute)
+				{
+					$field = $objAttribute->get('alias');
+					if(isset($_POST[$field]))
+					{
+						$value = \Input::post($field);
+					}
+					$arrSet[$field] = $value;
+				}
+				
+				// update the record
+				$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($arrSet)->execute(\Input::get('id'));
+				
+				// reload the page so changes take effect immediately
+				\Controller::reload();
+			}
+		}
 	}
 
 
 	protected function isEditable()
 	{
 		// check if edit modes are active
-		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultOperations']))
+		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']))
 		{
 			return false;
 		}
