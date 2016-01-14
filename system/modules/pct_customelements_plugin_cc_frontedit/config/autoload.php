@@ -33,7 +33,7 @@ ClassLoader::addClasses(array
 	'PCT\CustomCatalog\FrontEdit'											=> $path.'/PCT/CustomCatalog/FrontEdit.php',
 	'PCT\CustomCatalog\FrontEdit\CustomCatalog'								=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalog.php',
 	'PCT\CustomCatalog\FrontEdit\CustomCatalogFactory'						=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalogFactory.php',
-	'PCT\CustomCatalog\FrontEdit\AttributeCallbacks'						=> $path.'/PCT/CustomCatalog/FrontEdit/AttributeCallbacks.php',
+	'PCT\CustomCatalog\FrontEdit\Callbacks'									=> $path.'/PCT/CustomCatalog/FrontEdit/Callbacks.php',
 	'PCT\CustomCatalog\FrontEdit\Helper'									=> $path.'/PCT/CustomCatalog/FrontEdit/Helper.php',
 	
 	'PCT\CustomCatalog\FrontEdit\RowTemplate'								=> $path.'/PCT/CustomCatalog/FrontEdit/RowTemplate.php',

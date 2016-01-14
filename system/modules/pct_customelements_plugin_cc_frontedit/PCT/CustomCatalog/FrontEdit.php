@@ -377,16 +377,16 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	}
 	
 	
-	public function formActionListener()
+	public function switchToEditOnCreate()
 	{
 		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
 		
 		$strTable = \Input::get('table');
 		
-		
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
-			$objFunction = new \PCT\CustomElements\Helper\Functions;
+			$GLOBALS['TL_DCA'][$strTable]['config']['oncreate_callback'][] = array('asdf','asdf');
+ 			$objFunction = new \PCT\CustomElements\Helper\Functions;
 			$strJumpTo = \PageModel::findByPk(\Input::get('jumpto'))->row();
 			$parse = parse_url(\Environment::get('request'));
 			$redirect = $objFunction->addToUrl($parse['query'].'&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
@@ -395,8 +395,10 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			{
 				$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
 			}	
+			
 			// remove session
-			unset($arrSession[$strTable]);
+			$arrSession[$strTable]['mode'] = 'oncreate';
+			$arrSession[$strTable]['ref'] = \Controller::getReferer();
 			
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
 			

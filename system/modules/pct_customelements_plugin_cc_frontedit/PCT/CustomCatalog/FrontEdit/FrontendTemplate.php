@@ -114,17 +114,24 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	{
 		global $objPage;
 		
+		$objCC = $this->getCustomCatalog();
+		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
+		$strAlias = $objCC->getCustomElement()->get('alias');
+		$strTable = $objCC->getTable();
+		
+		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
+		
 		// generate back button
 		if(\Input::get('act') == 'select')
 		{
 			return $this->backButton();
 		}
+		// coming from create event
+		else if(\Input::get('act') == 'edit' && $arrSession[$strTable]['mode'] == 'oncreate')
+		{
+			return $this->backButton(true,true);
+		}
 		
-		$objCC = $this->getCustomCatalog();
-		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
-		
-		$strAlias = $objCC->getCustomElement()->get('alias');
-		$strTable = $objCC->getTable();
 		
 		$image = \Image::getHtml('clipboard.gif',$GLOBALS['TL_LANG']['MSC']['clearClipboard']);
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',\Controller::generateFrontendUrl($objPage->row()));
@@ -164,7 +171,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	 * @param boolean	Go back to referer or reload
 	 * @return string
 	 */
-	public function backButton($blnGoToReferer=false)
+	public function backButton($blnGoToReferer=false,$blnClearClipboard=false)
 	{
 		global $objPage;
 		$image = \Image::getHtml('back.gif',$GLOBALS['TL_LANG']['MSC']['goBack']);
@@ -172,6 +179,18 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$linkText = $image.$GLOBALS['TL_LANG']['MSC']['goBack'];
 		$class = 'header_back';
 		$href = ( $blnGoToReferer ? \Controller::getReferer() : \Controller::generateFrontendUrl($objPage->row()) );
+		
+		if($blnClearClipboard)
+		{
+			// remove parameters from url
+			foreach(array('act','jumpto','mode') as $v)
+			{
+				$href = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$href);
+			}
+			// add the clear clipboard parameter
+			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$href);
+		}
+		
 		return sprintf('<a href="%s", class="%s" title="%s">%s</a>',$href,$class,$title,$linkText);
 	}
 }

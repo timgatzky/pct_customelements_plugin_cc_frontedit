@@ -109,6 +109,7 @@ class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend
         if( in_array(\Input::get('act'), array('edit','editAll','overrideAll')) )
 		{
 			$this->Template->editMode = true;
+			$this->Template->clipboard = true;
 		}
 		
 		// form vars
@@ -150,6 +151,21 @@ class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend
 		$this->Template->tableless = true;
 		$this->Template->formClass = 'filterform';
 		$this->Template->hidden = $strHidden;
+		
+		// rewrite the module back link
+		if(\Input::get('act') == 'edit')
+		{
+			// remove parameters from url
+			$href = \Controller::getReferer();
+			foreach(array('act','jumpto','mode') as $v)
+			{
+				$href = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$href);
+			}
+			// add the clear clipboard parameter
+			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$href);
+			\Environment::set('httpReferer',$href);
+			$this->Template->referer = \Environment::get('httpReferer');
+		}
 		
 		//-- handle form actions
 		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable())
