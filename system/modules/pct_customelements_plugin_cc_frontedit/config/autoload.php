@@ -44,8 +44,8 @@ ClassLoader::addClasses(array
 	'PCT\CustomElements\Models\FrontEditModel'								=> $path.'/PCT/CustomElements/Models/FrontEditModel.php',
 
 	// Frontend
-	'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEdit'		=> $path.'/PCT/CustomElements/Plugins/CustomCatalog/Frontend/ModuleFrontEdit.php',
-	'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEditList'		=> $path.'/PCT/CustomElements/Plugins/CustomCatalog/Frontend/ModuleFrontEditList.php',
+	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader'			=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleReader.php',
+	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList'				=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleList.php',
 
 
 ));

@@ -16,7 +16,7 @@
 /**
  * Namespace
  */
-namespace PCT\CustomElements\Plugins\CustomCatalog\Frontend;
+namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 
 /**
  * Imports
@@ -25,9 +25,9 @@ use PCT\CustomCatalog\FrontEdit\CustomCatalogFactory as CustomCatalogFactory;
 
 /**
  * Class file
- * ModuleFrontEditList
+ * ModuleList
  */
-class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleList
+class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleList
 {
 	/**
 	 * Template
@@ -196,7 +196,7 @@ class ModuleFrontEditList extends \PCT\CustomElements\Plugins\CustomCatalog\Fron
 			
 			$arrSession = $this->Session->getData();
 			$arrSession['CURRENT']['IDS'] = $arrIds;
-			$objSession->setData($arrSession);
+			$this->Session->setData($arrSession);
 			
 			// DELETE selected
 			if(isset($_POST[$objDeleteSubmit->__get('name')]))

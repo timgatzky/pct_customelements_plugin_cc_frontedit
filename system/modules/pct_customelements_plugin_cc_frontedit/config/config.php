@@ -55,9 +55,10 @@ if($blnInitialize)
 	/**
 	 * Front end modules
 	 */
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogfrontedit'] 	= 'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEdit';
 	// new customcataloglist class
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleFrontEditList';
+	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList';
+	// new customcatalogreader class
+	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogreader'] 	= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader';
 }
 
 

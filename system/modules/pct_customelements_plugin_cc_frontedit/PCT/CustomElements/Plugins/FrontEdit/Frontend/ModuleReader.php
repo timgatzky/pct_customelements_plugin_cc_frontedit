@@ -16,7 +16,7 @@
 /**
  * Namespace
  */
-namespace PCT\CustomElements\Plugins\CustomCatalog\Frontend;
+namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 
 /**
  * Imports
@@ -25,9 +25,9 @@ use PCT\CustomCatalog\FrontEdit\CustomCatalogFactory as CustomCatalogFactory;
 
 /**
  * Class file
- * ModuleFrontEdit
+ * ModuleReader
  */
-class ModuleFrontEdit extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleReader
+class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleReader
 {
 	/**
 	 * Template
