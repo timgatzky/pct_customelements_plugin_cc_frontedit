@@ -77,6 +77,36 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	
 	
 	/**
+	 * Generate the enable frontedit button
+	 * @return string
+	 */
+	public function enableFrontEditButton()
+	{
+		global $objPage;
+		$objCC = $this->getCustomCatalog();
+		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
+		
+		$strAlias = $objCC->getCustomElement()->get('alias');
+		$strTable = $objCC->getTable();
+		
+		$image = \Image::getHtml('preview.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',\Controller::generateFrontendUrl($objPage->row()));
+		
+		// add the request token
+		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+		{
+			$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
+		}
+		
+		$title = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][1];
+		$linkText = $image.$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][0];
+		$class = 'header_enable';
+		
+		return sprintf('<a href="%s", class="%s" title="%s">%s</a>',$href,$class,$title,$linkText);
+	}
+	
+	
+	/**
 	 * Generate the edit all / select button
 	 * @return string
 	 */

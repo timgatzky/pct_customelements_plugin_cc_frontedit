@@ -25,37 +25,49 @@ namespace PCT\CustomCatalog\FrontEdit;
 class Callbacks
 {
 	/**
-	 * Show even unpublished entries in edit mode
+	 * Show even unpublished entries in edit mode or list edit modes
 	 * @param array
 	 * @param object
 	 * @return array
 	 */
-	public function unsetPublishedOptions($arrOptions,$objCC)
+	public function bypassPublishedSettings($arrOptions,$objCC)
 	{
 		$strPublishedField = $objCC->getPublishedField();
 		
-		if($objCC->getTable() != \Input::get('table') || strlen($objCC->getPublishedField()) < 1)
+		// return if there is no published field
+		if(strlen($objCC->getPublishedField()) < 1)
 		{
 			return $arrOptions;
 		}
 		
-		if(\Input::get('act') != 'edit')
+		$bypass = false;
+		
+		// always show unpublished entries in edit mode
+		if(in_array(\Input::get('act'),array('edit','editAll','overrideAll')) && $objCC->getTable() == \Input::get('table'))
 		{
-			return $arrOptions;
+			$bypass = true;
 		}
 		
-		$tmp = array();
-		foreach($arrOptions['columns'] as $i => $option)
+		// lists
+		if($objCC->getOrigin()->customcatalog_edit_showUnpublished)
 		{
-			if($option['column'] == $strPublishedField)
+			$bypass = true;
+		}
+		
+		if($bypass == true)
+		{
+			$tmp = array();
+			foreach($arrOptions['columns'] as $i => $option)
 			{
-				continue;
+				if($option['column'] == $strPublishedField)
+				{
+					continue;
+				}
+				$tmp[] = $option;
 			}
-			$tmp[] = $option;
+			
+			$arrOptions['columns'] = $tmp;
 		}
-		
-		$arrOptions['columns'] = $tmp;
-		
 		return $arrOptions;
 	}
 }

@@ -29,26 +29,25 @@ $objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getI
  */
 // customcataloglist
 $arrPalettes = $objDcaHelper->getPalettesAsArray('customcataloglist');
-$arrPalettes['config_legend'][] = 'customcatalog_edit_jumpTo';
+$arrPalettes['frontedit_legend:hide'][] = 'customcatalog_edit_showUnpublished';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['customcataloglist'] = $objDcaHelper->generatePalettes($arrPalettes);
-// customcatalogfrontedit
+// customcatalogreader
 $arrPalettes = $objDcaHelper->getPalettesAsArray('customcatalogreader');
-$arrPalettes = $objDcaHelper->removePalette('comment_legend:hide');
-$GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogfrontedit'] = $objDcaHelper->generatePalettes($arrPalettes);
+#$GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogfrontedit'] = $objDcaHelper->generatePalettes($arrPalettes);
 
 /**
  * Fields
  */
 $objDcaHelper->addFields(array
 (
-	// config_legend
-	'customcatalog_edit_jumpTo' => array
+	'customcatalog_edit_showUnpublished' => array
 	(
-		'label'           		=> &$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_jumpTo'],
+		'label'           		=> &$GLOBALS['TL_LANG'][$objDcaHelper->getTable()]['customcatalog_edit_showUnpublished'],
 		'exclude'         		=> true,
-		'inputType'       		=> 'pageTree',
+		'default'				=> 1,
+		'inputType'       		=> 'checkbox',
 		'eval'            		=> array('tl_class'=>''),
-		'sql'			  		=> "int(10) NOT NULL default '0'",
+		'sql'			  		=> "char(1) NOT NULL default '1'",
 	),
 #	'customcatalog_edit_operations'	=> array
 #	(

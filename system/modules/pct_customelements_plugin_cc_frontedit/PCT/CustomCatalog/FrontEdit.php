@@ -140,10 +140,12 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objCC = $objConfig->customcatalog;
 		$objModule = $objConfig->module;
 		$arrDefaultDCA = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getDefaultDataContainerArray();
+		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
 		
 		$strAliasField = $objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
+		$strLanguage = $objMultilanguage->getActiveBackendLanguage($strTable);
 		
 		\System::loadLanguageFile('tl_pct_customcatalog');
 		\System::loadLanguageFile('tl_content');
@@ -175,12 +177,25 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objDC->User = $objUser;
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'];
+		$arrListOperations = deserialize($objCC->get('list_operations'));
+		
+		// include the toggle button
+		if(strlen($objCC->getPublishedField()) > 0 && in_array('toggle', $arrListOperations))
+		{
+			array_insert($arrOperations,count($arrOperations),array('toggle' => $objHelper->getToggleVisibilityButton($objRow->row(),$strTable) ));
+		}
+		
+		// include the cut button
+		if(in_array($objCC->get('list_mode'),array(4,5,'5.1')) && in_array('cut', $arrListOperations))
+		{
+			array_insert($arrOperations,count($arrOperations),array('cut' => $objHelper->getCutButton($objRow->row(),$strTable) ));
+		}
 		
 		// reorder
-		if(count( deserialize($objCC->get('list_operations')) ) > 0)
+		if(count($arrListOperations) > 0)
 		{
 			$tmp = array();
-			foreach(deserialize($objCC->get('list_operations')) as $i => $key)
+			foreach($arrListOperations as $i => $key)
 			{
 				if(isset($arrOperations[$key]))
 				{
@@ -203,29 +218,44 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
 			
 			// overwrite the jumpTo page when editing should be done on a different page
-			if($key == 'edit' && $objModule->customcatalog_edit_jumpTo > 0)
+			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0)
 			{
-				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_edit_jumpTo)->row() );
+				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
 			}
 			
+			$href = (isset($button['href']) ? $button['href'] : '');
 			// copy,cut button in mode 4,5,5.1 should call the paste button
-			if($key == 'copy' && in_array($objCC->get('list_mode'),array(4,5,'5.1')))
+			if(in_array($objCC->get('list_mode'),array(4,5,'5.1')))
 			{
-				$button['href'] = 'act=paste&amp;mode=copy';
-			}
-			else if($key == 'cut' && in_array($objCC->get('list_mode'),array(4,5,'5.1')))
-			{
-				$button['href'] = 'act=paste&amp;mode=cut';
+				if($key == 'copy')
+				{
+					$href = 'act=paste&amp;mode=copy';
+				}
+				else if($key == 'cut')
+				{
+					$href = 'act=paste&amp;mode=cut';
+				}
 			}
 			
 			$title = sprintf($button['label'][1],$objRow->id);
-			$href = $objFunction->addToUrl($button['href'].'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
+			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
 			// add the items parameter to the url
 			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			// add the request token
 			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
 			{
 				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
+			}
+			// simulate a switchToEdit
+			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0)
+			{
+				$href = $objFunction->addToUrl('jumpto='.$objModule->customcatalog_jumpTo, $href);
+			}
+			// multilanguage, add the langpid
+			if($objCC->get('multilanguage'))
+			{
+				$langpid = $objMultilanguage->getBaseRecordId($row['id'],$strTable,$strLanguage);
+				$href = $objFunction->addToUrl('langpid='.$langpid,href);
 			}
 			
 			$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
@@ -247,6 +277,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			{
 				$attributes = sprintf($attributes,$objRow->id);
 			}
+			$attributes .= ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
 			
 			// html
 			$button['html'] = sprintf('<a href="%s" title="%s" class="%s" %s>%s</a>',$href,$title,$class,$attributes,$linkText);
@@ -276,7 +307,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		// append the multiple select checkbox
 		if(\Input::get('act') == 'select')
 		{
-			$html = '<input id="ids_'.$objRow->id.'" class="tl_tree_checkbox checkbox" type="checkbox" value="'.$objRow->id.'" name="IDS[]">';
+			$html = '<input data-module="'.$objModule->id.'" id="ids_'.$objRow->id.'" class="tl_tree_checkbox checkbox" type="checkbox" value="'.$objRow->id.'" name="IDS[]">';
 			$select = array('html'=>$html,'class'=>'select');
 			array_insert($arrButtons,count($arrButtons),array('select'=>$select));
 		}
@@ -338,13 +369,13 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	 * @param object	Attribute object
 	 * @return string	Html widget output
 	 */
-	public function generateWidgetByAttribute($objAttribute)
-	{
-		
-		
-		
-		\FB::log($objAttribute);
-	}
+#	public function generateWidgetByAttribute($objAttribute)
+#	{
+#		
+#		
+#		
+#		\FB::log($objAttribute);
+#	}
 	
 	
 	/**
@@ -354,40 +385,43 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	 * @param integer	Optional an entry id
 	 * @return string
 	 */
-	public function generateButton($strButton,$strTable='',$intId=0)
-	{
-		$objConfig = $this->getConfig();
-				
-		switch($strButton)
-		{
-			case 'new':
-			case 'new_element':
-				
-				break;
-			case 'editAll':
-			case 'edit_all':
-				break;
-				
-			default:
-				return '';
-				break;
-		}
-		
-		return '';
-	}
+#	public function generateButton($strButton,$strTable='',$intId=0)
+#	{
+#		$objConfig = $this->getConfig();
+#				
+#		switch($strButton)
+#		{
+#			case 'new':
+#			case 'new_element':
+#				
+#				break;
+#			case 'editAll':
+#			case 'edit_all':
+#				break;
+#				
+#			default:
+#				return '';
+#				break;
+#		}
+#		
+#		return '';
+#	}
 	
 	
-	public function switchToEditOnCreate()
+	/**
+	 * Simulate the switchToEdit function
+	 * Handle the DC switchToEdit functionality as known from the backend
+	 */
+	public function simulateSwitchToEdit()
 	{
 		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
 		
 		$strTable = \Input::get('table');
-		
+		debug($arrSession);
+		// !switchToEdit on CREATE
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
-			$GLOBALS['TL_DCA'][$strTable]['config']['oncreate_callback'][] = array('asdf','asdf');
- 			$objFunction = new \PCT\CustomElements\Helper\Functions;
-			$strJumpTo = \PageModel::findByPk(\Input::get('jumpto'))->row();
+			$objFunction = new \PCT\CustomElements\Helper\Functions;
 			$parse = parse_url(\Environment::get('request'));
 			$redirect = $objFunction->addToUrl($parse['query'].'&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
 			// add the items parameter to the url
@@ -397,7 +431,26 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			}	
 			
 			// remove session
-			$arrSession[$strTable]['mode'] = 'oncreate';
+			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
+			$arrSession[$strTable]['ref'] = \Controller::getReferer();
+			
+			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			
+			// redirect to edit page
+			\Controller::redirect($redirect);
+		}
+		// !switchToEdit on COPY
+		else if($arrSession[$strTable]['mode'] == 'copy' && \Input::get('jumpto') > 0 && \Input::get('act') == 'copy')
+		{
+			$intNew = $arrSession[$strTable]['id'];
+			$objFunction = new \PCT\CustomElements\Helper\Functions;
+			$parse = parse_url(\Environment::get('request'));
+			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
+			// add/rewrite the items parameter to the url
+			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
+			
+			// remove session
+			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
 			$arrSession[$strTable]['ref'] = \Controller::getReferer();
 			
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
@@ -477,7 +530,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		
 		
 		
-		// CREATE
+		// !CREATE
 		if(\Input::get('act') == 'create')
 		{
 			$objDC->create();
@@ -490,11 +543,55 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		{
 			$objDC->delete();
 		}
-		
+		// !CUT
+		else if(\Input::get('act') == 'cut')
+		{
+			$objDC->cut(true);
+			if($blnDoNotSwitchToEdit)
+			{
+				\Controller::redirect( \Controller::getReferer() );
+			}
+		}
+		// !CUT ALL
+		else if(\Input::get('act') == 'cutAll')
+		{
+			$arrClipboard = \Session::getInstance()->get('CLIPBOARD');
+			if (is_array($arrClipboard[$strTable]['id']))
+			{
+				foreach($arrClipboard[$strTable]['id'] as $id)
+				{
+					$objDC->intId = $id;
+					$objDC->cut(true);
+					\Input::setGet('pid', $id);
+					\Input::setGet('mode', 1);
+				}
+			}
+						
+			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+		}
 		// !COPY
 		else if(\Input::get('act') == 'copy')
 		{
-			$objDC->copy($blnDoNotSwitchToEdit);
+			$intNew = $objDC->copy(true);
+			
+			if(\Input::get('switchToEdit') || \Input::get('jumpto') > 0)
+			{
+				$arrClipboard[$strTable] = array
+				(
+					'id' 		=> $intNew,
+					'mode' 		=> 'copy',
+				);
+
+				// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
+				\Session::getInstance()->set('CLIPBOARD_HELPER',$arrClipboard);
+				
+				// reload the page to make the session take effect
+				if($blnDoNotSwitchToEdit)
+				{
+					\Controller::reload();
+				}
+			}
+			
 			if($blnDoNotSwitchToEdit)
 			{
 				\Controller::redirect( \Controller::getReferer() );
@@ -569,6 +666,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			$arrSession[$strTable] = array();
 			
 			$objSession->set('CLIPBOARD',$arrSession);
+			$objSession->set('CURRENT',array());
 			
 			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 		}

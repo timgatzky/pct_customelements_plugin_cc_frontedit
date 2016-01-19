@@ -4,14 +4,17 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
+
+<?php if($this->isEnabled): ?>
 <ul class="global_edit_header tl_buttons">
-<?php if(!$this->clipboard) :?>
-<li class="new"><?php echo $this->newElementButton(); ?></li>
-<li class="edit_all"><?php echo $this->editAllButton(); ?></li>
-<?php else: ?>
-<li class="clear_clipboard"><?php echo $this->clearClipboardButton(); ?></li>
-<?php endif; ?>
+	<?php if(!$this->clipboard) :?>
+	<li class="new"><?php echo $this->newElementButton(); ?></li>
+	<li class="edit_all"><?php echo $this->editAllButton(); ?></li>
+	<?php else: ?>
+	<li class="clear_clipboard"><?php echo $this->clearClipboardButton(); ?></li>
+	<?php endif; ?>
 </ul>
+<?php endif;?>
 
 <!-- indexer::stop -->
 <div class="<?php echo $this->formClass; ?> <?php echo $this->tableless ? 'tableless' : 'tableform'; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
@@ -21,7 +24,15 @@
         <input type="hidden" name="FORM_SUBMIT" value="<?php echo $this->formSubmit; ?>">
         <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
 		<?php echo $this->hidden; ?>
-	  
+		
+		<?php if($this->selectMode): ?>
+		<div class="select_all tl_select_trigger"><?php echo $this->selectAll; ?></div>
+		<?php endif; ?>
+		
+		<?php if($this->clipboard): ?>
+		<div class="paste_first"><?php echo $this->pasteFirst; ?></div>
+		<?php endif; ?>
+		
 		<?php echo $this->customcatalog; ?>
 		
 		<?php if($this->selectMode || $this->editMode): ?>
@@ -33,6 +44,10 @@
 			
 			<?php if($this->hasDelete): ?>
 			<li class="delete"><div class="widget submit_container submit"><?php echo $this->deleteSubmit; ?></div></li>
+			<?php endif;?>
+			
+			<?php if($this->hasCut): ?>
+			<li class="cut"><div class="widget submit_container submit"><?php echo $this->cutSubmit; ?></div></li>
 			<?php endif;?>
 			
 			<?php if($this->hasCopy): ?>

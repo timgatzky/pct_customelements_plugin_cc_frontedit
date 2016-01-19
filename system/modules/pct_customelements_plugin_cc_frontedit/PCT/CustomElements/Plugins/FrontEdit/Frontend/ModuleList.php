@@ -40,6 +40,18 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 	 */
 	public function generate()
 	{
+		if(TL_MODE == 'FE')
+		{
+			$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+			
+			global $objPage;
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			}
+			
+		}
+		
 		return parent::generate();
 	}
 
@@ -63,6 +75,15 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		{
             $this->Template->{$key} = $val;
         }
+        
+         $this->Template->isEnabled = true;
+        // check if user is allowed and has access to frontedit
+        #if()
+        #{
+	    #    #$this->Template->isEnabled = true;
+        #}
+        
+        $arrListOperations = deserialize($objCC->get('list_operations'));
         
         // check if clipboard is active
 		$arrClipboard = $this->Session->get('CLIPBOARD');
@@ -151,9 +172,34 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'Override',
 			'class' => 'submit',
 		);
-		$objEditSubmit = new \FormSubmit($arr);
-		$this->Template->overrideSubmit = $objEditSubmit->parse();
+		$objOverrideSubmit = new \FormSubmit($arr);
+		$this->Template->overrideSubmit = $objOverrideSubmit->parse();
 		$this->Template->overrideLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'Override';
+		
+		//-- cut button
+		if(in_array($objCC->get('list_mode'),array(4,5,'5.1')) && in_array('cut', $arrListOperations))
+		{
+			$this->Template->hasCut = true;
+			$arr = array
+			(
+				'id'	=> $formName.'_cut',
+				'name'	=> 'cut',
+				'strName'	=> 'cut',
+				'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut'] ?: 'cut',
+				'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut'] ?: 'Cut',
+				'class' => 'submit',
+			);
+			$objCutSubmit = new \FormSubmit($arr);
+			$this->Template->cutSubmit = $objCutSubmit->parse();
+			$this->Template->cutLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut'] ?: 'Cut';
+		}
+		
+		//-- select all checkbox
+		$this->Template->selectAll = '<label for="select_trigger_'.$this->id.'" class="tl_select_label">'.$GLOBALS['TL_LANG']['MSC']['selectAll'].'</label>';
+		$this->Template->selectAll .= '<input data-module="'.$this->id.'" id="select_trigger_'.$this->id.'" class="tl_select_trigger checkbox" type="checkbox" onclick="CC_FrontEdit.toggleCheckboxes(this)">';
+		
+		//-- paste first button
+		$this->Template->pasteFirst = '<a href="'.\PCT\CustomElements\Helper\Functions::addToUrl('act='.$arrClipboard[$objCC->getTable()]['mode'].'&mode=2&pid=0', \Environment::get('request')).'">'.\Image::getHtml('pasteinto.gif','').'</a>';
 		
 		// hidden fields
 		$arrHidden = array
@@ -198,7 +244,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$arrSession['CURRENT']['IDS'] = $arrIds;
 			$this->Session->setData($arrSession);
 			
-			// DELETE selected
+			// !DELETE selected
 			if(isset($_POST[$objDeleteSubmit->__get('name')]))
 			{
 				foreach ($arrIds as $id)
@@ -208,17 +254,17 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				}
 				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 			}
+			// !copyAll submitted 
 			else if(isset($_POST[$objCopySubmit->__get('name')]))
 			{
-				// show paste button
-				if(in_array($objCC->get('list_mode'), array(4,5,'5.1')))
-				{
-					$url = \Environment::get('request');
-					$objFunction = new \PCT\CustomElements\Helper\Functions;
-					
-					// redirect to paste
-					\Controller::redirect( $objFunction->addToUrl('act=paste&mode=copyAll', \Environment::get('request')) );
-				}
+				// redirect to paste
+				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act=paste&mode=copyAll', \Environment::get('request')) );
+			}
+			// !cutAll submitted, show paste button
+			else if(isset($_POST[$objCutSubmit->__get('name')]))
+			{
+				// redirect to paste
+				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act=paste&mode=cutAll', \Environment::get('request')) );
 			}
 		}
 		

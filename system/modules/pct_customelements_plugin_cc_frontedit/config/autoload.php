@@ -57,9 +57,7 @@ TemplateLoader::addFiles(array
 (
 	'mod_customcatalogfrontedit'		=> $path.'/templates',
 	'customcatalog_default_edit'		=> $path.'/templates',
-	
-	'scripts'				=> $path.'/templates/frontend',
-	
+
 	// frontedit
 	'buttons'							=> $path.'/templates/frontedit',
 ));

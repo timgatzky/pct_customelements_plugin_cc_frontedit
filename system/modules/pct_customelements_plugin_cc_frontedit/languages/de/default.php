@@ -21,8 +21,11 @@ $GLOBALS['TL_LANG']['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array('Cu
 /**
  * Frontend texts
  */
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][0] = 'Frontedit aktivieren';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][1] = 'Aktivert die Frontedit Funktionen';
 $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save']	 = 'Speichern';
 $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete']	 = 'Löschen';
 $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit']	 = 'Bearbeiten';
 $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] = 'Überschreiben';
 $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy']	 = 'Kopieren';
+$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut']	 	= 'Verschieben';
