@@ -31,6 +31,65 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
 class Helper
 {
 	/**
+	 * Add back end assets to the front end
+	 */
+	public function addBackendAssets()
+	{
+		$strLocale = 'var Contao={'
+				. 'theme:"' . \Backend::getTheme() . '",'
+				. 'lang:{'
+					. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
+					. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
+					. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
+					. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
+					. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
+					. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
+				. '},'
+				. 'script_url:"' . TL_ASSETS_URL . '",'
+				. 'path:"' . TL_PATH . '",'
+				. 'request_token:"' . REQUEST_TOKEN . '",'
+				. 'referer_id:"' . TL_REFERER_ID . '"'
+			. '};';
+		$GLOBALS['TL_HEAD'][] = '<script>'.$strLocale.'</script>';
+		
+		// css
+		$objCombiner = new \Combiner();
+	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+	    $objCombiner->add('assets/mootools/chosen/chosen.css');
+	    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
+	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+	    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+			 
+		// javascripts
+		$objCombiner = new \Combiner();
+	    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
+	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+	    $objCombiner->add('assets/mootools/chosen/chosen.js');
+	    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
+	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+	    $objCombiner->add('assets/mootools/mootao/Mootao.js');
+	    $objCombiner->add('assets/contao/js/core-uncompressed.js');
+	    $GLOBALS['TL_JQUERY'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
+	}
+	
+	
+	/**
+	 * Frontend ajax listener
+	 * @called from generatePage HOOK
+	 */
+	public function ajaxListener()
+	{
+		// store scroll offset
+		if(\Input::post('ajax') && \Input::post('scrollOffset'))
+		{
+			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
+		}
+	}
+	
+	
+	/**
 	 * Generate the paste into button array
 	 * @param array		Database Result array
 	 * @param string	Tablename

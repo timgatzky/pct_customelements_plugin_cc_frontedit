@@ -93,6 +93,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC->field = $objAttribute->get('alias');
 		$objDC->activeRecord = $objAttribute->getActiveRecord();
 		
+		// generate the attribute to access its own methods
+		$tmp = $objAttribute->generate();
+		$tmp->getData($objAttribute->getData());
+		foreach($objAttribute as $key => $val)
+		{
+			$tmp->{$key} = $val;
+		}
+		$objAttribute = $tmp;
+		unset($tmp);
+		
 		// get the attributes field definition
 		$arrFieldDef = $objAttribute->getFieldDefinition();
 		
@@ -117,12 +127,46 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// trigger the attributes parseWidgetCallback
 			if(method_exists($objAttribute,'parseWidgetCallback'))
 			{
-				$strBuffer = $this->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+				$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 			}
 			else
 			{	
 				$strBuffer = $objWidget->generateLabel();
 				$strBuffer .= $objWidget->generateWithError();
+			}
+			
+			// rewrite the javascript calls to the Backend class
+			if(strlen(strpos($strBuffer, 'Backend.')) > 0)
+			{
+				$errors = array
+				(
+					'be_user_not_logged_in' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['be_user_not_logged_in'],
+				);
+				$preg = preg_match_all('/Backend.(.*?)\(([^\)]*)\)/',$strBuffer,$matches);
+				if($preg)
+				{
+					$processed = array();
+					foreach($matches[0] as $i => $func)
+					{
+						if(in_array($func, $processed))
+						{
+							continue;
+						}
+						
+						$method = $matches[1][$i];
+						$params = implode(',',array_map('trim',explode(',',$matches[2][$i])));
+						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'params'=>$params,'errors'=>$errors)));
+						
+						if(BE_USER_LOGGED_IN)
+						{
+							$data = $func;
+						}
+												
+						$strBuffer = str_replace($func, "CC_FrontEdit.backend(".$data.")", $strBuffer);
+						
+						$processed[] = $func;
+					}
+				}
 			}
 		}
 		// HOOK let attribute generate their own widgets

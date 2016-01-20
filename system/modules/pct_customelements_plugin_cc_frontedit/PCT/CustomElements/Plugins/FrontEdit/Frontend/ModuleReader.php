@@ -51,7 +51,21 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			return parent::generate();
 		}
 		
-// !todo: custom error page here
+		$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+		
+		global $objPage;
+		if(!$objPage->hasJQuery)
+		{
+			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+		}
+		
+		// add backend assets
+		if(BE_USER_LOGGED_IN)
+		{
+			\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
+		}
+		
+		// !todo: custom error page here
 		if(!$this->isEditable())
 		{
 			global $objPage;
@@ -185,16 +199,24 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 				foreach($arrAttributes as $objAttribute)
 				{
 					$field = $objAttribute->get('alias');
+					$fieldDef = $objAttribute->getFieldDefinition();
+					
 					if(isset($_POST[$field]))
 					{
 						$value = \Input::post($field);
 					}
+					
+					// decode entities
+					if($fieldDef['eval']['decodeEntities'] || in_array($objAttribute->get('type'), array('textarea')))
+					{
+						$value = \StringUtil::decodeEntities($value);	
+					}
+					
 					$arrSet[$field] = $value;
 				}
 				
 				// update the record
 				$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($arrSet)->execute(\Input::get('id'));
-				
 				// reload the page so changes take effect immediately
 				\Controller::reload();
 			}
@@ -204,12 +226,6 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 
 	protected function isEditable()
 	{
-		// check if edit modes are active
-		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']))
-		{
-			return false;
-		}
-		
 		// check if element is allowed and FE User has rights
 		
 		return true;

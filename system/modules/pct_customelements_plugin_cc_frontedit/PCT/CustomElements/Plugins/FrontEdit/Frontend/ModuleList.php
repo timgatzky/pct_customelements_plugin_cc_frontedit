@@ -271,20 +271,5 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		
 	}
 
-
-	protected function isEditable()
-	{
-		// check if edit modes are active
-		if(!in_array(\Input::get('act'),$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']))
-		{
-			return false;
-		}
-		
-		// check if element is allowed and FE User has rights
-		
-		return true;
-	}
-	
-	
 	
 }

@@ -1,4 +1,6 @@
 
+
+
 /**
  * CustomCatalog FrontEdit class
  */
@@ -19,7 +21,7 @@ var CC_FrontEdit =
 	 * Toggle visibility
 	 * @param element
 	 */
-	toggleVisibility: function(elem)
+	toggleVisibility : function(elem)
 	{
 		elem = jQuery(elem);
 		var image = elem.find('img');
@@ -42,5 +44,61 @@ var CC_FrontEdit =
 		});
 		
 		return false;
+	},
+	
+	
+	/**
+	 * Save the scrolloffset
+	 */
+	getScrollOffset : function()
+	{
+		jQuery.ajax(
+		{
+			method: 'POST',
+			url: location.href,
+			data: {ajax:1, scrollOffset:jQuery(window).scrollTop()}
+		});
+	},
+	
+	callstatic:function(_function)
+	{
+		console.log(_function);
+	},
+	
+	/**
+	 * Contaos backend class has certain methods that should be only accessible when user is logged on to the back end
+	 * @param string	The Method name called
+	 * @param object	The parameters of the method
+	 */
+	backend : function(objData)
+	{
+		if(typeof(objData) === 'undefined')
+		{
+			return objData;
+		}
+		
+		var method = objData.method;
+		var func = objData.func;
+		var params = objData.params;
+		var errors = objData.errors;
+		
+		if(this.hasOwnProperty(method))
+		{
+			if(params.length > 0)
+			{
+				jQuery(this).trigger(method,params);
+			}
+			else
+			{
+				jQuery(this).trigger(method);
+			}
+		}
+		else
+		{
+			if(typeof(Contao) === 'undefined' || typeof(Backend) === 'undefined')
+			{
+				alert(errors.be_user_not_logged_in);
+			}
+		}
 	}
 };

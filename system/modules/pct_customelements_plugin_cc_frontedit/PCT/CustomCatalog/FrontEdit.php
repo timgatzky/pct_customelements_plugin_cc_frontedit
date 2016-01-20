@@ -342,14 +342,8 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	 */
 	public static function isEditable($strTable='', $intId='')
 	{
-		// check if modes are active
-		if(!in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']) && !\Input::get('clear_clipboard'))
-		{
-			return false;
-		}
-		
 		// clearing the clipboard is allowed
-		else if(strlen($strTable) > 0 && \Input::get('clear_clipboard') != '')
+		if(strlen($strTable) > 0 && \Input::get('clear_clipboard') != '')
 		{
 			return true;
 		}
@@ -417,7 +411,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
 		
 		$strTable = \Input::get('table');
-		debug($arrSession);
+		
 		// !switchToEdit on CREATE
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
@@ -469,7 +463,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	public function applyOperationsOnGeneratePage($objPage)
 	{
 		// check if the table is allowed to be edited
-		if(!$this->isEditable())
+		if(!$this->isEditable() || !in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations']))
 		{
 			return;
 		}
@@ -671,4 +665,37 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 		}
 	}
+	
+	
+	/**
+	 * Check if the front end user also has a running back end user session
+	 * @param boolean
+	 * @return boolean
+	 */
+	public function hasBackendSession($blnForceLookup=false)
+	{
+		if(TL_MODE != 'FE')
+		{
+			return true;
+		}
+		
+		if(defined(BE_USER_LOGGED_IN) && !$blnForceLookup)
+		{
+		   return true;
+		}
+		
+		$objBackendSession = \Database::getInstance()->prepare("SELECT * FROM tl_session WHERE name=? AND ip=?")->limit(1)->execute('BE_USER_AUTH',\Environment::get('ip'));
+		if($objBackendSession->numRows > 0)
+		{
+			if(!defined(BE_USER_LOGGED_IN))
+			{
+			   define(BE_USER_LOGGED_IN, true);
+			}
+			return true;
+		}
+		
+		define(BE_USER_LOGGED_IN, false);
+		return false;
+	}
+	
 }

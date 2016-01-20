@@ -4,7 +4,6 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
-
 <?php if($this->isEnabled): ?>
 <ul class="global_edit_header tl_buttons">
 	<?php if(!$this->clipboard) :?>
