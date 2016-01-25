@@ -22,7 +22,7 @@ namespace PCT\CustomCatalog;
 /**
  * Imports
  */
-use PCT\CustomCatalog\FrontEdit\CustomCatalogFactory as CustomCatalogFactory;
+use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory as CustomCatalogFactory;
 use PCT\CustomCatalog\FrontEdit\Helper as Helper; // just a helper class for outsourcing code
 
 
@@ -311,7 +311,6 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			$select = array('html'=>$html,'class'=>'select');
 			array_insert($arrButtons,count($arrButtons),array('select'=>$select));
 		}
-		
 		
 		// Hook: Modify buttons
 		if (isset($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['getButtons']) && count($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['getButtons']) > 0)
@@ -613,6 +612,12 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 			}
 		}
+		// !EDIT ALL, OVERRIDE ALL
+		else if(\Input::get('act') == 'editAll')
+		{
+			
+		}	
+	
 		
 		// !PASTE set the clipboard session
 		else if(\Input::get('act') == 'paste')
@@ -679,7 +684,7 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 			return true;
 		}
 		
-		if(defined(BE_USER_LOGGED_IN) && !$blnForceLookup)
+		if(defined(FE_BE_USER_LOGGED_IN) && !$blnForceLookup)
 		{
 		   return true;
 		}
@@ -687,15 +692,58 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 		$objBackendSession = \Database::getInstance()->prepare("SELECT * FROM tl_session WHERE name=? AND ip=?")->limit(1)->execute('BE_USER_AUTH',\Environment::get('ip'));
 		if($objBackendSession->numRows > 0)
 		{
-			if(!defined(BE_USER_LOGGED_IN))
+			if(!defined(FE_BE_USER_LOGGED_IN))
 			{
-			   define(BE_USER_LOGGED_IN, true);
+			   define(FE_BE_USER_LOGGED_IN, true);
 			}
+			
 			return true;
 		}
-		
-		define(BE_USER_LOGGED_IN, false);
+				
+		define(FE_BE_USER_LOGGED_IN, false);
 		return false;
 	}
 	
+	
+	/**
+	 * Add an attribute value to the database set list
+	 * @param value		
+	 * @param string		The table name
+	 * @param integer		The record ID
+	 * @param string		The field name
+	 * @param object		The DataContainer object
+	 */
+	public function addToDatabaseSetlist($varValue,$strTable,$intId,$strField,$objDC=null)
+	{
+		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]))
+		{
+			$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
+		}
+		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable][$intId][$strField] = $varValue;
+	}
+	
+	
+	/**
+	 * Return the database set list for a table
+	 * @param string	The table name
+	 * @return array||null
+	 */
+	public function getDatabaseSetlist($strTable='')
+	{
+		if(strlen($strTable) > 0)
+		{
+			return $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable];
+		}
+		return $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'];
+	}
+	
+	
+	/**
+	 * Clear a database set list array by a table name
+	 * @param string	The table name
+	 */
+	public function clearDatabaseSetlist($strTable)
+	{
+		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
+	}
 }

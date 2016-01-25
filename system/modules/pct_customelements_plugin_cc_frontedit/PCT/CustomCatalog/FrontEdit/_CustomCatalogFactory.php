@@ -30,7 +30,6 @@ class CustomCatalogFactory extends \PCT\CustomElements\Plugins\CustomCatalog\Cor
 	public static function findByModel($objModel)
 	{
 		$objCC = parent::findByModel($objModel);
-		
 		if($objCC === null)
 		{
 			return null;

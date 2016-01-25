@@ -35,7 +35,7 @@ class Callbacks
 		$strPublishedField = $objCC->getPublishedField();
 		
 		// return if there is no published field
-		if(strlen($objCC->getPublishedField()) < 1)
+		if(strlen($objCC->getPublishedField()) < 1 || !$objCC->getOrigin()->customcatalog_edit_active)
 		{
 			return $arrOptions;
 		}
@@ -68,6 +68,36 @@ class Callbacks
 			
 			$arrOptions['columns'] = $tmp;
 		}
+		return $arrOptions;
+	}
+	
+	
+	/**
+	 * Show only entries selected in editAll, overrideAll mode
+	 * @param array
+	 * @param object
+	 * @return array
+	 */
+	public function showSelectedEntriesOnly($arrOptions,$objCC)
+	{
+		if(!in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']))
+		{
+			return $arrOptions;
+		}
+		
+		$arrSession = \Session::getInstance()->getData();
+		
+		if(count($arrSession['CURRENT']['IDS']) > 0)
+		{
+			$arrIds = $arrSession['CURRENT']['IDS'];
+		}
+		else
+		{
+			$arrIds = array(-1);
+		}
+		
+		array_insert($arrOptions['columns'], 0, array( array('column'=>'id','operation'=>'IN','value'=>$arrIds) ) );
+		
 		return $arrOptions;
 	}
 }

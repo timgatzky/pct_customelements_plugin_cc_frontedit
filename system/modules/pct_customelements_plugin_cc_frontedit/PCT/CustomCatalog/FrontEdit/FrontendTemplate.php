@@ -152,7 +152,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
 		
 		// generate back button
-		if(\Input::get('act') == 'select')
+		if( in_array(\Input::get('act'),array('select','fe_editAll','fe_overrideAll')) )
 		{
 			return $this->backButton();
 		}

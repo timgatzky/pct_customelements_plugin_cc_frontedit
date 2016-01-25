@@ -60,10 +60,6 @@ var CC_FrontEdit =
 		});
 	},
 	
-	callstatic:function(_function)
-	{
-		console.log(_function);
-	},
 	
 	/**
 	 * Contaos backend class has certain methods that should be only accessible when user is logged on to the back end
@@ -72,7 +68,7 @@ var CC_FrontEdit =
 	 */
 	backend : function(objData)
 	{
-		if(typeof(objData) === 'undefined')
+		if(typeof(objData) === 'undefined' || typeof(objData) === 'function')
 		{
 			return objData;
 		}

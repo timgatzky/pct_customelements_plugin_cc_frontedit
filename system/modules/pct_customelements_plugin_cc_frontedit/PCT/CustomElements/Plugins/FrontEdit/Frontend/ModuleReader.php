@@ -19,34 +19,17 @@
 namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 
 /**
- * Imports
- */
-use PCT\CustomCatalog\FrontEdit\CustomCatalogFactory as CustomCatalogFactory;
-
-/**
  * Class file
  * ModuleReader
  */
 class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleReader
 {
 	/**
-	 * Template
-	 * @var string
-	 */
-	protected $strTemplate = 'mod_customcatalogfrontedit';
-	
-	/**
-	 * Flag if the reader should render content elements
-	 */
-	protected $blnRenderContentElements = false;
-	
-	
-	/**
 	 * Display wildcard
 	 */
 	public function generate()
 	{
-		if (TL_MODE == 'BE')
+		if (TL_MODE == 'BE' || !$this->customcatalog_edit_active)
 		{
 			return parent::generate();
 		}
@@ -60,23 +43,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		// add backend assets
-		if(BE_USER_LOGGED_IN)
-		{
-			\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
-		}
-		
-		// !todo: custom error page here
-		if(!$this->isEditable())
-		{
-			global $objPage;
-			$objPage->noSearch = 1;
-			$objPage->cache = 0;
-			/** @var \PageError404 $objHandler */
-			$objHandler = new $GLOBALS['TL_PTY']['error_404']();
-			$objHandler->generate($objPage->id);
-
-			return '';
-		}
+		\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
 		
 		return parent::generate();
 	}
@@ -88,22 +55,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	protected function compile()
 	{
+		if(!$this->customcatalog_edit_active)
+		{
+			$this->Template->isEnabled = false;
+			return parent::compile();
+		}
+		
 		parent::compile();
 		
 		global $objPage;
 		$objCC = $this->CustomCatalog;
-		
-		if(!$objCC)
-		{
-			global $objPage;
-			$objPage->noSearch = 1;
-			$objPage->cache = 0;
-			/** @var \PageError404 $objHandler */
-			$objHandler = new $GLOBALS['TL_PTY']['error_404']();
-			$objHandler->generate($objPage->id);
-
-			return '';
-		}
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
@@ -114,6 +75,8 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
             $this->Template->{$key} = $val;
         }
         
+        $this->Template->isEnabled = false;
+
         if( in_array(\Input::get('act'), array('edit','editAll','overrideAll')) )
 		{
 			$this->Template->editMode = true;
@@ -121,7 +84,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		// form vars
-		$formName = 'cc_frontedit_'.$this->id;
+		$formName = $objCC->getTable();
 		
 		//-- save button
 		$this->Template->hasSave = true;
@@ -143,6 +106,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			'id'	=> \Input::get('id'),
 			'pid'	=> \Input::get('pid') ?: 0,
 			'table'	=> $objCC->getTable(),
+			'mod'	=> $this->id,
 		);
 		
 		$strHidden = '';
@@ -186,51 +150,36 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 					\Controller::reload();
 				}
 				
-				$arrAttributes = $objCC->getCustomElement()->getAttributes();
-				if(count($arrAttributes) < 1)
-				{
-					\Controller::reload();
-				}
+				// get current database set list 
+				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
 				
-				$time = time();
-				
-				$arrSet = array('tstamp'=>$time);
-				
-				foreach($arrAttributes as $objAttribute)
-				{
-					$field = $objAttribute->get('alias');
-					$fieldDef = $objAttribute->getFieldDefinition();
-					
-					if(isset($_POST[$field]))
-					{
-						$value = \Input::post($field);
-					}
-					
-					// decode entities
-					if($fieldDef['eval']['decodeEntities'] || in_array($objAttribute->get('type'), array('textarea')))
-					{
-						$value = \StringUtil::decodeEntities($value);	
-					}
-					
-					$arrSet[$field] = $value;
-				}
+				// hook here
+				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
 				
 				// update the record
-				$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($arrSet)->execute(\Input::get('id'));
-				// reload the page so changes take effect immediately
-				\Controller::reload();
+				if(!empty($arrSet) && $arrSet !== null)
+				{
+					foreach($arrSet as $id => $set)
+					{
+						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
+					}
+					// empty set list
+					\PCT\CustomCatalog\FrontEdit::clearDatabaseSetlist($objCC->getTable());
+					
+					// reload the page so changes take effect immediately
+					\Controller::reload();
+				}
 			}
 		}
 	}
-
-
+	
+	
+	/**
+	 * 
+	 */
 	protected function isEditable()
 	{
-		// check if element is allowed and FE User has rights
-		
 		return true;
 	}
-	
-	
 	
 }

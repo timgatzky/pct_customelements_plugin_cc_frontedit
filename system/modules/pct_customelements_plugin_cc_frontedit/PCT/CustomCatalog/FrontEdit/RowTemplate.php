@@ -62,6 +62,11 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		#{
 		#	return false;
 		#}
+		// fronedit is not active or user not logged in
+		if(!$this->getCustomCatalog()->getOrigin()->customcatalog_edit_active)
+		{
+			return false;
+		}
 		
 		$this->import('FrontendUser','User');
 		

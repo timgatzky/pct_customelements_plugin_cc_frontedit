@@ -15,6 +15,8 @@
 /**
  * Fields
  */
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][0] = 'Aktivieren';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][1] = 'Wählen Sie hier um die Frontedit-Funktionen bereitzustellen';
 $GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][0] = 'Nicht veröffentlichte Einträge anzeigen';
 $GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][1] = 'Wählen Sie hier um auch nicht veröffentlichte Einträge in der Liste anzeigen zu lassen.';
 

@@ -28,7 +28,7 @@
 		<div class="select_all tl_select_trigger"><?php echo $this->selectAll; ?></div>
 		<?php endif; ?>
 		
-		<?php if($this->clipboard): ?>
+		<?php if($this->pasteFirst): ?>
 		<div class="paste_first"><?php echo $this->pasteFirst; ?></div>
 		<?php endif; ?>
 		
@@ -41,25 +41,27 @@
 			<li class="save"><div class="widget submit_container submit"><?php echo $this->saveSubmit; ?></div></li>
 			<?php endif;?>
 			
-			<?php if($this->hasDelete): ?>
-			<li class="delete"><div class="widget submit_container submit"><?php echo $this->deleteSubmit; ?></div></li>
-			<?php endif;?>
-			
-			<?php if($this->hasCut): ?>
-			<li class="cut"><div class="widget submit_container submit"><?php echo $this->cutSubmit; ?></div></li>
-			<?php endif;?>
-			
-			<?php if($this->hasCopy): ?>
-			<li class="copy"><div class="widget submit_container submit"><?php echo $this->copySubmit; ?></div></li>
-			<?php endif;?>
-			
-			<?php if($this->hasOverride): ?>
-			<li class="override"><div class="widget submit_container submit override"><?php echo $this->overrideSubmit; ?></div></li>
-			<?php endif;?>
-			
-			<?php if($this->hasEdit): ?>
-			<li class="edit"><div class="widget submit_container submit edit"><?php echo $this->editSubmit; ?></div></li>
-			<?php endif;?>
+			<?php if(!$this->saveOnly) : ?>
+				<?php if($this->hasDelete): ?>
+				<li class="delete"><div class="widget submit_container submit"><?php echo $this->deleteSubmit; ?></div></li>
+				<?php endif;?>
+				
+				<?php if($this->hasCut): ?>
+				<li class="cut"><div class="widget submit_container submit"><?php echo $this->cutSubmit; ?></div></li>
+				<?php endif;?>
+				
+				<?php if($this->hasCopy): ?>
+				<li class="copy"><div class="widget submit_container submit"><?php echo $this->copySubmit; ?></div></li>
+				<?php endif;?>
+				
+				<?php if($this->hasOverride): ?>
+				<li class="override"><div class="widget submit_container submit override"><?php echo $this->overrideSubmit; ?></div></li>
+				<?php endif;?>
+				
+				<?php if($this->hasEdit): ?>
+				<li class="edit"><div class="widget submit_container submit edit"><?php echo $this->editSubmit; ?></div></li>
+				<?php endif;?>
+			<?php endif; ?>
 			
 		</ul>
 		<?php endif; ?>
