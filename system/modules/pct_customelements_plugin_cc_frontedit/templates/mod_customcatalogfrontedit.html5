@@ -39,6 +39,7 @@
 			
 			<?php if($this->hasSave): ?>
 			<li class="save"><div class="widget submit_container submit"><?php echo $this->saveSubmit; ?></div></li>
+			<li class="save_and_close"><div class="widget submit_container submit"><?php echo $this->saveNcloseSubmit; ?></div></li>
 			<?php endif;?>
 			
 			<?php if(!$this->saveOnly) : ?>

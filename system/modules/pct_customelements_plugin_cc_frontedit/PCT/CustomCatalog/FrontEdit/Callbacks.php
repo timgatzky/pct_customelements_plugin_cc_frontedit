@@ -86,10 +86,13 @@ class Callbacks
 		}
 		
 		$arrSession = \Session::getInstance()->getData();
-		
 		if(count($arrSession['CURRENT']['IDS']) > 0)
 		{
 			$arrIds = $arrSession['CURRENT']['IDS'];
+			if(\Input::get('act') == 'fe_overrideAll')
+			{
+				$arrIds = $arrIds[0];	
+			}
 		}
 		else
 		{

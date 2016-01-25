@@ -99,6 +99,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		$objSaveSubmit = new \FormSubmit($arr);
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
 		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
+		$this->saveSubmitName = $objSaveSubmit->__get('name');
 		
 		// hidden fields
 		$arrHidden = array
@@ -140,29 +141,31 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		//-- handle form actions
-		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable())
+		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable() && \Input::get('id') == \Input::post('id') )
 		{
-			if($_POST[$objSaveSubmit->__get('name')])
+			if($_POST[$this->saveSubmitName])
 			{
-				// validate
-				if(\Input::get('act') == 'edit' && \Input::get('id') != \Input::post('id'))
-				{
-					\Controller::reload();
-				}
-				
 				// get current database set list 
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
 				
 				// hook here
 				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
 				
+				$time = time();
+				
 				// update the record
 				if(!empty($arrSet) && $arrSet !== null)
 				{
 					foreach($arrSet as $id => $set)
 					{
+						if(!isset($set['tstamp']))
+						{
+							$set['tstamp'] = $time;
+						}
+						
 						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
 					}
+					
 					// empty set list
 					\PCT\CustomCatalog\FrontEdit::clearDatabaseSetlist($objCC->getTable());
 					

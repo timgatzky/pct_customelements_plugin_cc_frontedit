@@ -113,8 +113,23 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		);
 		$objSaveSubmit = new \FormSubmit($arr);
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
-		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
+		$this->Template->saveLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
 		$this->saveSubmitName = $objSaveSubmit->__get('name');
+		
+		//-- save and close button
+		$this->Template->hasSaveClose = true;
+		$arr = array(
+			'id'	=> $formName.'_saveNclose',
+			'name'	=> 'saveNclose', 
+			'strName' => 'saveNclose',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'save and go back',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back',
+			'class' => 'submit'
+		);
+		$objSaveNcloseSubmit = new \FormSubmit($arr);
+		$this->Template->saveNcloseSubmit = $objSaveNcloseSubmit->parse();
+		$this->Template->saveNcloseLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back';
+		$this->saveNcloseSubmitName = $objSaveNcloseSubmit->__get('name');
 		
 		//-- delete button
 		$this->Template->hasDelete = true;
@@ -213,6 +228,12 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$this->Template->pasteFirst = '';
 		}
 		
+		// hide the save buttons in select mode
+		if(\Input::get('act') == 'select')
+		{
+			$this->Template->hasSave = false;
+		}
+		
 		// hidden fields
 		$arrHidden = array
 		(
@@ -267,12 +288,14 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 			}
 			// !save
-			else if(isset($_POST[$this->saveSubmitName]))
+			else if(isset($_POST[$this->saveSubmitName]) || isset($_POST[$this->saveNcloseSubmitName]))
 			{
 				// get current database set list 
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
 				// hook here
 				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
+				
+				$time = time();
 				
 				// update the records
 				if(!empty($arrSet) && $arrSet !== null)
@@ -283,11 +306,23 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 						{
 							continue;
 						}
+						
+						if(!isset($set['tstamp']))
+						{
+							$set['tstamp'] = $time;
+						}
+						
 						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set( $set )->execute($id);
 					}
 					
 					// empty set list
 					\PCT\CustomCatalog\FrontEdit::clearDatabaseSetlist($objCC->getTable());
+					
+					// go back to regular list view
+					if(isset($_POST[$this->saveNcloseSubmitName]))
+					{
+						\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+					}
 					
 					// reload the page so changes take effect immediately
 					\Controller::reload();
@@ -305,16 +340,17 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				// redirect to paste
 				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act=paste&mode=cutAll', \Environment::get('request')) );
 			}
-			// !editAll, overrideAll submitted
-			else if( isset($_POST[$this->editSubmitName]) || isset($_POST[$this->overrideSubmitName]) )
+			// !editAll submitted
+			else if( isset($_POST[$this->editSubmitName]))
 			{
-				$act = 'fe_editAll';
-				if($this->overrideSubmitName)
-				{
-					$act = 'fe_overrideAll';
-				}
 				// redirect to act=editAll
-				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act='.$act, \Environment::get('request')) );
+				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act=fe_editAll', \Environment::get('request')) );
+			}
+			// !overrideAll submitted
+			else if( isset($_POST[$this->overrideSubmitName]))
+			{
+				// redirect to act=editAll
+				\Controller::redirect( \PCT\CustomElements\Helper\Functions::addToUrl('act=fe_overrideAll', \Environment::get('request')) );
 			}
 			else
 			{

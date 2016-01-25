@@ -84,9 +84,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
-		$objDC->id = \Input::get('id');
 		$objDC->field = $objAttribute->get('alias');
 		$objDC->activeRecord = $objAttribute->getActiveRecord();
+		if($objDC->activeRecord !== null)
+		{
+			$objDC->id = $objDC->activeRecord->id;
+		}
 		
 		$arrSession = \Session::getInstance()->getData();
 		$arrIds = $arrSession['CURRENT']['IDS'];
@@ -98,7 +101,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// check if is has been selected
-		if(in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) && !in_array($objDC->activeRecord->id, $arrIds))
+		if(in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']) && !in_array($objDC->id, $arrIds))
 		{
 			return '';
 		}
@@ -128,10 +131,20 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
+			if($_POST[$objDC->field])
+			{
+				$objDC->value = \Input::post($objDC->field);
+			}
+			
 			// multiple modes
-			if(in_array(\Input::get('act'),array('fe_editAll','fe_overrideAll')) && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
+			if(\Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
 			{
 				$objDC->value = \Input::post($objDC->field.'_'.$objDC->activeRecord->id);
+			}
+			
+			if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
+			{
+				$objDC->value = null;
 			}
 			
 			// create the widget
@@ -143,7 +156,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			
 			// append record id to widget name in multiple modes
-			if(in_array(\Input::get('act'),array('fe_editAll','fe_overrideAll')));
+			if(\Input::get('act') == 'fe_editAll')
 			{
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
@@ -174,7 +187,23 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// add to save list
 				if($blnSubmit)
 				{
-					\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objWidget->__get('value'),$objDC->table,$objDC->activeRecord->id,$objDC->field);
+					if(\Input::get('act') == 'fe_overrideAll')
+					{
+						$arrSession = \Session::getInstance()->getData();
+						
+						if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
+						{
+							foreach($arrSession['CURRENT']['IDS'] as $id)
+							{
+								\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objWidget->__get('value'),$objDC->table,$id,$objDC->field);
+							}
+						}
+					}
+					else
+					{
+						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objWidget->__get('value'),$objDC->table,$objDC->id,$objDC->field);
+					}
+					
 				}
 			}
 			
