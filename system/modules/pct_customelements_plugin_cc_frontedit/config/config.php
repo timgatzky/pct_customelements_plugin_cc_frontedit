@@ -29,7 +29,7 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin'] = array('o
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] = true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] = true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['bypassPublished'] = true;
-
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']			= 'CC_FRONTEDIT';
 
 /**
  * Register plugin
@@ -80,6 +80,10 @@ if($blnInitialize)
 	#$GLOBALS['CUSTOMELEMENTS_HOOKS']['prepareRendering'][]  = array('PCT\CustomCatalog\FrontEdit\Attribute','renderCallback');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit','applyOperationsOnGeneratePage');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Helper','ajaxListener');
+	$GLOBALS['TL_HOOKS']['executePostActions'][] 			= array('PCT\CustomCatalog\FrontEdit\Callbacks', 'executePostActionsCallback');
+	$GLOBALS['TL_HOOKS']['executePreActions'][] 			= array('PCT\CustomCatalog\FrontEdit\Callbacks', 'executePreActionsCallback');
+	
 	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit','hasBackendSession');
 	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit','simulateSwitchToEdit');
+	
 }

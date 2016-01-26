@@ -103,5 +103,14 @@ class Callbacks
 		
 		return $arrOptions;
 	}
+	
+	
+	/**
+	 * 
+	 */
+	public function executePreActionsCallback($strAction)
+	{
+		
+	}
 }
  

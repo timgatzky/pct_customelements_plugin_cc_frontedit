@@ -59,6 +59,7 @@ class Helper
 	    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
 	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
 	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
 	    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
 			 
 		// javascripts
@@ -71,7 +72,7 @@ class Helper
 	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
 	    $objCombiner->add('assets/mootools/mootao/Mootao.js');
 	    $objCombiner->add('assets/contao/js/core-uncompressed.js');
-	    $GLOBALS['TL_JQUERY'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
+	    $GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 	}
 	
 	
@@ -86,6 +87,33 @@ class Helper
 		{
 			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
 		}
+		
+		if(\Input::post('action') && strlen(\Input::post('name')) > 0)
+		{
+			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+		
+			$strField = \Input::post('name');
+			if(!\Input::post('value'))
+			{
+				$arrSession['CURRENT']['VALUES'][$strField] = null;
+			}
+			else
+			{
+				$objFile = \Dbafs::addResource(\Input::post('value'));
+				if($objFile)
+				{
+					$arrSession['CURRENT']['VALUES'][$strField] = $objFile->uuid;
+				}
+			}
+			
+			$arrSession['isAjaxRequest'][$strField] = true;
+			
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			
+			\Controller::reload();
+		}
+			
+		#\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 	}
 	
 	

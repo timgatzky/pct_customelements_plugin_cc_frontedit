@@ -78,6 +78,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return '';
 		}
 		
+		$objSession = \Session::getInstance();
+		
 		/* @var contao ModelModule */
 		$objModel = $objAttribute->get('objCustomCatalog')->getModel();
 		
@@ -90,9 +92,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$objDC->id = $objDC->activeRecord->id;
 		}
+		$objDC->objAttribute = $objAttribute;
 		
-		$arrSession = \Session::getInstance()->getData();
+		$arrSession = $objSession->getData();
 		$arrIds = $arrSession['CURRENT']['IDS'];
+		
+		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		
 		// return when edit mode is not active
 		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModel->customcatalog_edit_active) )
@@ -129,10 +134,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
+		$this->submit = true;
+		$blnRewriteBackendJavascriptCalls = true;
+		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
-			if($_POST[$objDC->field])
+			if(\Input::post('FORM_SUBMIT') == $objDC->table && $_POST[$objDC->field])
 			{
+				\Input::setPost($objDC->field,$objDC->value);
+			
 				$objDC->value = \Input::post($objDC->field);
 			}
 			
@@ -160,15 +170,83 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
-			
+						
 			// trigger the attributes parseWidgetCallback
 			if(method_exists($objAttribute,'parseWidgetCallback'))
 			{
-				$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+				$varValue = $objDC->value;
+				
+				// timestamps
+				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', deserialize($objAttribute->get('options'))) )
+				{
+					$format = $objAttribute->get('date_format');
+					if(!$format)
+					{
+						$format = $GLOBALS['TL_CONFIG'][$objAttribute->get('date_rgxp').'Format'];
+					}
+					$objWidget->__set('value', \System::parseDate($format,$varValue) );
+				}
+				
+				// image attributes
+				if($objAttribute->get('type') == 'image')
+				{
+					// if widget has been closed and new value has been set, use it
+					if($arrFeSession['isAjaxRequest'][$objDC->field])
+					{
+						$varValue = $arrFeSession['CURRENT']['VALUES'][$objDC->field];
+					}
+					
+					if($varValue)
+					{
+						if(\Validator::isBinaryUuid($varValue))
+						{
+							$varValue = \StringUtil::binToUuid($varValue); #\FilesModel::findByUuid($objDC->value)->uuid;
+							\Input::setPost($objDC->field,$varValue);
+						}
+					}
+				}
+				
+				#if($arrFeSession['isAjaxRequest'][$objDC->field] && !$arrFeSession['CURRENT']['VALUES'][$objDC->field])
+				#{
+				#	$varValue = null;
+				#	\Input::setPost($objDC->field,null);
+				#}
+					
+				$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$varValue);
+				
+				if(strlen(strpos($strBuffer, 'value=""')) > 0 && $objDC->value != '')
+				{
+					#$strBuffer = str_replace('value=""', 'value="'.$objDC->value.'"',$strBuffer);
+				}
+				
+				// rewrite the preview images in file selections
+				if($objAttribute->get('type') == 'image' && $arrFeSession['isAjaxRequest'][$objDC->field] === true && $arrFeSession['CURRENT']['VALUES'][$objDC->field])
+				{
+					$newValue = \StringUtil::binToUuid($arrFeSession['CURRENT']['VALUES'][$objDC->field]);
+					$currValue = '';
+					if($objDC->value)
+					{
+						$currValue = \StringUtil::binToUuid($objDC->value);
+					}
+					
+					$objFile = \FilesModel::findByUuid($newValue)->path;
+					
+					if($objFile && $newValue != $currValue && strlen($currValue) > 0)
+					{
+						$newSRC = \Image::get(\FilesModel::findByUuid($newValue)->path,'80','60','crop');
+						$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
+						$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
+						
+						unset($arrFeSession['isAjaxRequest'][$objDC->field]);
+						
+						\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+					}
+					
+				}
+				
 			}
 			else
 			{	
-				$blnSubmit = true;
 				if(\Input::post('FORM_SUBMIT') == $objDC->table)
 				{
 					// validate the input
@@ -177,72 +255,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					if($objWidget->hasErrors())
 					{
 						$objWidget->class = 'error';
-						$blnSubmit = false;
+						$this->submit = false;
 					}
 				}
 				
 				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();
-				
-				// add to save list
-				if($blnSubmit)
-				{
-					if(\Input::get('act') == 'fe_overrideAll')
-					{
-						$arrSession = \Session::getInstance()->getData();
-						
-						if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
-						{
-							foreach($arrSession['CURRENT']['IDS'] as $id)
-							{
-								\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objWidget->__get('value'),$objDC->table,$id,$objDC->field);
-							}
-						}
-					}
-					else
-					{
-						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objWidget->__get('value'),$objDC->table,$objDC->id,$objDC->field);
-					}
-					
-				}
-			}
-			
-			// rewrite the javascript calls to the Backend class
-			if(strlen(strpos($strBuffer, 'Backend.')) > 0)
-			{
-				$errors = array
-				(
-					'be_user_not_logged_in' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['be_user_not_logged_in'],
-				);
-				$preg = preg_match_all('/Backend.(.*?)\(([^\)]*)\)/',$strBuffer,$matches);
-				if($preg)
-				{
-					$processed = array();
-					foreach($matches[0] as $i => $func)
-					{
-						if(in_array($func, $processed))
-						{
-							continue;
-						}
-						
-						$method = $matches[1][$i];
-						$params = implode(',',array_map('trim',explode(',',$matches[2][$i])));
-						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'params'=>$params,'errors'=>$errors)));
-						
-						// these methods require an active backend login
-						if(in_array($method, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin']))
-						{
-							if(FE_BE_USER_LOGGED_IN)
-							{
-								$data = $func;
-							}
-													
-							$strBuffer = str_replace($func, "CC_FrontEdit.backend(".$data.")", $strBuffer);
-						}
-												
-						$processed[] = $func;
-					}
-				}
+				$strBuffer .= $objWidget->generateWithError();				
 			}
 		}
 		// HOOK let attribute generate their own widgets
@@ -256,7 +274,84 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen($strBufferFromHook))
 		{
 			$strBuffer = $strBufferFromHook;
-		}		
+			
+			$blnRewriteBackendJavascriptCalls = false;
+		}	
+					
+		// rewrite the javascript calls to the Backend class
+		if(strlen(strpos($strBuffer, 'Backend.')) > 0 && $blnRewriteBackendJavascriptCalls)
+		{
+			$errors = array
+			(
+				'be_user_not_logged_in' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['be_user_not_logged_in'],
+			);
+			$preg = preg_match_all('/Backend.(.*?)\(([^\)]*)\)/',$strBuffer,$matches);
+			if($preg)
+			{
+				$processed = array();
+				foreach($matches[0] as $i => $func)
+				{
+					if(in_array($func, $processed))
+					{
+						continue;
+					}
+					
+					$method = $matches[1][$i];
+					$params = implode(',',array_map('trim',explode(',',$matches[2][$i])));
+					$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'params'=>$params,'errors'=>$errors)));
+					
+					// these methods require an active backend login
+					if(in_array($method, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin']))
+					{
+						if(FE_BE_USER_LOGGED_IN)
+						{
+							$data = $func;
+						}
+												
+						$strBuffer = str_replace($func, "CC_FrontEdit.backend(".$data.")", $strBuffer);
+					}
+											
+					$processed[] = $func;
+				}
+			}
+		}
+		
+		// rewrite calls to the contao/file.php file e.g. from file pickers
+		if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
+		{
+			$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/file.php',$strBuffer);
+		}
+			
+		// add to save list
+		if(\Input::post('FORM_SUBMIT') == $objDC->table && ($this->submit || $objAttribute->submit))
+		{
+			// set value from an ajax field and remove it from the session
+			if(!$arrFeSession['isAjaxRequest'][$objDC->field] && isset($arrFeSession['CURRENT']['VALUES'][$objDC->field]))
+			{
+				$varValue = $arrFeSession['CURRENT']['VALUES'][$objDC->field];
+				
+				unset($arrFeSession['CURRENT']['VALUES'][$objDC->field]);
+				\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			}
+			
+			if(\Input::get('act') == 'fe_overrideAll')
+			{
+				$arrSession = \Session::getInstance()->getData();
+				
+				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
+				{
+					foreach($arrSession['CURRENT']['IDS'] as $id)
+					{
+						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($varValue,$objDC);
+					}
+				}
+			}
+			else
+			{
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($varValue,$objDC);
+			}
+		}
+	
 		
 		// cache
 		$this->widget = $strBuffer;

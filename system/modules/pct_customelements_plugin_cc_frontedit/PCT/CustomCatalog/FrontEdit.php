@@ -713,12 +713,38 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	 * @param string		The field name
 	 * @param object		The DataContainer object
 	 */
-	public function addToDatabaseSetlist($varValue,$strTable,$intId,$strField,$objDC=null)
+	public function addToDatabaseSetlist($varValue,$objDC)
 	{
+		$strTable = $objDC->table;
+		$intId = $objDC->id;
+		$objAttribute = $objDC->objAttribute;
+		$strField = $objDC->field;
+		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]))
 		{
 			$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
 		}
+		
+		// trigger the storeValue HOOK from CE
+		if($objDC->objAttribute)
+		{
+			$saveDataAs = $objDC->objAttribute->get('saveDataAs') ?: 'data';
+			$arr = \PCT\CustomElements\Core\Hooks::callstatic( 'storeValueHook',array($objDC->objAttribute->get('id'),array($saveDataAs=>$varValue)) );
+			if($arr[$saveDataAs] != $value)
+			{
+				$varValue = $arr[$saveDataAs];
+			}
+		}	
+		
+		// respect the save_callback
+		if(is_array($GLOBALS['TL_DCA'][$strTable][$strField]['save_callback']) && count($GLOBALS['TL_DCA'][$strTable][$strField]['save_callback']) > 0)
+		{
+			foreach($GLOBALS['TL_DCA'][$strTable][$strField]['save_callback'] as $callback)
+			{
+				$varValue = \System::importStatic($callback[0])->{$callback[1]}($varValue,$objDC);
+			}
+		}
+		
 		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable][$intId][$strField] = $varValue;
 	}
 	
@@ -745,5 +771,6 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	public function clearDatabaseSetlist($strTable)
 	{
 		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
+			
 	}
 }

@@ -38,6 +38,9 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			{
 				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
 			}
+			
+			// add backend assets
+			\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
 		}
 		
 		return parent::generate();

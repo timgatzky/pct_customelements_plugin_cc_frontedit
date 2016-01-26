@@ -96,5 +96,52 @@ var CC_FrontEdit =
 				alert(errors.be_user_not_logged_in);
 			}
 		}
+	},
+	
+	
+	/**
+	 * Replace the preview image in a selector widget e.g. file selector widget
+	 * @param string	Name of the field
+	 * @param string	New value
+	 */
+	replaceSelectorImage : function(objData)
+	{
+		var widget = jQuery('input[name="'+objData.field+'"]');
+		if(widget.length < 1)
+		{
+			return false;
+		}
+		
+		// input value
+		jQuery('input[value="'+objData.currValue+'"]').attr('value',objData.newValue);
+		
+		var li = jQuery('#sort_'+objData.field+' li[data-id="'+objData.currValue+'"]');
+		
+		// <li>
+		li.attr('data-id',objData.newValue);
+		
+		// img
+		li.find('img').attr('src',objData.newSRC);
+	},
+	
+	
+	/**
+	 * Insert a selector image
+	 */
+	insertSelectorImage : function(objData)
+	{
+		var widget = jQuery('input[name="'+objData.field+'"]');
+		if(widget.length < 1)
+		{
+			return false;
+		}
+		
+		var li = jQuery('#sort_'+objData.field+' li[data-id="'+objData.currValue+'"]');
+		if(li.length < 1)
+		{
+			jQuery('#sort_'+objData.field).append('<li data-id="'+objData.newValue+'"><img src="'+objData.newSRC+'" width="80" height="80"></li>');
+		}
+		
 	}
 };
+

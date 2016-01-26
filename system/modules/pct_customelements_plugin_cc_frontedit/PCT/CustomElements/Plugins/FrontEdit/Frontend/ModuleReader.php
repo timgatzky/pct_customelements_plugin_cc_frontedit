@@ -101,6 +101,21 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
 		$this->saveSubmitName = $objSaveSubmit->__get('name');
 		
+		//-- save and close button
+		$this->Template->hasSaveClose = true;
+		$arr = array(
+			'id'	=> $formName.'_saveNclose',
+			'name'	=> 'saveNclose', 
+			'strName' => 'saveNclose',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'save and go back',
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back',
+			'class' => 'submit'
+		);
+		$objSaveNcloseSubmit = new \FormSubmit($arr);
+		$this->Template->saveNcloseSubmit = $objSaveNcloseSubmit->parse();
+		$this->Template->saveNcloseLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back';
+		$this->saveNcloseSubmitName = $objSaveNcloseSubmit->__get('name');
+		
 		// hidden fields
 		$arrHidden = array
 		(
@@ -129,21 +144,21 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		if(\Input::get('act') == 'edit')
 		{
 			// remove parameters from url
-			$href = \Controller::getReferer();
+			$url = \Controller::getReferer();
 			foreach(array('act','jumpto','mode') as $v)
 			{
-				$href = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$href);
+				$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 			}
 			// add the clear clipboard parameter
-			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$href);
-			\Environment::set('httpReferer',$href);
+			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$url);
+			\Environment::set('httpReferer',$url);
 			$this->Template->referer = \Environment::get('httpReferer');
 		}
 		
 		//-- handle form actions
 		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable() && \Input::get('id') == \Input::post('id') )
 		{
-			if($_POST[$this->saveSubmitName])
+			if($_POST[$this->saveSubmitName] || isset($_POST[$this->saveNcloseSubmitName]) )
 			{
 				// get current database set list 
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
@@ -168,6 +183,17 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 					
 					// empty set list
 					\PCT\CustomCatalog\FrontEdit::clearDatabaseSetlist($objCC->getTable());
+					
+					// go back to regular list view
+					if(isset($_POST[$this->saveNcloseSubmitName]))
+					{
+						$url = \Controller::getReferer();
+						foreach(array('act','jumpto','mode','table','do','rt') as $v)
+						{
+							$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
+						}
+						\Controller::redirect($url);
+					}
 					
 					// reload the page so changes take effect immediately
 					\Controller::reload();

@@ -48,8 +48,9 @@ ClassLoader::addClasses(array
 	// Frontend
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader'			=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleReader.php',
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList'				=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleList.php',
-
-
+	
+	// Controllers
+	'Contao\Controllers\FrontendFile'										=> $path.'/Contao/Controllers/FrontendFile.php',
 ));
 
 /**
