@@ -82,39 +82,52 @@ class Helper
 	 */
 	public function ajaxListener()
 	{
+		$objSession = \Session::getInstance();
+		
 		// store scroll offset
 		if(\Input::post('ajax') && \Input::post('scrollOffset'))
 		{
 			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
 		}
-		
+		\PC::debug(\Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']));
 		if(\Input::post('action') && strlen(\Input::post('name')) > 0)
 		{
-			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$arrSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 			
 			$strTable = \Input::get('table');
 			$strField = \Input::post('name');
+			
+			$objAttribute = \PCT\CustomElements\Plugins\CustomCatalog\Core\AttributeFactory::fetchByCustomCatalog($strField,$strTable);
+			
 			if(!\Input::post('value'))
 			{
 				$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = null;
 			}
 			else
 			{
-				$objFile = \Dbafs::addResource(\Input::post('value'));
-				if($objFile)
+				switch($objAttribute->type)
 				{
-					$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = $objFile->uuid;
+					case 'image':
+						$objFile = \Dbafs::addResource(\Input::post('value'));
+						if($objFile)
+						{
+							$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = $objFile->uuid;
+						}
+						break;
+					default: 
+						$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = \Input::post('value');
+						break;
 				}
 			}
 			
 			$arrSession[$strTable]['AJAX_REQUEST'][$strField] = true;
 			
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			\Controller::reload();
 		}
 			
-		#\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+		#$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 	}
 	
 	

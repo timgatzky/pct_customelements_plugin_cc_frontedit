@@ -51,6 +51,7 @@ ClassLoader::addClasses(array
 	
 	// Controllers
 	'Contao\Controllers\FrontendFile'										=> $path.'/Contao/Controllers/FrontendFile.php',
+	'Contao\Controllers\FrontendPage'										=> $path.'/Contao/Controllers/FrontendPage.php',
 ));
 
 /**

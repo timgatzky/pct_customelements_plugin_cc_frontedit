@@ -126,6 +126,7 @@ var CC_FrontEdit =
 	
 	/**
 	 * Insert a selector image
+	 * @param object
 	 */
 	insertSelectorImage : function(objData)
 	{
@@ -140,7 +141,16 @@ var CC_FrontEdit =
 		{
 			jQuery('#sort_'+objData.field).append('<li data-id="'+objData.newValue+'"><img src="'+objData.newSRC+'" width="80" height="80"></li>');
 		}
-		
+	},
+	
+	
+	/**
+	 * Re-replace an inserttag value. Since contao will replace all inserttags in the front end templates we must replace those with the original inserttag submitted
+	 * @param object
+	 */
+	rereplaceInsertTags : function(objData)
+	{
+		jQuery('#ctrl_'+objData.field).attr('value',objData.newValue);
 	}
 };
 

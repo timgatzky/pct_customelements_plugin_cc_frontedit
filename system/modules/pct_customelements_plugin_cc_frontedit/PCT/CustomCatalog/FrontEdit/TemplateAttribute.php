@@ -134,20 +134,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
+		$blnSubmitted = false;
 		$blnRewriteBackendJavascriptCalls = true;
 		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
 			if(\Input::post('FORM_SUBMIT') == $objDC->table && isset($_POST[$objDC->field]))
 			{
-				\Input::setPost($objDC->field,$objDC->value);
-			
 				$objDC->value = \Input::post($objDC->field);
-				
 				$blnSubmitted = true;
 			}
 			
-		
 			// multiple modes
 			if(\Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
 			{
@@ -176,9 +173,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// trigger the attributes parseWidgetCallback
 			if(method_exists($objAttribute,'parseWidgetCallback'))
 			{
-				$varValue = $objDC->value;
-			
-				// TIMESTAMP attributes
+				// !TIMESTAMP attributes
 				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', deserialize($objAttribute->get('options'))) )
 				{
 					$format = $objAttribute->get('date_format');
@@ -187,38 +182,40 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						$format = $GLOBALS['TL_CONFIG'][$objAttribute->get('date_rgxp').'Format'];
 					}
 					
-					$varValue = \System::parseDate($format,$varValue) ;
+					$objDC->value = \System::parseDate($format,$objDC->value) ;
 					$objWidget->__set('value', $varValue);
 					
-					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$varValue);
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
-					if(strlen(strpos($strBuffer, 'value=""')) > 0 && $varValue != '')
+					if(strlen(strpos($strBuffer, 'value=""')) > 0 && $objDC->value != '')
 					{
-					   $strBuffer = str_replace('value=""', 'value="'.$varValue.'"',$strBuffer);
+					   $strBuffer = str_replace('value=""', 'value="'.$objDC->value.'"',$strBuffer);
 					}
 				}
 				
-				// IMAGE attributes
+				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
 					// if widget has been closed and new value has been set, use it
 					if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true)
 					{
-						$varValue = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
+						$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
 					}
 					
-					if(\Validator::isBinaryUuid($varValue))
+					
+					if(\Validator::isBinaryUuid($objDC->value))
 					{
-						$value = \StringUtil::binToUuid($varValue); #\FilesModel::findByUuid($objDC->value)->uuid;
-						\Input::setPost($objDC->field,$value);
+						$objDC->value = \StringUtil::binToUuid($objDC->value); #\FilesModel::findByUuid($objDC->value)->uuid;
+						\Input::setPost($objDC->field,$objDC->value);
 					}
 					
-					if($varValue === null)
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					
+					// value for database must be binary
+					if($blnSubmitted && $objDC->value !== null && \Validator::isStringUuid($objDC->value))
 					{
-						$value = null;
+						$objDC->value = \StringUtil::uuidToBin($objDC->value);
 					}
-					
-					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$value);
 					
 					// rewrite the preview images in file selections
 					if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true && isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
@@ -238,15 +235,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
 							$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
 						}
-						
-						unset($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field]);
-						\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 					}
 				}
 				else
 				{
-					// render
-					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$varValue);
+					// !render
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 				}
 			}
 			else
@@ -263,6 +257,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 				}
 				
+				// default ajax field, like the pagetree
+				if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true && isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
+				{
+					$objWidget->__set('value',$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
+				}
+				
 				$strBuffer = $objWidget->generateLabel();
 				$strBuffer .= $objWidget->generateWithError();				
 			}
@@ -274,7 +274,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// render child attributes
-		$arrSubmitChilds = array();
 		if($objAttribute->hasChilds())
 		{
 			$arr = array();
@@ -283,7 +282,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$field = $objChildWidget->__get('name');
 				$value = $objDC->activeRecord->{$field};
 				
-				$dc = new \StdClass;
+				$dc = new \PCT\CustomElements\Helper\DataContainerHelper;
 				$dc->id = $objDC->id;
 				$dc->field = $field;
 				$dc->value = $value;
@@ -306,8 +305,27 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($value,$dc);
 					}
 				}
-				$arr[] = $objChildWidget->generateLabel(). $objChildWidget->generateWithError();
- 			}
+				
+				$strChild = $objChildWidget->generateLabel() . $objChildWidget->generateWithError();
+				
+				// handle wizards in child attributes
+				if(count($objChildWidget->fieldDef['wizard']) > 0)
+				{
+					foreach($objChildWidget->fieldDef['wizard'] as $callback)
+					{
+						$strChild .= \System::importStatic($callback[0])->{$callback[1]}($dc);
+					}
+				}
+				
+				// little javascript helper to place an inserttag value back in the input field
+				if(strlen(strpos($dc->value, '{{')) > 0 && !\Input::post('FORM_SUBMIT'))
+				{
+					$data = json_encode(array('field'=>$field,'currValue'=>\Controller::replaceInsertTags($dc->value),'newValue'=>$dc->value));
+					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
+				}
+				
+				$arr[] = $strChild;
+			}
  			
  			$strBuffer .= implode('', $arr);
 		}
@@ -357,22 +375,27 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		
-		// rewrite calls to the contao/file.php file e.g. from file pickers
+		// rewrite calls to the contao/file.php from file pickers
 		if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
 		{
 			$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/file.php',$strBuffer);
 		}
+		
+		// rewrite calls to the contao/page.php e.g. from page pickers
+		if(strlen(strpos($strBuffer, 'contao/page.php')) > 0)
+		{
+			$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/page.php',$strBuffer);
+		}
 			
 		// add to save list
-		if(\Input::post('FORM_SUBMIT') == $objDC->table && $blnSubmitted)
+		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) )
 		{
 			// set value from an ajax field and remove it from the session
-			if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
-			{
-				$varValue = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
-				unset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
-				\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
-			}
+			#if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
+			#{
+			#	$varValue = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
+			#	unset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
+			#}
 						
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
@@ -381,15 +404,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					foreach($arrSession['CURRENT']['IDS'] as $id)
 					{
-						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($varValue,$objDC);
+						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 					}
 				}
 			}
 			else
 			{
-				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($varValue,$objDC);
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 			}
 			
+			// update the session
+			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 	
 		// cache
