@@ -91,22 +91,23 @@ class Helper
 		if(\Input::post('action') && strlen(\Input::post('name')) > 0)
 		{
 			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
-		
+			
+			$strTable = \Input::get('table');
 			$strField = \Input::post('name');
 			if(!\Input::post('value'))
 			{
-				$arrSession['CURRENT']['VALUES'][$strField] = null;
+				$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = null;
 			}
 			else
 			{
 				$objFile = \Dbafs::addResource(\Input::post('value'));
 				if($objFile)
 				{
-					$arrSession['CURRENT']['VALUES'][$strField] = $objFile->uuid;
+					$arrSession[$strTable]['CURRENT']['VALUES'][$strField] = $objFile->uuid;
 				}
 			}
 			
-			$arrSession['isAjaxRequest'][$strField] = true;
+			$arrSession[$strTable]['AJAX_REQUEST'][$strField] = true;
 			
 			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			

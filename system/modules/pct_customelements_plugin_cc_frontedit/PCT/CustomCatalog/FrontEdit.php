@@ -771,6 +771,26 @@ class FrontEdit extends \PCT\CustomElements\Models\FrontEditModel
 	public function clearDatabaseSetlist($strTable)
 	{
 		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
-			
+		
+		
+	}
+	
+	
+	/**
+	 * Clear helper session
+	 * @param string
+	 */
+	public function clearSession($strTable='')
+	{
+		if(strlen($strTable) > 0)
+		{
+			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			unset($arrSession[$strTable]);
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+		}
+		else
+		{
+			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+		}
 	}
 }
