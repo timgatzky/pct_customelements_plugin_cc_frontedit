@@ -101,8 +101,7 @@ var CC_FrontEdit =
 	
 	/**
 	 * Replace the preview image in a selector widget e.g. file selector widget
-	 * @param string	Name of the field
-	 * @param string	New value
+	 * @param object	
 	 */
 	replaceSelectorImage : function(objData)
 	{

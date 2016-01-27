@@ -168,6 +168,9 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 				
 				$time = time();
 				
+				\PC::debug($arrSet);
+				
+				#throw new \Exception('--- STOP ---');
 				// update the record
 				if(!empty($arrSet) && $arrSet !== null)
 				{
