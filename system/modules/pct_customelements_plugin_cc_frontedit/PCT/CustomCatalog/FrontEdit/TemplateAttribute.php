@@ -152,7 +152,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$objDC->value = null;
 		}
-		\PC::debug($arrFeSession[$objDC->table]['CURRENT']['VALUES']);
+		
 		// ajax requests, store value in the session and reload page
 		if(strlen(\Input::post('action')) > 0 && (\Input::post('name') == $objDC->field || \Input::post('field') == $objDC->field) )
 		{
@@ -192,6 +192,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			
+			// any validator need the current field value in the psydo post data
+			\Input::setPost($objDC->field,$objDC->value);
+			
 			// append record id to widget name in multiple modes
 			if(\Input::get('act') == 'fe_editAll')
 			{
@@ -220,7 +223,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					   $strBuffer = str_replace('value=""', 'value="'.$objDC->value.'"',$strBuffer);
 					}
 				}
-				
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
@@ -263,9 +265,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 				}
+				// !HEADLINE attributes
+				else if($objAttribute->get('type') == 'headline')
+				{
+					if($blnSubmitted)
+					{
+						$objDC->value = array('value'=>$_POST[$objDC->field]['value'],'unit'=>$_POST[$objDC->field]['unit']);
+					}
+					
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+				}
+				// !render	
 				else
 				{
-					// !render
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 				}
 			}
@@ -280,12 +292,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						$objWidget->class = 'error';
 					}
-				}
-				
-				// default ajax field, like the pagetree
-				if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true && isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
-				{
-					$objWidget->__set('value',$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
 				}
 				
 				$strBuffer = $objWidget->generateLabel();
@@ -417,7 +423,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
-				#$arrSession = \Session::getInstance()->getData();
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
 					foreach($arrSession['CURRENT']['IDS'] as $id)
