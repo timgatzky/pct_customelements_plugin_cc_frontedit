@@ -135,27 +135,55 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		$blnSubmitted = false;
+		if(\Input::post('FORM_SUBMIT') == $objDC->table && isset($_POST[$objDC->field]))
+		{
+			$objDC->value = \Input::post($objDC->field);
+			$blnSubmitted = true;
+		}
+		
+		// multiple modes
+		if($blnSubmitted && \Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
+		{
+			$objDC->value = \Input::post($objDC->field.'_'.$objDC->activeRecord->id);
+			$blnSubmitted = true;
+		}
+		
+		if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
+		{
+			$objDC->value = null;
+		}
+		\PC::debug($arrFeSession[$objDC->table]['CURRENT']['VALUES']);
+		// ajax requests, store value in the session and reload page
+		if(strlen(\Input::post('action')) > 0 && (\Input::post('name') == $objDC->field || \Input::post('field') == $objDC->field) )
+		{
+			$objDC->value = \Input::post('value');
+			
+			if(in_array($objAttribute->get('type'), array('image')) && \Input::post('value')) 
+			{
+				$objFile = \Dbafs::addResource(\Input::post('value'));
+				if($objFile)
+	   			{
+	   				$objDC->value = $objFile->uuid;
+	   			}
+		   	}
+		   	
+		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
+			
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			
+			\Controller::reload();
+		}
+		
+		// retrieve from session
+		if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
+		{
+			$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
+		}	
+		
 		$blnRewriteBackendJavascriptCalls = true;
 		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
-			if(\Input::post('FORM_SUBMIT') == $objDC->table && isset($_POST[$objDC->field]))
-			{
-				$objDC->value = \Input::post($objDC->field);
-				$blnSubmitted = true;
-			}
-			
-			// multiple modes
-			if(\Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
-			{
-				$objDC->value = \Input::post($objDC->field.'_'.$objDC->activeRecord->id);
-			}
-			
-			if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
-			{
-				$objDC->value = null;
-			}
-			
 			// create the widget
 			$strClass = $GLOBALS['BE_FFL'][$arrFieldDef['inputType']];
 			
@@ -196,13 +224,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
-					// if widget has been closed and new value has been set, use it
-					if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true)
-					{
-						$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
-					}
-					
-					
 					if(\Validator::isBinaryUuid($objDC->value))
 					{
 						$objDC->value = \StringUtil::binToUuid($objDC->value); #\FilesModel::findByUuid($objDC->value)->uuid;
@@ -212,9 +233,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// value for database must be binary
-					if($blnSubmitted && $objDC->value !== null && \Validator::isStringUuid($objDC->value))
+					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
 					{
 						$objDC->value = \StringUtil::uuidToBin($objDC->value);
+					}
+					// value must be null
+					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
+					{
+						$objDC->value = null;
 					}
 					
 					// rewrite the preview images in file selections
@@ -253,7 +279,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					if($objWidget->hasErrors())
 					{
 						$objWidget->class = 'error';
-						$this->submit = false;
 					}
 				}
 				
@@ -390,13 +415,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) )
 		{
-			// set value from an ajax field and remove it from the session
-			#if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
-			#{
-			#	$varValue = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
-			#	unset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
-			#}
-						
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				#$arrSession = \Session::getInstance()->getData();
@@ -413,7 +431,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 			}
 			
-			// update the session
+			// remove the session
 			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 	
