@@ -100,6 +100,69 @@ var CC_FrontEdit =
 	
 	
 	/**
+	 * Open an backend modal window
+	 * @param string	Url to file
+	 */
+	openModal : function(objData)
+	{
+		var type = 'file';
+		if(objData.method == 'openModalBrowser')
+		{
+			var type = 'page';
+		}
+		var win = document.window;
+		var url = objData.url;
+		
+		var M = new SimpleModal({
+			'width': 768,
+			'btn_ok': Contao.lang.close,
+			'draggable': false,
+			'overlayOpacity': .5,
+			'onShow': function() { document.body.setStyle('overflow', 'hidden'); },
+			'onHide': function() { document.body.setStyle('overflow', 'auto'); }
+		});
+		M.addButton(Contao.lang.close, 'btn', function() {
+			this.hide();
+		});
+		M.addButton(Contao.lang.apply, 'btn primary', function() {
+			var frm = window.frames['simple-modal-iframe'],
+				val, inp, i;
+			if (frm === undefined) {
+				alert('Could not find the SimpleModal frame');
+				return;
+			}
+			inp = frm.document.getElementById('tl_select').getElementsByTagName('input');
+			console.log(inp);
+			
+			for (i=0; i<inp.length; i++) {
+				if (inp[i].checked && !inp[i].id.match(/^reset_/)) {
+					val = inp[i].get('value');
+					break;
+				}
+			}
+			console.log(val);
+			if (!isNaN(val)) {
+				val = '{{link_url::' + val + '}}';
+			}
+			
+			win.document.getElementById(objData.field).value = val;
+			this.hide();
+		});
+		M.show({
+			'title': win.document.getElement('div.mce-title').get('text'),
+			'contents': '<iframe src="' + url + '" name="simple-modal-iframe" width="100%" height="' + (window.getSize().y-180).toInt() + '" frameborder="0"></iframe>',
+			'model': 'modal'
+		});
+	},
+	// Little helper to open the modal window for textarea
+	openModalInTextarea(field_name,objData)
+	{
+		objData.field = field_name;
+		return this.openModal(objData);
+	},
+
+	
+	/**
 	 * Replace the preview image in a selector widget e.g. file selector widget
 	 * @param object	
 	 */

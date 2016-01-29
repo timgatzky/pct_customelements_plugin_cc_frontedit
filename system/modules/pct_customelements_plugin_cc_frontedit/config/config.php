@@ -25,7 +25,7 @@ define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.0.0-beta');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['allowedOperations'] 	= array('edit','delete','cut','cutAll','copy','copyAll','show','paste','select','create');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations'] 	= array('fe_editAll','fe_overrideAll');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']		= array('show');
-$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin'] = array('openModalWindow');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin'] = array('openModalWindow','openModalBrowser');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] = true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] = true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['bypassPublished'] = true;

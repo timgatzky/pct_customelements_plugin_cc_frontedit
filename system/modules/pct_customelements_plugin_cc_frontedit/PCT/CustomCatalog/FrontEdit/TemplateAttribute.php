@@ -460,6 +460,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
 		
+		// make it sortable
 		if($this->sortable)
 		{
 			$doc = new \DOMDocument();
@@ -566,15 +567,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = $strBufferFromHook;
 		}
-					
+		
 		// rewrite the javascript calls to the Backend class
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
+			$objFunctions = \PCT\CustomElements\Helper\Functions::getInstance();	
+			$arrUrl = parse_url(\Environment::get('request'));
+			
 			$errors = array
 			(
 				'be_user_not_logged_in' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['be_user_not_logged_in'],
 			);
 			$preg = preg_match_all('/Backend.(.*?)\(([^\)]*)\)/',$strBuffer,$matches);
+			
 			if($preg)
 			{
 				$processed = array();
@@ -592,12 +597,25 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// these methods require an active backend login
 					if(in_array($method, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin']))
 					{
-						if(FE_BE_USER_LOGGED_IN)
+						$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/contao/file.php');
+						if($method == 'openModalBrowser')
 						{
-							$data = $func;
+							$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/contao/page.php');
 						}
-												
-						$strBuffer = str_replace($func, "CC_FrontEdit.backend(".$data.")", $strBuffer);
+						$href = $objFunctions->addToUrl('&field='.$objDC->field.'&act=show',$href);
+						
+						// add values
+						$href = \Environment::get('base') . $href;
+						
+						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
+						if($objAttribute->get('type') == 'textarea')
+						{
+							$strBuffer = str_replace($func, "CC_FrontEdit.openModalInTextarea(field_name,".$data .");", $strBuffer);
+						}
+						else
+						{
+							$strBuffer = str_replace($func, "CC_FrontEdit.openModal(".$data .");", $strBuffer);
+						}
 					}
 											
 					$processed[] = $func;
