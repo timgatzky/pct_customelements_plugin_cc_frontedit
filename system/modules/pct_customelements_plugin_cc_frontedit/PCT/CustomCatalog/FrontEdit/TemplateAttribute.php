@@ -382,12 +382,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 								$arrValues = explode(',',$objDC->value); 
 							}
 							
-							// reorder
-							if($this->sortable && $objDC->activeRecord->{$strOrderField.'_'.$objDC->field})
-							{
-								$arrValues = deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field});
-							}
-							
 							$objDC->value = array_map('\StringUtil::binToUuid',$arrValues);
 							\Input::setPost($objDC->field,implode(',',$objDC->value));
 						}
@@ -428,6 +422,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						$objDC->value = array('value'=>$_POST[$objDC->field]['value'],'unit'=>$_POST[$objDC->field]['unit']);
 					}
+					
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+				}
+				// !TAGS attributes
+				else if($objAttribute->get('type') == 'tags')
+				{
+					// load js
+					$objCombiner = new \Combiner();
+					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
+					$GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 				}

@@ -90,6 +90,18 @@ class Helper
 		{
 			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
 		}
+		
+		// remove the regular call to tabletree.js. It's loaded by the tags widget
+		if(\Input::get('act') && in_array(PCT_TABLETREE_PATH.'/assets/js/tabletree.js', $GLOBALS['TL_JAVASCRIPT']))
+		{
+			foreach($GLOBALS['TL_JAVASCRIPT'] as $i => $k)
+			{
+				if($k == PCT_TABLETREE_PATH.'/assets/js/tabletree.js')
+				{
+					unset($GLOBALS['TL_JAVASCRIPT'][$i]);
+				}
+			}
+		}
 	}
 	
 	
