@@ -126,6 +126,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// get the attributes field definition
 		$arrFieldDef = $objAttribute->getFieldDefinition();
 		
+		// mark attribute as sortable
+		$this->sortable = $arrFieldDef['sortable'] ? true : false;
+		$strOrderField = $arrFieldDef['eval']['orderSRC'] ? $arrFieldDef['eval']['orderSRC'] : 'orderSRC';
+		
+		// mark attribute as multiple
+		$this->multiple = $arrFieldDef['eval']['multiple'] ? true : false;
+		
 		$strInputType = $arrFieldDef['inputType'] ?: $objAttribute->get('type');
 		
 		$strLabel = $objAttribute->get('title');
@@ -158,7 +165,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$objDC->value = \Input::post('value');
 			
-			if(in_array($objAttribute->get('type'), array('image')) && \Input::post('value')) 
+			if($objAttribute->get('type') == 'image' && \Input::post('value')) 
 			{
 				$objFile = \Dbafs::addResource(\Input::post('value'));
 				if($objFile)
@@ -166,6 +173,34 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	   				$objDC->value = $objFile->uuid;
 	   			}
 		   	}
+		   	else if($objAttribute->get('type') == 'files' && \Input::post('value'))
+		   	{
+			   	$objDC->value = \Input::post('value');
+			   	if($this->multiple)
+			   	{
+				   $objDC->value = trimsplit('\t',\Input::post('value',true));
+				   
+				   foreach($objDC->value as $v)
+				   {
+					   $objFile = \FilesModel::findByPath($v);
+					   if($objFile)
+					   {
+						   $values[] = \StringUtil::binToUuid($objFile->uuid);
+						   continue;
+					   }
+					   
+					   $objFile = new \File(TL_ROOT.'/'.$v,true);
+					   if($objFile !== null)
+					   {
+						   $values[] = \StringUtil::binToUuid($objFile->uuid);
+						   continue;
+					   }
+					}
+					$objDC->value = implode(',',$values);
+				   
+				}
+			}
+		   	
 		   	
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
@@ -178,7 +213,27 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
 		{
 			$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
-		}	
+		}
+		
+		// trigger load callback
+		if(!\Input::post('FORM_SUBMIT'))
+		{
+			if(is_array($arrFieldDef['load_callback']))
+			{
+				$objDC->objAttribute = $this;
+				foreach($arrFieldDef['load_callback'] as $callback)
+				{
+					if (is_array($callback))
+					{
+					   $objDC->value = \System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
+					}
+					else if(is_callable($callback))
+					{
+					   $objDC->value = $callback($objDC->value,$objDC,$this);
+					}
+				}
+			}
+		}
 		
 		$blnRewriteBackendJavascriptCalls = true;
 		
@@ -265,6 +320,107 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 				}
+				// !FILE(s) attributes
+				else if($objAttribute->get('type') == 'files')
+				{
+					if(!$arrFieldDef['eval']['multiple'])
+					{
+						if(\Validator::isBinaryUuid($objDC->value))
+						{
+							$objDC->value = \StringUtil::binToUuid($objDC->value);
+							\Input::setPost($objDC->field,$objDC->value);
+						}
+						else if(\FilesModel::findByPath($objDC->value) !== null)
+						{
+							$objDC->value = \StringUtil::binToUuid( \FilesModel::findByPath($objDC->value)->uuid );
+							\Input::setPost($objDC->field,$objDC->value);
+						}
+					}
+					else
+					{
+						// coming from ajax, convert paths to binary
+						if($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field])
+						{
+						   if(!is_array($objDC->value))
+						   {
+							   $objDC->value = explode(',', $objDC->value);
+						   }
+						   
+						   $values = array();
+						   foreach($objDC->value as $v)
+						   {
+							   if(\Validator::isStringUuid($v))
+							   {
+								   $values[] = $v;
+								   continue;
+							   }
+							   
+							   $objFile = \FilesModel::findByPath($v);
+							   if($objFile)
+							   {
+								   $values[] = \StringUtil::binToUuid($objFile->uuid);
+								   continue;
+							   }
+							   
+							   $objFile = new \File(TL_ROOT.'/'.$v,true);
+							   if($objFile !== null)
+							   {
+								   $values[] = \StringUtil::binToUuid($objFile->uuid);
+								   continue;
+							   }
+							}
+							$objDC->value = implode(',',$values);
+							\Input::setPost($objDC->field,$objDC->value);
+							unset($values);
+						}
+						else if(!$blnSubmitted)
+						{
+							// regular selected via backend, convert binary to uuid
+							$arrValues = deserialize($objDC->value);
+							if(!is_array($arrValues))
+							{
+								$arrValues = explode(',',$objDC->value); 
+							}
+							
+							// reorder
+							if($this->sortable && $objDC->activeRecord->{$strOrderField.'_'.$objDC->field})
+							{
+								$arrValues = deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field});
+							}
+							
+							$objDC->value = array_map('\StringUtil::binToUuid',$arrValues);
+							\Input::setPost($objDC->field,implode(',',$objDC->value));
+						}
+					}
+					
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					
+					// reorder
+					if($blnSubmitted && $this->sortable && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
+					{
+						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
+						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
+					}
+						
+					// values for database must be binary
+					if($blnSubmitted && $this->multiple)
+					{
+						if(!is_array($objDC->value)) 
+						{
+							$objDC->value = explode(',', $objDC->value);
+						}
+						$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
+					}
+					else if($blnSubmitted && \Validator::isStringUuid($objDC->value))
+					{
+						$objDC->value = \StringUtil::uuidToBin($objDC->value);
+					}
+					// value must be null
+					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
+					{
+						$objDC->value = null;
+					}
+				}
 				// !HEADLINE attributes
 				else if($objAttribute->get('type') == 'headline')
 				{
@@ -302,6 +458,49 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		else if(method_exists($objAttribute,'generateFrontendWidget'))
 		{
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
+		}
+		
+		if($this->sortable)
+		{
+			$doc = new \DOMDocument();
+			@$doc->loadHTML(preg_replace("/&(?!(?:apos|quot|[gl]t|amp);|#)/", "&amp;",$strBuffer));
+			$elem = $doc->getElementById('sort_'.$objDC->field);
+			
+			if($elem)
+			{
+				$class = $doc->createAttribute('class');
+				$class->value = 'sortable' . ($arrFieldDef['eval']['isGallery'] ? ' sgallery':'');
+				$elem->appendChild($class);
+				
+				$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
+				$str .= $elem->C14N();
+				$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
+				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
+				// replace sort container
+				$preg = preg_match('/<ul(.*?)\/ul>/', $strBuffer,$result); 
+				if($preg)
+				{
+					$strBuffer = str_replace($result[0], $str, $strBuffer);
+				}
+			}
+			// fallback if DOMDocument fails
+			else
+			{
+				$preg = preg_match('/<ul id="sort_'.$objDC->field.'"(.*?)\/ul>/', $strBuffer,$result); 
+				if($preg)
+				{
+					$tmp = $result[0];
+					// inject the class
+					$elem = preg_replace('/class="/', 'class="sortable ', $tmp, 1);
+					
+					$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
+					$str .= $elem;
+					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
+					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
+					
+					$strBuffer = str_replace($result[0], $str, $strBuffer);
+				}
+			}
 		}
 		
 		// render child attributes
@@ -366,7 +565,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen($strBufferFromHook))
 		{
 			$strBuffer = $strBufferFromHook;
-		}	
+		}
 					
 		// rewrite the javascript calls to the Backend class
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
