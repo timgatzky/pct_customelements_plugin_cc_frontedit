@@ -102,6 +102,7 @@ var CC_FrontEdit =
 	/**
 	 * Open an backend modal window
 	 * @param string	Url to file
+	 * Idea taken by contao core
 	 */
 	openModal : function(objData)
 	{
@@ -140,7 +141,7 @@ var CC_FrontEdit =
 					break;
 				}
 			}
-			console.log(val);
+			
 			if (!isNaN(val)) {
 				val = '{{link_url::' + val + '}}';
 			}
