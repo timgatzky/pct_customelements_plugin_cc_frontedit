@@ -112,7 +112,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'strName' => 'save',
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'save',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save',
-			'class' => 'submit'
+			'class' => 'submit',
+			'tableless' => true,
 		);
 		$objSaveSubmit = new \FormSubmit($arr);
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
@@ -127,7 +128,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'strName' => 'saveNclose',
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'save and go back',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back',
-			'class' => 'submit'
+			'class' => 'submit',
+			'tableless' => true,
 		);
 		$objSaveNcloseSubmit = new \FormSubmit($arr);
 		$this->Template->saveNcloseSubmit = $objSaveNcloseSubmit->parse();
@@ -144,6 +146,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete'] ?: 'delete',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_delete'] ?: 'Delete',
 			'class' => 'submit',
+			'tableless' => true,
 			'onclick' => "return confirm('".$GLOBALS['TL_LANG']['MSC']['delAllConfirm']."');"
 		);
 		$objDeleteSubmit = new \FormSubmit($arr);
@@ -161,6 +164,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'copy',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_copy'] ?: 'Copy',
 			'class' => 'submit',
+			'tableless' => true,
 		);
 		$objCopySubmit = new \FormSubmit($arr);
 		$this->Template->copySubmit = $objCopySubmit->parse();
@@ -177,6 +181,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'edit',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_edit'] ?: 'Edit',
 			'class' => 'submit',
+			'tableless' => true,
 		);
 		$objEditSubmit = new \FormSubmit($arr);
 		$this->Template->editSubmit = $objEditSubmit->parse();
@@ -194,6 +199,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'override',
 			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_override'] ?: 'Override',
 			'class' => 'submit',
+			'tableless' => true,
 		);
 		$objOverrideSubmit = new \FormSubmit($arr);
 		$this->Template->overrideSubmit = $objOverrideSubmit->parse();
@@ -212,6 +218,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut'] ?: 'cut',
 				'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_cut'] ?: 'Cut',
 				'class' => 'submit',
+				'tableless' => true,
 			);
 			$objCutSubmit = new \FormSubmit($arr);
 			$this->Template->cutSubmit = $objCutSubmit->parse();

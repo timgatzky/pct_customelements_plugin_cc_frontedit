@@ -26,5 +26,15 @@ ul.sortable li:hover .dirname {
 	display:inline;
 }
 
+/* Buttons */
+.tl_buttons
+{
+	list-style: none;
+	padding: 0;
+}
+.tl_buttons li
+{
+	display: inline-block;
+}
 
 #tl_ajaxBox {background-image: url('../img/loading.gif')}
