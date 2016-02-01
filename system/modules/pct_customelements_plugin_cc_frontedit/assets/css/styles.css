@@ -1,60 +1,19 @@
 
-/**
- * Contao default theme
- */
-fieldset,form,input,optgroup,select,textarea {
-	font-family:"Trebuchet MS",Verdana,sans-serif;
+ul.sgallery {
+	overflow:hidden;
+}
+ul.sgallery li {
+	float:left;
+	margin-right:0;
+}
+.gimage {
+	margin:2px;
+	border:1px solid #808080;
 }
 
-/* Submit buttons */
-.tl_submit {
-	padding:5px 12px 5px 13px;
-	border:1px solid #aaa;
-	border-radius:3px;
-	color:#555;
-	cursor:pointer;
-	line-height:1;
-	text-shadow:1px 1px 0 #eee;
-	background:#eee;
-	background-image:-moz-linear-gradient(bottom, #ccc 0%, #eee 60%);
-	background-image:-webkit-linear-gradient(bottom, #ccc 0%, #eee 60%);
-	background-image:-o-linear-gradient(bottom, #ccc 0%, #eee 60%);
-	background-image:-ms-linear-gradient(bottom, #ccc 0%, #eee 60%);
-	background-image:linear-gradient(to top, #ccc 0%, #eee 60%);
-}
-a.tl_submit {
-	font-family:"Trebuchet MS",Verdana,sans-serif;
-	font-size:12px;
-	font-size:.75rem;
-	display:inline-block;
-}
-a.tl_submit,a.tl_submit:hover {
-	color:#555;
-}
-.firefox input.tl_submit {
-	padding:2px 12px 2px 13px;
-}
-.opera input.tl_submit {
-	padding:4px 12px 4px 13px;
-}
-.tl_submit:focus,.tl_submit:hover {
-	box-shadow:0 0 3px #aaa;
-}
-.tl_submit:active {
-	color:#bbb;
-	box-shadow:0 0 6px #999;
-}
-.tl_submit:disabled {
-	cursor:default;
-	background:#ddd;
-	text-shadow:none;
-	color:#999;
-	box-shadow:none;
-}
-.tl_submit_container {
-	padding:12px 18px;
-	background:#f3f3f3;
-	border-top:1px solid #fff;
+.tl_checkbox_wizard .sortable span {
+	display:block;
+	margin:-1px 0 0;
 }
 
 ul.sortable li {
@@ -67,41 +26,5 @@ ul.sortable li:hover .dirname {
 	display:inline;
 }
 
-.drag-handle {
-	position:relative;
-	top:1px;
-	cursor:move;
-	display:none;
-}
-.js .drag-handle {
-	display:inline;
-}
-
-/* Ajax box */
-#tl_ajaxBox {
-	width:20%;
-	padding:24px;
-	position:absolute;
-	left:40%;
-	background:#fff url("images/loading.gif") no-repeat right center;
-	border:2px solid #666;
-	border-radius:6px;
-	font-family:"Trebuchet MS",Verdana,sans-serif;
-	font-size:15px;
-	font-size:.9375rem;
-	text-align:left;
-}
-#tl_ajaxOverlay {
-	width:100%;
-	height:100%;
-	position:absolute;
-	top:0;
-	left:0;
-	background:#fff;
-	-moz-opacity:0.5;
-	opacity: 0.5;
-}
-
-a.tl_submit {text-decoration: none;}
 
 #tl_ajaxBox {background-image: url('../img/loading.gif')}

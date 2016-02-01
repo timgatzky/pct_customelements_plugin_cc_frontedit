@@ -60,6 +60,7 @@ class Helper
 	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
 	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
 	    $objCombiner->add('system/themes/default/fonts.css');
+	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
 	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
 	    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
 			 
