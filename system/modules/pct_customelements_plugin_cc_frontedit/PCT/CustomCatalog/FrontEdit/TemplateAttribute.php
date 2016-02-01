@@ -226,7 +226,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			if(is_array($arrFieldDef['load_callback']))
 			{
-				$objDC->objAttribute = $this;
+				$objDC->objAttribute = $objAttribute;
 				foreach($arrFieldDef['load_callback'] as $callback)
 				{
 					if (is_array($callback))
@@ -457,6 +457,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
+					// database update
 					if($blnSubmitted & isset($_POST[$objDC->field]))
 					{
 						$objDC->value = $_POST[$objDC->field];
@@ -472,7 +473,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						{
 							$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? $_POST[$strOrderField.'_'.$objDC->field] : explode(',',$_POST[$strOrderField.'_'.$objDC->field]);
 							
-							// save the new order
 							$dc = clone($objDC);
 							$dc->field = $strOrderField.'_'.$objDC->field;
 							
@@ -481,6 +481,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					$this->sortable = false;
+				}
+				// !ALIAS attributes
+				else if($objAttribute->get('type') == 'alias')
+				{
+					$strBuffer = $objWidget->generateLabel();
+					$strBuffer .= $objWidget->generateWithError();	
 				}
 				// !render	
 				else
@@ -512,7 +518,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// make it sortable
-		if($this->sortable)
+		if($this->sortable && strlen(strpos($strBuffer, 'ctrl_'.$strOrderField)) < 1)
 		{
 			$doc = new \DOMDocument();
 			@$doc->loadHTML(preg_replace("/&(?!(?:apos|quot|[gl]t|amp);|#)/", "&amp;",$strBuffer));
@@ -689,19 +695,43 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) )
 		{
+			// trigger save callback
+			if(is_array($arrFieldDef['save_callback']))
+			{
+				$objDC->objAttribute = $objAttribute;
+				foreach($arrFieldDef['save_callback'] as $callback)
+				{
+					if (is_array($callback))
+					{
+					   $objDC->value = \System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
+					}
+					else if(is_callable($callback))
+					{
+					   $objDC->value = $callback($objDC->value,$objDC,$this);
+					}
+				}
+			}
+						
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
 					foreach($arrSession['CURRENT']['IDS'] as $id)
 					{
-						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+						$objDC->id = $id;
+						if(!array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
+						{
+							\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+						}
 					}
 				}
 			}
 			else
 			{
-				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+				if(!array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
+				{
+					\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+				}
 			}
 			
 			// remove the session
