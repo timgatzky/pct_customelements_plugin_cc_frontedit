@@ -200,7 +200,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   
 				}
 			}
-		   	
+			else if($objAttribute->get('type') == 'tags' && \Input::post('value'))
+		   	{
+			   	if($this->multiple)
+			   	{
+				   	 $objDC->value = implode(',',trimsplit('\t',\Input::post('value',true)));
+			   	}
+		   	}
 		   	
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
@@ -248,6 +254,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			
 			// any validator need the current field value in the psydo post data
+			$objDC->value = deserialize($objDC->value);
 			\Input::setPost($objDC->field,$objDC->value);
 			
 			// append record id to widget name in multiple modes
@@ -390,7 +397,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// reorder
-					if($blnSubmitted && $this->sortable && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
+					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
 						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
 						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
@@ -433,7 +440,47 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
 					$GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 					
+					$arrFieldDef['dataContainer'] = $objDC;
+ 					$arrFieldDef['sortable'] = true;
+ 					
+ 					// set value for validators
+ 					if(is_array($objDC->value) && $this->multiple)
+					{
+						$objDC->value = implode(',', $objDC->value);
+						\Input::setPost($objDC->field,$objDC->value);
+					}
+					
+					if($this->sortable && !$blnSubmitted)
+					{
+						\Input::setPost($strOrderField.'_'.$objDC->field,deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
+					}
+					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					
+					if($blnSubmitted & isset($_POST[$objDC->field]))
+					{
+						$objDC->value = $_POST[$objDC->field];
+						if($this->multiple && !is_array($objDC->value))
+						{
+							$objDC->value = explode(',', $objDC->value);
+						}
+						
+						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+						
+						// save the order field
+						if(isset($_POST[$strOrderField.'_'.$objDC->field]))
+						{
+							$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? $_POST[$strOrderField.'_'.$objDC->field] : explode(',',$_POST[$strOrderField.'_'.$objDC->field]);
+							
+							// save the new order
+							$dc = clone($objDC);
+							$dc->field = $strOrderField.'_'.$objDC->field;
+							
+							\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
+						}
+					}
+					
+					$this->sortable = false;
 				}
 				// !render	
 				else
