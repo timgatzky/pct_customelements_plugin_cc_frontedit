@@ -716,13 +716,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
+					$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table);
+							
 					foreach($arrSession['CURRENT']['IDS'] as $id)
 					{
 						$objDC->id = $id;
-						if(!array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
+						if(array_key_exists($objDC->field, $arrSet))
 						{
-							\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
+							$objDC->value = $arrSet[$objDC->field];
 						}
+						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 					}
 				}
 			}
