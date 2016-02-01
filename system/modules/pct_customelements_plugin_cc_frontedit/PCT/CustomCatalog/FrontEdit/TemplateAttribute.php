@@ -173,7 +173,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	   				$objDC->value = $objFile->uuid;
 	   			}
 		   	}
-		   	else if($objAttribute->get('type') == 'files' && \Input::post('value'))
+		   	else if(in_array($objAttribute->get('type'),array('files','gallery')) && \Input::post('value'))
 		   	{
 			   	$objDC->value = \Input::post('value');
 			   	if($this->multiple)
@@ -327,10 +327,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 				}
-				// !FILE(s) attributes
-				else if($objAttribute->get('type') == 'files')
+				// !FILE(s), GALLERY attributes
+				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
 				{
-					if(!$arrFieldDef['eval']['multiple'])
+					if(!$this->multiple)
 					{
 						if(\Validator::isBinaryUuid($objDC->value))
 						{
@@ -352,7 +352,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						   {
 							   $objDC->value = explode(',', $objDC->value);
 						   }
-						   
 						   $values = array();
 						   foreach($objDC->value as $v)
 						   {
@@ -379,6 +378,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$objDC->value = implode(',',$values);
 							\Input::setPost($objDC->field,$objDC->value);
 							unset($values);
+		
 						}
 						else if(!$blnSubmitted)
 						{
