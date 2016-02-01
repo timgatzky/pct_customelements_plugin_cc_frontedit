@@ -517,6 +517,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
 		
+		// wizards
+		if(count($arrFieldDef['wizard']) > 0)
+		{
+			foreach($arrFieldDef['wizard'] as $callback)
+			{
+				$strBuffer .= \System::importStatic($callback[0])->{$callback[1]}($objDC);
+			}
+		}
+
 		// make it sortable
 		if($this->sortable && strlen(strpos($strBuffer, 'ctrl_'.$strOrderField)) < 1)
 		{
@@ -612,7 +621,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
-				$arr[] = $strChild;
+				$arr[] = in_array('pct_autogrid',\Config::getActiveModules()) ? '<div class="'.$field.' autogrid one_half block">'.$strChild.'</div>' : '<div class="'.$field.' w50">'.$strChild.'</div>';
 			}
  			
  			$strBuffer .= implode('', $arr);
@@ -692,7 +701,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/page.php',$strBuffer);
 		}
 			
-		// add to save list
+		// !FORM_SUBMIT add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) )
 		{
 			// trigger save callback
@@ -711,6 +720,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 				}
 			}
+			
+			// decode entities
+			if($arrFieldDef['eval']['decodeEntities'])
+			{
+				$objDC->value = \StringUtil::decodeEntities($objDC->value);
+			}
+			
 						
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
@@ -740,7 +756,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// remove the session
 			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
-	
+		
+		$arrClasses = array();
+		if($objAttribute->get('eval_tl_class_w50'))
+		{
+			$arrClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
+		}
+		
+		$this->widget = $this;
+		$this->widget->classes = $arrClasses;
+		$this->widget->class = implode(' ', $arrClasses);
+		
 		// cache
 		$this->widget = $strBuffer;
 		
