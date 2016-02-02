@@ -37,4 +37,10 @@ ul.sortable li:hover .dirname {
 	display: inline-block;
 }
 
+fieldset,form,input,optgroup,select,textarea {
+	font-family:inherit;
+}
+
+.cc_frontedit_form fieldset, .cc_frontedit_form form, .cc_frontedit_form input, .cc_frontedit_form optgroup, .cc_frontedit_form select, .cc_frontedit_form textarea {font-family:"Trebuchet MS",Verdana,sans-serif;}
+
 #tl_ajaxBox {background-image: url('../img/loading.gif')}

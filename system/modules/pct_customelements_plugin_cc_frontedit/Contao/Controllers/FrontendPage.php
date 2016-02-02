@@ -38,17 +38,12 @@ class FrontendPage extends \Contao\BackendPage
 	
 	public function run()
 	{
-		$this->import('FrontendUser','User');
-		
 		$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = \PageModel::findPublishedRootPages()->fetchEach('id');
 		$GLOBALS['loadDataContainer']['tl_page'] = true;
-		if($this->User->filemount)
+		if($this->User->pagemounts)
 		{
-			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = deserialize($this->User->filemount);
+			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = deserialize($this->User->pagemounts);
 		}
-		
 		return parent::run();
 	}
-}	
-
-?>
+}

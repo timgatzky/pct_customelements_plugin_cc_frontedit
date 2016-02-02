@@ -38,17 +38,13 @@ class FrontendFile extends \Contao\BackendFile
 	
 	public function run()
 	{
-		$this->import('FrontendUser','User');
-			
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array($GLOBALS['TL_CONFIG']['uploadPath']);
 		$GLOBALS['loadDataContainer']['tl_files'] = true;
-		if($this->User->filemount)
+		if($this->User->filemounts)
 		{
-			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = deserialize($this->User->filemount);
+			$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',deserialize($this->User->filemounts)));
+			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $objFiles->fetchEach('path');
 		}
-		
 		return parent::run();
 	}
 }	
-
-?>
