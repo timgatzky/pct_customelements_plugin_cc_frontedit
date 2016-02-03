@@ -29,6 +29,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	public function generate()
 	{
+		// Show error info on permission fails
 		if(TL_MODE == 'FE' && !\PCT\CustomCatalog\FrontEdit::checkPermissions())
 		{
 			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');

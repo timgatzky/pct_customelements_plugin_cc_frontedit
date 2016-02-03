@@ -122,6 +122,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		$objAttribute = $tmp;
 		unset($tmp);
+		unset($key);
+		unset($val);
 		
 		// get the attributes field definition
 		$arrFieldDef = $objAttribute->getFieldDefinition();
@@ -496,15 +498,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			else
 			{	
-				if(\Input::post('FORM_SUBMIT') == $objDC->table)
+				if($blnSubmitted)
 				{
 					// validate the input
 					$objWidget->validate();
-					
-					if($objWidget->hasErrors())
-					{
-						$objWidget->class = 'error';
-					}
 				}
 				
 				$strBuffer = $objWidget->generateLabel();
@@ -516,7 +513,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
-		
+					
 		// wizards
 		if(count($arrFieldDef['wizard']) > 0)
 		{
@@ -702,7 +699,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 			
 		// !FORM_SUBMIT add to save list
-		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) )
+		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
 			// trigger save callback
 			if(is_array($arrFieldDef['save_callback']))
