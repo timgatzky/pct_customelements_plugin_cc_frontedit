@@ -34,11 +34,3 @@ $GLOBALS['TL_DCA']['tl_settings']['fields']['customcatalog_edit_admin'] = array
 	'eval'			=> array('includeBlankOption'=>true),
 	'sql'			=> "int(10) NOT NULL default '0'",
 );
-
-$GLOBALS['TL_DCA']['tl_settings']['fields']['customcatalog_reader_baseRecordIsFallback'] = array
-(
-	'label'			=> &$GLOBALS['TL_LANG']['tl_settings']['customcatalog_reader_baseRecordIsFallback'],
-	'inputType'		=> 'checkbox',
-	'eval'			=> array('tl_class'=>'w50'),
-	'sql'			=> "char(1) NOT NULL default ''",
-);
