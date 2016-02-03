@@ -32,22 +32,22 @@ ClassLoader::addClasses(array
 	// Core
 	'PCT\CustomCatalog\FrontEdit'											=> $path.'/PCT/CustomCatalog/FrontEdit.php',
 	'PCT\CustomCatalog\FrontEdit\CustomCatalog'								=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalog.php',
-	#'PCT\CustomCatalog\FrontEdit\CustomCatalogFactory'						=> $path.'/PCT/CustomCatalog/FrontEdit/CustomCatalogFactory.php',
 	'PCT\CustomCatalog\FrontEdit\Callbacks'									=> $path.'/PCT/CustomCatalog/FrontEdit/Callbacks.php',
-	'PCT\CustomCatalog\FrontEdit\Helper'									=> $path.'/PCT/CustomCatalog/FrontEdit/Helper.php',
-	'PCT\CustomCatalog\FrontEdit\Hooks'									=> $path.'/PCT/CustomCatalog/FrontEdit/Hooks.php',
+	'PCT\CustomCatalog\FrontEdit\Controller'								=> $path.'/PCT/CustomCatalog/FrontEdit/Controller.php',
+	'PCT\CustomCatalog\FrontEdit\Hooks'										=> $path.'/PCT/CustomCatalog/FrontEdit/Hooks.php',
 	
 	'PCT\CustomCatalog\FrontEdit\RowTemplate'								=> $path.'/PCT/CustomCatalog/FrontEdit/RowTemplate.php',
 	'PCT\CustomCatalog\FrontEdit\TemplateAttribute'							=> $path.'/PCT/CustomCatalog/FrontEdit/TemplateAttribute.php',
 	'PCT\CustomCatalog\FrontEdit\FrontendTemplate'							=> $path.'/PCT/CustomCatalog/FrontEdit/FrontendTemplate.php',
-	'PCT\CustomCatalog\FrontEdit\BackendUser'								=> $path.'/PCT/CustomCatalog/FrontEdit/BackendUser.php',
 	
-	// Models
-	'PCT\CustomElements\Models\FrontEditModel'								=> $path.'/PCT/CustomElements/Models/FrontEditModel.php',
-
 	// Frontend
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader'			=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleReader.php',
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList'				=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleList.php',
+	
+	// Pages
+	'PCT\CustomCatalog\FrontEdit\PageNoPermission'							=> $path.'/PCT/CustomCatalog/FrontEdit/PageNoPermission.php',
+	
+	'PCT\Contao\FrontendUser'												=> $path.'/PCT/Contao/FrontendUser.php',
 	
 	// Controllers
 	'Contao\Controllers\FrontendFile'										=> $path.'/Contao/Controllers/FrontendFile.php',
@@ -64,4 +64,6 @@ TemplateLoader::addFiles(array
 
 	// frontedit
 	'buttons'							=> $path.'/templates/frontedit',
+	
+	'cc_edit_nopermission'				=> $path.'/templates/pages',
 ));

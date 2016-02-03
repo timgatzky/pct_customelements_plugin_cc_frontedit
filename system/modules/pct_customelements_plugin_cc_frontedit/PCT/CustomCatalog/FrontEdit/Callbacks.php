@@ -42,7 +42,7 @@ class Callbacks
 		
 		$bypass = false;
 		
-		// always show unpublished entries in edit mode
+		// always show unpublished entries in edit modes
 		if(in_array(\Input::get('act'),array('edit','editAll','overrideAll')) && $objCC->getTable() == \Input::get('table'))
 		{
 			$bypass = true;
@@ -106,11 +106,31 @@ class Callbacks
 	
 	
 	/**
-	 * 
+	 * Frontend ajax listener
+	 * @called from generatePage HOOK
 	 */
-	public function executePreActionsCallback($strAction)
+	public function ajaxListener()
 	{
+		$objSession = \Session::getInstance();
 		
+		// store scroll offset
+		if(\Input::post('ajax') && \Input::post('scrollOffset'))
+		{
+			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
+		}
+		
+		// remove the regular call to tabletree.js. It's loaded by the tags widget
+		if(\Input::get('act') && in_array(PCT_TABLETREE_PATH.'/assets/js/tabletree.js', $GLOBALS['TL_JAVASCRIPT']))
+		{
+			foreach($GLOBALS['TL_JAVASCRIPT'] as $i => $k)
+			{
+				if($k == PCT_TABLETREE_PATH.'/assets/js/tabletree.js')
+				{
+					unset($GLOBALS['TL_JAVASCRIPT'][$i]);
+				}
+			}
+		}
 	}
+
 }
  

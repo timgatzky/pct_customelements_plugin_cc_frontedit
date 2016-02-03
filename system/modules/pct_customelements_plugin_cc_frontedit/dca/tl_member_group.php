@@ -22,6 +22,8 @@ if(!is_array($GLOBALS['TL_DCA']['tl_user_group']['fields']))
 	\Controller::loadLanguageFile('tl_user_group');
 }
 
+\Controller::loadLanguageFile('tl_module');
+
 /**
  * Table tl_member_group
  */

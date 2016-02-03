@@ -29,6 +29,12 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	public function generate()
 	{
+		if(TL_MODE == 'FE' && !\PCT\CustomCatalog\FrontEdit::checkPermissions())
+		{
+			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
+			die_nicely('', $objTemplate->parse());
+		}
+		
 		if (TL_MODE == 'BE' || !$this->customcatalog_edit_active)
 		{
 			return parent::generate();
@@ -43,7 +49,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		// add backend assets
-		\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
+		\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
 		
 		return parent::generate();
 	}

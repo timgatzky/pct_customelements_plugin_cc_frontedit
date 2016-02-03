@@ -35,6 +35,7 @@ $objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getI
  */
 $arrPalettes = $objDcaHelper->getPalettesAsArray('default');
 $arrPalettes['frontedit_legend:hide'][] = 'customcatalog_edit_active';
+$arrPalettes['frontedit_legend:hide'][] = 'customcatalog_edit_disable';
 $GLOBALS['TL_DCA'][$objDcaHelper->getTable()]['palettes']['default'] = $objDcaHelper->generatePalettes($arrPalettes);
 
 /**
@@ -49,10 +50,18 @@ $objDcaHelper->addFields(array
 (
 	'customcatalog_edit_active' => array
 	(
-		'label'           		=> &$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'],
+		'label'           		=> &$GLOBALS['TL_LANG']['tl_member']['customcatalog_edit_active'],
 		'exclude'         		=> true,
 		'inputType'       		=> 'checkbox',
 		'eval'            		=> array('tl_class'=>'','submitOnChange'=>true),
+		'sql'			  		=> "char(1) NOT NULL default ''",
+	),
+	'customcatalog_edit_disable' => array
+	(
+		'label'           		=> &$GLOBALS['TL_LANG']['tl_member']['customcatalog_edit_disable'],
+		'exclude'         		=> true,
+		'inputType'       		=> 'checkbox',
+		'eval'            		=> array('tl_class'=>''),
 		'sql'			  		=> "char(1) NOT NULL default ''",
 	),	
 	'pagemounts' 		=> $GLOBALS['TL_DCA']['tl_user']['fields']['pagemounts'],	

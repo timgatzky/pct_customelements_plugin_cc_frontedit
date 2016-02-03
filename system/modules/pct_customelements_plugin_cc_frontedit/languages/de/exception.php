@@ -1,4 +1,5 @@
-<?php
+<?php 
+
 /**
  * Contao 
  * German translation file 
@@ -12,7 +13,7 @@
  * permanent text corrections which are update-safe. 
  */
 
-/**
- * Legends
- */
-$GLOBALS['TL_LANG']['tl_member_group']['frontedit_legend'] = 'CustomCatalog FrontEdit-Einstellungen';
+
+$GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission'] 				= 'Keine FrontEdit Rechte';
+$GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_info'] 		= 'Ihr Benutzer verfügt über unzureichende Rechte zum Bearbeiten dieses Eintrags.';
+$GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_referer'] 		= 'Klicken Sie diesen Link %s, um die Bearbeitungsebene zu verlassen.';

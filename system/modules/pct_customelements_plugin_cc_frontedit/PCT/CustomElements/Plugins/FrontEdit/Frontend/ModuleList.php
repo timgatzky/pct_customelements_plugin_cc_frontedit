@@ -40,7 +40,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			}
 			
 			// add backend assets
-			\PCT\CustomCatalog\FrontEdit\Helper::addBackendAssets();
+			\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
 		}
 		
 		return parent::generate();
@@ -53,7 +53,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 	 */
 	protected function compile()
 	{
-		if(!$this->customcatalog_edit_active)
+		if(!$this->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::checkPermissions())
 		{
 			$this->Template->isEnabled = false;
 			return parent::compile();

@@ -34,6 +34,8 @@ class FrontendFile extends \Contao\BackendFile
 		$this->import('FrontendUser','User');
 		$this->import('Database');
 		$this->import('Session');
+		
+		$this->User = new \PCT\Contao\FrontendUser($this->User, array('customcatalog_edit_active' => 1));
 	}
 	
 	public function run()

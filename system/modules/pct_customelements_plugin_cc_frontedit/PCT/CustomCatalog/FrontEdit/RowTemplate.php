@@ -53,24 +53,13 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	
 	/**
 	 * Check if the frontend user has access to edit an entry
+	 * @param string	A table name
+	 * @param integer	Id of an entry
 	 * @return boolean
 	 */
-	public function editable()
+	public function editable($strTable='', $intId='')
 	{
-		// return if no user is logged in
-		#if(!FE_USER_LOGGED_IN)
-		#{
-		#	return false;
-		#}
-		// fronedit is not active or user not logged in
-		if(!$this->getCustomCatalog()->getOrigin()->customcatalog_edit_active)
-		{
-			return false;
-		}
-		
-		$this->import('FrontendUser','User');
-		
-		return true;
+		return \PCT\CustomCatalog\FrontEdit::checkPermissions($strTable, $intId);
 	}
 	
 	
