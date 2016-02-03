@@ -31,7 +31,8 @@ $referer = '<a href="'.\Controller::getReferer().'">'.$GLOBALS['TL_LANG']['MSC']
   <div id="container">
 
     <div id="main">
-	
+	<h2><?= $lang->error ?></h2>
+
 	<h3><?= $lang->matter ?></h3>
       <p><?= $lang->cc_edit_noPermission_info ?></p>
 	  <p><?= sprintf($lang->cc_edit_noPermission_referer, $referer); ?></p>
