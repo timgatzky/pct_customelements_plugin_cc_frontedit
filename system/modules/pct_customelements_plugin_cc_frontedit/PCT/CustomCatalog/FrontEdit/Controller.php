@@ -417,10 +417,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 			
 		if(!defined(CURRENT_ID)) {define(CURRENT_ID, \Input::get('id'));}
 		
-		\System::importStatic('FrontendUser','User');
-		
+		// Set a user ID for versions
 		$objUser = new \StdClass;
-		$objUser->id = 1;
+		$objUser->id = isset($GLOBALS['TL_CONFIG']['customcatalog_edit_admin']) ? $GLOBALS['TL_CONFIG']['customcatalog_edit_admin'] : 1;
 		
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());

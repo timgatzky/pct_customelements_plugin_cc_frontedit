@@ -101,7 +101,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	
 		
 	/**
-	 * General check if editing is allowed and/or active
+	 * General check if editing is allowed and/or active for a particular entry
 	 * @param string	Tablename
 	 * @param integer	A certain entry id that should be checked
 	 * @return boolean
@@ -115,7 +115,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		}
 		
 		// fronedit is most likely not active
-		if(!\Input::get('do'))
+		if(!\Input::get('do') || !\Input::get('table'))
 		{
 			return false;
 		}
@@ -146,12 +146,25 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 			return false;
 		}
 		
-		// check permissions for a particular entry
-		if(strlen($strTable) > 0 && $intId > 0)
+		// check on CustomCatalog level
+		if(strlen($strTable) < 1)
 		{
-			return $this->isEditable($strTable, $intId);
+			$strTable = \Input::get('table');
+		}		
+		
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($strTable);
+		if($objCC === null)
+		{
+			return false;
 		}
-				
+		
+		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage();
+		$objEntry = $objCC->findPublishedItemByIdOrAlias($intId,$objMultilanguage->getActiveFrontendLanguage());
+		if($objEntry->id < 1)
+		{
+			return false;
+		}
+		
 		return true;
 	}
 	

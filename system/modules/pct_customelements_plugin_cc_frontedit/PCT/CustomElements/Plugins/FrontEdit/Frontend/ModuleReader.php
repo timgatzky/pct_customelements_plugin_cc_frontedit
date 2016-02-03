@@ -29,11 +29,14 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	public function generate()
 	{
-		// Show error info on permission fails
-		if(TL_MODE == 'FE' && !\PCT\CustomCatalog\FrontEdit::checkPermissions())
+		// check permissions when entry is editable
+		if( \PCT\CustomCatalog\FrontEdit::isEditable() )
 		{
-			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
-			die_nicely('', $objTemplate->parse());
+			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions( \Input::get('table'), \Input::get('id') ) )
+			{
+				$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
+				die_nicely('', $objTemplate->parse());
+			}
 		}
 		
 		if (TL_MODE == 'BE' || !$this->customcatalog_edit_active)
