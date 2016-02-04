@@ -122,4 +122,28 @@ class FrontendUser
 		return $this->{$strKey};
 	}
 	
+	
+	/**
+	 * Check if user has access to the groups
+	 * @param array
+	 */
+	public function hasGroupAccess($arrGroups)
+	{
+		if(count($arrGroups) < 1 || empty($arrGroups) || !$this->groups)
+		{
+			return false;
+		}
+	
+		if(!is_array($arrGroups))
+		{
+			$arrGroups = explode(',', $arrGroups);
+		}
+				
+		if( empty( array_intersect( $arrGroups, deserialize($this->groups) )))
+		{
+			return false;
+		}
+		
+		return true;
+	}
 }

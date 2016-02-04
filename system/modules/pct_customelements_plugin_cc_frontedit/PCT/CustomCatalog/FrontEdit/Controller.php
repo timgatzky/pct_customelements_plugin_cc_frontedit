@@ -375,7 +375,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strTable = \Input::get('table') ?: \Input::get('do');
 		
 		// check if the table is allowed to be edited
-		if( !\PCT\CustomCatalog\FrontEdit::isEditable($strTable) )
+		if( !\PCT\CustomCatalog\FrontEdit::isEditable($strTable) || strlen($strTable) < 1)
 		{
 			return;
 		}

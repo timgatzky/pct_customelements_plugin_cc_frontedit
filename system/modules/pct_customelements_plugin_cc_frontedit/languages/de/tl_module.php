@@ -23,4 +23,4 @@ $GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][1] = 'Wä
 /**
  * Legends
  */
-$GLOBALS['TL_LANG']['tl_module']['frontedit_legend'] = 'Frontedit-Einstellungen';
+$GLOBALS['TL_LANG']['tl_module']['frontedit_legend'] = 'FrontEdit-Einstellungen';

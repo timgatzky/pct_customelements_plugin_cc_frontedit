@@ -33,7 +33,7 @@ $GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogreader'] = $objDcaHelp
 /**
  * Subpalettes
  */
-$objDcaHelper->addSubpalette('customcatalog_edit_active',array('customcatalog_edit_showUnpublished'));
+$objDcaHelper->addSubpalette('customcatalog_edit_active',array('reg_groups,customcatalog_edit_showUnpublished'));
 
 /**
  * Fields

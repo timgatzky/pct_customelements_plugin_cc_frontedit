@@ -106,8 +106,34 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * @param integer	A certain entry id that should be checked
 	 * @return boolean
 	 */
-	public function isEditable($strTable='', $intId=0)
+	public function isEditable($strTable='')
 	{
+		// load the data container to the frontend
+		if(!$GLOBALS['TL_DCA'][$strTable] && strlen($strTable) > 0)
+		{
+			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
+			
+			// fallback CC <= 1.4.14
+			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
+			{
+				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
+				
+				$objSystem->loadCustomCatalog($strTable,true);
+				
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
+			}
+			else
+			{
+				$objSystem->loadDCA($strTable);
+			}
+		}
+		
+		if((boolean)$GLOBALS['TL_DCA'][$strTable]['config']['closed'] === true)
+		{
+			return false;
+		}
+				
 		// clearing the clipboard is allowed
 		if(strlen($strTable) > 0 && \Input::get('clear_clipboard') != '')
 		{
@@ -128,6 +154,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * Check user permissions
 	 * @param string	Tablename
 	 * @param integer	A certain entry id that should be checked
+	 * @param array		Member group ids as array
 	 * @return boolean
 	 */
 	public function checkPermissions($strTable='', $intId=0)

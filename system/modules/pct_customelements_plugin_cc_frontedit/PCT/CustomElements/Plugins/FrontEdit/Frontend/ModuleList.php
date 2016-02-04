@@ -25,12 +25,29 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleList
 {
 	/**
+	 * Flag if current user has group rights
+	 * @param boolean
+	 */
+	protected $hasGroupAccess = true;
+	
+	/**
 	 * Display wildcard
 	 */
 	public function generate()
 	{
 		if(TL_MODE == 'FE' && $this->customcatalog_edit_active)
 		{
+			// check groups
+			if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+			{
+				$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+				if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+				{
+					$this->hasGroupAccess = false;
+					return parent::generate();
+				}
+			}
+		
 			$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 			
 			global $objPage;
@@ -53,7 +70,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 	 */
 	protected function compile()
 	{
-		if(!$this->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::checkPermissions())
+		if(!$this->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::checkPermissions() || !$this->hasGroupAccess)
 		{
 			$this->Template->isEnabled = false;
 			return parent::compile();
@@ -73,13 +90,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
             $this->Template->{$key} = $val;
         }
         
-         $this->Template->isEnabled = true;
-        // check if user is allowed and has access to frontedit
-        #if()
-        #{
-	    #    #$this->Template->isEnabled = true;
-        #}
-        
+        $this->Template->isEnabled = true;
+       
         $arrListOperations = deserialize($objCC->get('list_operations'));
         
         // check if clipboard is active

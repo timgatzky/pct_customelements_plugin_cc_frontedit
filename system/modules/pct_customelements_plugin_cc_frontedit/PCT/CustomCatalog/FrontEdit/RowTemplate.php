@@ -59,7 +59,29 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	 */
 	public function editable($strTable='', $intId='')
 	{
-		return \PCT\CustomCatalog\FrontEdit::checkPermissions($strTable, $intId);
+		// module settings
+		if(!$this->getCustomCatalog()->getOrigin()->customcatalog_edit_active)
+		{
+			return false;
+		}
+		
+		// user level
+		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		{
+			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() );
+			if(!$objUser->hasGroupAccess(deserialize($this->getCustomCatalog()->getOrigin()->reg_groups)))
+			{
+				return false;
+			}
+		}
+		
+		// custom catalog level	
+		if(!\PCT\CustomCatalog\FrontEdit::checkPermissions($strTable, $intId))
+		{
+			return false;
+		}
+				
+		return true;
 	}
 	
 	
