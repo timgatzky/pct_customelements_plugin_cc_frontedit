@@ -322,6 +322,29 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 		$strTable = \Input::get('table');
 		
+		// switchToEdit disabled on CREATE
+		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('switchToEdit') < 1 && \Input::get('act') == 'edit')
+		{
+			$redirect = $arrSession[$strTable]['ref'];
+			foreach(array('act','jumpTo','mode','id','items','switchToEdit') as $v)
+			{
+				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$redirect);
+			}
+			
+			// add the clear clipboard parameter
+			$redirect = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$redirect);
+			
+			// remove session
+			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
+			$arrSession[$strTable]['ref'] = \Controller::getReferer();
+			
+			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			
+			// redirect to edit page
+			\Controller::redirect($redirect);
+		}
+		
+		
 		// !switchToEdit on CREATE
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
@@ -375,7 +398,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strTable = \Input::get('table') ?: \Input::get('do');
 		
 		// check if the table is allowed to be edited
-		if( !\PCT\CustomCatalog\FrontEdit::isEditable($strTable) || strlen($strTable) < 1)
+		if( strlen($strTable) < 1 || !\PCT\CustomCatalog\FrontEdit::isEditable($strTable) )
 		{
 			return;
 		}
@@ -425,14 +448,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
 		
-		
+		$blnDoNotSwitchToEdit = true;
+			
 		// !CREATE
 		if(\Input::get('act') == 'create')
 		{
 			$objDC->create();
 		}
-		
-		$blnDoNotSwitchToEdit = true;
 		
 		// !DELETE
 		if(\Input::get('act') == 'delete')

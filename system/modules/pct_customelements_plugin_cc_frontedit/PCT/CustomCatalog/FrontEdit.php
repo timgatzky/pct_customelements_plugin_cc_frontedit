@@ -103,11 +103,26 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	/**
 	 * General check if editing is allowed and/or active for a particular entry
 	 * @param string	Tablename
-	 * @param integer	A certain entry id that should be checked
+	 * @param integer	Entry id
 	 * @return boolean
 	 */
-	public function isEditable($strTable='')
+	public function isEditable($strTable='', $intId=0)
 	{
+		// (first level) exclude the whole CC table 
+		if(strlen($strTable) > 0 && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable] === true && !is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable]))
+		{
+			return false;
+		}
+		
+		// (second level) exclude the entry
+		if(strlen($strTable) > 0 && $intId > 0 && is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable]) && count($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable]) > 0)
+		{
+			if(in_array($intId,$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable]))
+			{
+				return false;
+			}
+		}
+		
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable] && strlen($strTable) > 0)
 		{
@@ -129,19 +144,8 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 			}
 		}
 		
+		// table is closed
 		if((boolean)$GLOBALS['TL_DCA'][$strTable]['config']['closed'] === true)
-		{
-			return false;
-		}
-				
-		// clearing the clipboard is allowed
-		if(strlen($strTable) > 0 && \Input::get('clear_clipboard') != '')
-		{
-			return true;
-		}
-		
-		// fronedit is most likely not active
-		if(!\Input::get('do') || !\Input::get('table'))
 		{
 			return false;
 		}
@@ -152,12 +156,9 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	
 	/**
 	 * Check user permissions
-	 * @param string	Tablename
-	 * @param integer	A certain entry id that should be checked
-	 * @param array		Member group ids as array
 	 * @return boolean
 	 */
-	public function checkPermissions($strTable='', $intId=0)
+	public function checkPermissions()
 	{
 		// check if editing is allowed for all or in general for FE Users only
 		if( $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === false && !FE_USER_LOGGED_IN )
@@ -173,59 +174,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 			return false;
 		}
 		
-		// check on CustomCatalog level
-		if(strlen($strTable) < 1)
-		{
-			$strTable = \Input::get('table');
-		}		
-		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($strTable);
-		if($objCC === null)
-		{
-			return false;
-		}
-		
-		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage();
-		$objEntry = $objCC->findPublishedItemByIdOrAlias($intId,$objMultilanguage->getActiveFrontendLanguage());
-		if($objEntry->id < 1)
-		{
-			return false;
-		}
-		
 		return true;
-	}
-	
-		
-	/**
-	 * Check if the front end user also has a running back end user session
-	 * @param boolean
-	 * @return boolean
-	 */
-	public function hasBackendSession($blnForceLookup=false)
-	{
-		if(TL_MODE != 'FE')
-		{
-			return true;
-		}
-		
-		if(defined(FE_BE_USER_LOGGED_IN) && !$blnForceLookup)
-		{
-		   return true;
-		}
-		
-		$objBackendSession = \Database::getInstance()->prepare("SELECT * FROM tl_session WHERE name=? AND ip=?")->limit(1)->execute('BE_USER_AUTH',\Environment::get('ip'));
-		if($objBackendSession->numRows > 0)
-		{
-			if(!defined(FE_BE_USER_LOGGED_IN))
-			{
-			   define(FE_BE_USER_LOGGED_IN, true);
-			}
-			
-			return true;
-		}
-				
-		define(FE_BE_USER_LOGGED_IN, false);
-		return false;
 	}
 	
 	

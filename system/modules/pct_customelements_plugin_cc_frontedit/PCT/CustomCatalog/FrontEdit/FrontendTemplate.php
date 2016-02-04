@@ -42,6 +42,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	{
 		global $objPage;
 		$objCC = $this->getCustomCatalog();
+		$objModule = $objCC->getOrigin();
 		
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
@@ -49,17 +50,28 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strTable = $objCC->getTable();
 		
 		$image = \Image::getHtml('new.gif',$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0]);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable,\Controller::generateFrontendUrl($objPage->row()));
+		
+		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
+		
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable,$strJumpTo);
 		
 		// add the edit jump to page id to the url
-		if($objCC->getOrigin()->customcatalog_edit_jumpTo)
+		if($objModule->customcatalog_jumpTo)
 		{
-			$href = $objFunction->addToUrl('jumpto='.$objCC->getOrigin()->customcatalog_edit_jumpTo,$href);
+			$href = $objFunction->addToUrl('jumpto='.$objModule->customcatalog_jumpTo.'&switchToEdit=1',$href);
+		}
+		else
+		{
+			$href = $objFunction->addToUrl('switchToEdit=0',$href);
 		}
 		
 		if(in_array($objCC->get('list_mode'),array(4,5,'5.1')))
 		{
 			$href = $objFunction->addToUrl('&act=paste&mode=create',$href);
+		}
+		else
+		{
+			$href = $objFunction->addToUrl('&act=create',$href);
 		}
 		
 		// add the request token
@@ -71,6 +83,18 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$title = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][1];
 		$linkText = $image.$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0];
 		$class = 'header_new';
+		
+		// set the switchToEdit helper session
+		$arrClipboard = \Session::getInstance()->get('CLIPBOARD_HELPER');
+	
+		$arrClipboard[$strTable] = array
+		(
+			'mode' 		=> 'create',
+			'ref'		=> \Environment::get('request'),
+		);
+
+		// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
+		\Session::getInstance()->set('CLIPBOARD_HELPER',$arrClipboard);
 		
 		return sprintf('<a href="%s", class="%s" title="%s">%s</a>',$href,$class,$title,$linkText);
 	}

@@ -43,7 +43,7 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 			$_this = new self();
 			foreach($objRowTemplate as $key => $val) 
 			{
-	            $_this->{$key} = $val;
+	           $_this->{$key} = $val;
 	        }
 	        $arrReturn[$i] = $_this;
 		}
@@ -53,14 +53,15 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	
 	/**
 	 * Check if the frontend user has access to edit an entry
-	 * @param string	A table name
-	 * @param integer	Id of an entry
 	 * @return boolean
 	 */
-	public function editable($strTable='', $intId='')
+	public function editable()
 	{
-		// module settings
-		if(!$this->getCustomCatalog()->getOrigin()->customcatalog_edit_active)
+		$objModule = $this->getCustomCatalog()->getOrigin();
+		$objActiveRecord = $this->get('objActiveRecord'); 
+		
+		// check general permissions
+		if(!$objModule->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog) || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog,$this->id) )
 		{
 			return false;
 		}
@@ -69,16 +70,10 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
 			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() );
-			if(!$objUser->hasGroupAccess(deserialize($this->getCustomCatalog()->getOrigin()->reg_groups)))
+			if(!$objUser->hasGroupAccess( deserialize($objModule->reg_groups) ))
 			{
 				return false;
 			}
-		}
-		
-		// custom catalog level	
-		if(!\PCT\CustomCatalog\FrontEdit::checkPermissions($strTable, $intId))
-		{
-			return false;
 		}
 				
 		return true;

@@ -29,6 +29,14 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] 					= false; //
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] 	= true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 
+// usage: table level
+// $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = true; // exlucde the whole table, including all entries. No rights at all
+// usage: entry level
+// $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = array(10,11,12); // exlucde the entries with id 10, 11 and 12
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
+
+
+
 /**
  * Register plugin
  */
@@ -74,7 +82,5 @@ if($blnInitialize)
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['prepareCatalog'][] 	= array('PCT\CustomCatalog\FrontEdit\Callbacks','showSelectedEntriesOnly');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Controller','applyOperationsOnGeneratePage');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Callbacks','ajaxListener');	
-#	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit','hasBackendSession');
-	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit\Controller','simulateSwitchToEdit');
-	
+	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit\Controller','simulateSwitchToEdit');	
 }

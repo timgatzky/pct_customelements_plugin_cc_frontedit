@@ -75,6 +75,10 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		
 		global $objPage;
 		$objCC = $this->CustomCatalog;
+		if(!$objCC->getOrigin())
+		{
+			$objCC->setOrigin($this);
+		}
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);

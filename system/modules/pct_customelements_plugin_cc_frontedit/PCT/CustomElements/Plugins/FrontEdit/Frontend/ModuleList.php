@@ -28,37 +28,39 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 	 * Flag if current user has group rights
 	 * @param boolean
 	 */
-	protected $hasGroupAccess = true;
+	protected $hasAccess = true;
 	
 	/**
 	 * Display wildcard
 	 */
 	public function generate()
 	{
-		if(TL_MODE == 'FE' && $this->customcatalog_edit_active)
+		if(TL_MODE == 'BE' || !$this->customcatalog_edit_active)
 		{
-			// check groups
-			if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
-			{
-				$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
-				if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
-				{
-					$this->hasGroupAccess = false;
-					return parent::generate();
-				}
-			}
-		
-			$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
-			
-			global $objPage;
-			if(!$objPage->hasJQuery)
-			{
-				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
-			}
-			
-			// add backend assets
-			\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
+			return parent::generate();
 		}
+		
+		// check groups
+		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		{
+			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+			{
+				$this->hasAccess = false;
+				return parent::generate();
+			}
+		}
+	
+		$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+		
+		global $objPage;
+		if(!$objPage->hasJQuery)
+		{
+			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+		}
+		
+		// add backend assets
+		\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
 		
 		return parent::generate();
 	}
@@ -70,7 +72,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 	 */
 	protected function compile()
 	{
-		if(!$this->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::checkPermissions() || !$this->hasGroupAccess)
+		// check general permissions 
+		if(!$this->customcatalog_edit_active || !$this->hasAccess)
 		{
 			$this->Template->isEnabled = false;
 			return parent::compile();
@@ -80,6 +83,10 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		
 		global $objPage;
 		$objCC = $this->CustomCatalog;
+		if(!$objCC->getOrigin())
+		{
+			$objCC->setOrigin($this);
+		}
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
