@@ -93,6 +93,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objDC->id = $objDC->activeRecord->id;
 		}
 		$objDC->objAttribute = $objAttribute;
+		$objDC->formSubmit = $objDC->table.'_'.\Input::post('mod');
 		
 		$arrSession = $objSession->getData();
 		$arrIds = $arrSession['CURRENT']['IDS'];
@@ -143,15 +144,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
+		\PC::debug($_POST[$objDC->field.'_'.$objDC->activeRecord->id]);
+		
 		$blnSubmitted = false;
-		if(\Input::post('FORM_SUBMIT') == $objDC->table && isset($_POST[$objDC->field]))
+		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
 		{
 			$objDC->value = \Input::post($objDC->field);
 			$blnSubmitted = true;
 		}
 		
 		// multiple modes
-		if($blnSubmitted && \Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
+		else if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && \Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
 		{
 			$objDC->value = \Input::post($objDC->field.'_'.$objDC->activeRecord->id);
 			$blnSubmitted = true;
@@ -257,12 +260,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			
 			// any validator need the current field value in the psydo post data
 			$objDC->value = deserialize($objDC->value);
-			\Input::setPost($objDC->field,$objDC->value);
-			
+		
 			// append record id to widget name in multiple modes
 			if(\Input::get('act') == 'fe_editAll')
 			{
+				\Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
+			}
+			else
+			{
+				\Input::setPost($objDC->field,$objDC->value);
 			}
 			
 			// trigger the attributes parseWidgetCallback
@@ -699,7 +706,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 			
 		// !FORM_SUBMIT add to save list
-		if(\Input::post('FORM_SUBMIT') == $objDC->table && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
+		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
 			// trigger save callback
 			if(is_array($arrFieldDef['save_callback']))
@@ -724,27 +731,32 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
 			
-						
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
 					$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table);
-							
+						
 					foreach($arrSession['CURRENT']['IDS'] as $id)
 					{
-						$objDC->id = $id;
-						if(array_key_exists($objDC->field, $arrSet))
+						if(!is_array($arrSet[$id]))
 						{
-							$objDC->value = $arrSet[$objDC->field];
+							continue;
 						}
+						
+						$objDC->id = $id;
+						if(array_key_exists($objDC->field, $arrSet[$id]))
+						{
+							$objDC->value = $arrSet[$id][$objDC->field];
+						}
+						
 						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 					}
 				}
 			}
 			else
 			{
-				if(!array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
+				if( !array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
 				{
 					\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 				}
@@ -759,7 +771,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$arrClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
-		
+			
 		$this->widget = $this;
 		$this->widget->classes = $arrClasses;
 		$this->widget->class = implode(' ', $arrClasses);

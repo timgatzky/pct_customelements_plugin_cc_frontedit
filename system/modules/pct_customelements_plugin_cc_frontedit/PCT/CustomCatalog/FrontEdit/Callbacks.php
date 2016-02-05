@@ -106,6 +106,29 @@ class Callbacks
 	
 	
 	/**
+	 * Show only the entry of interest for lists when editing one single entry
+	 * @param array
+	 * @param object
+	 * @return array
+	 */
+	public function showCurrentEditEntryOnly($arrOptions,$objCC)
+	{
+		global $objPage;
+		
+		// check if current page is different from jump to page
+		if(\Input::get('act') != 'edit' || $objCC->getOrigin()->customcatalog_jumpTo > 0 && $objPage->id == $objCC->getOrigin()->customcatalog_jumpTo)
+		{
+			return $arrOptions;
+		}
+		
+		// reset all filters
+		$arrOptions['columns'] = array( array('column'=>'id','operation'=>'IN','value'=>\Input::get('id')) );
+		
+		return $arrOptions;
+	}
+	
+	
+	/**
 	 * Frontend ajax listener
 	 * @called from generatePage HOOK
 	 */

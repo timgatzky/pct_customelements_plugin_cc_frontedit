@@ -231,9 +231,9 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	{
 		if(strlen($strTable) > 0)
 		{
-			return $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable];
+			return is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]) ? $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] : array();
 		}
-		return $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'];
+		return is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST']) ? $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'] : array();
 	}
 	
 	

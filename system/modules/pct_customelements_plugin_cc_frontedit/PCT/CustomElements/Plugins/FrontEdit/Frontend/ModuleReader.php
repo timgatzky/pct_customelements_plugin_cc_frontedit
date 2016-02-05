@@ -98,7 +98,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		// form vars
-		$formName = $objCC->getTable();
+		$formName = $objCC->getTable().'_'.$this->id;
 		
 		//-- save button
 		$this->Template->hasSave = true;

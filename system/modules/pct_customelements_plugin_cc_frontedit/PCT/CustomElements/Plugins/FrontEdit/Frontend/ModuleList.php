@@ -96,8 +96,12 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		{
             $this->Template->{$key} = $val;
         }
+		$this->Template->referer = \Controller::getReferer();
+        $this->Template->back = $GLOBALS['TL_LANG']['MSC']['goBack'];
+        $this->Template->goBack = \PCT\CustomCatalog\FrontEdit\FrontendTemplate::backButton(true);
         
         $this->Template->isEnabled = true;
+		$this->Template->showHeaderButtons = true;
        
         $arrListOperations = deserialize($objCC->get('list_operations'));
         
@@ -119,9 +123,17 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$this->Template->isMultiple = true;
 			$this->Template->saveOnly = true;
 		}
+		else if( \Input::get('act') == 'edit' && \Input::get('id') > 0)
+		{
+			$this->Template->editMode = true;
+			$this->Template->saveOnly = true;
+			$this->Template->singleEditMode = true;
+			$this->Template->showHeaderButtons = false;
+		}
+		\PC::debug($this->Template->singleEditMode);
 		
 		// form vars
-		$formName = 'cc_frontedit_'.$this->id;
+		$formName = $objCC->getTable().'_'.$this->id;
 		
 		//-- save button
 		$this->Template->hasSave = true;
@@ -269,6 +281,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			'id'	=> \Input::get('id'),
 			'pid'	=> \Input::get('pid') ?: 0,
 			'table'	=> $objCC->getTable(),
+			'mod'	=> $this->id,
 		);
 		
 		$strHidden = '';
@@ -321,6 +334,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			{
 				// get current database set list 
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
+				
 				// hook here
 				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
 				
