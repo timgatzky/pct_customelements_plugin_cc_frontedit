@@ -62,7 +62,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		}
 		else
 		{
-			$href = $objFunction->addToUrl('switchToEdit=0',$href);
+			$href = $objFunction->addToUrl('jumpto=0&switchToEdit=0',$href);
 		}
 		
 		if(in_array($objCC->get('list_mode'),array(4,5,'5.1')))

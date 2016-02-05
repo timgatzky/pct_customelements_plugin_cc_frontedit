@@ -323,16 +323,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strTable = \Input::get('table');
 		
 		// switchToEdit disabled on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('switchToEdit') < 1 && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
+		if($arrSession[$strTable]['mode'] == 'create' && isset($_GET['jumpto']) && isset($_GET['switchToEdit']) && \Input::get('jumpto') == 0 && \Input::get('act') == 'edit')
 		{
 			$redirect = $arrSession[$strTable]['ref'];
 			foreach(array('act','jumpTo','mode','id','items','switchToEdit') as $v)
 			{
 				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$redirect);
 			}
-			
-			// add the clear clipboard parameter
-			$redirect = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$redirect);
 			
 			// remove session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
