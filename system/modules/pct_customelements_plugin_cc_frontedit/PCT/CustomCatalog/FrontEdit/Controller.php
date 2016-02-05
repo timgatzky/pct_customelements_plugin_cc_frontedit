@@ -323,7 +323,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strTable = \Input::get('table');
 		
 		// switchToEdit disabled on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('switchToEdit') < 1 && \Input::get('act') == 'edit')
+		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('switchToEdit') < 1 && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
 			$redirect = $arrSession[$strTable]['ref'];
 			foreach(array('act','jumpTo','mode','id','items','switchToEdit') as $v)
@@ -593,6 +593,29 @@ class Controller extends \PCT\CustomElements\Models\Model
 			
 			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
 		}
+	}
+	
+	
+	/**
+	 * Create submit widget object and return it
+	 * @param string
+	 * @param string
+	 * @return object
+	 */
+	public function getSubmit($strId,$strName)
+	{
+		$arr = array
+		(
+			'id'	=> $strId.'_'.$strName,
+			'name'	=> 'save', 
+			'strName' => 'save',
+			'value' => $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_'.$strName] ?: $strName,
+			'label'	=> $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_'.$strName] ?: ucfirst($strName),
+			'class' => 'submit',
+			'tableless' => true,
+		);
+		
+		return new \FormSubmit($arr);
 	}
 	
 	
