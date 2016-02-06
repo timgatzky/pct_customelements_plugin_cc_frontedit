@@ -322,13 +322,29 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 		$strTable = \Input::get('table');
 		
-		// switchToEdit disabled on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && isset($_GET['jumpto']) && isset($_GET['switchToEdit']) && \Input::get('jumpto') == 0 && \Input::get('act') == 'edit')
+		// !switchToEdit on CREATE
+		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
-			$redirect = $arrSession[$strTable]['ref'];
-			foreach(array('act','jumpTo','mode','id','items','switchToEdit') as $v)
+			// redirect to lister page
+			if(\Input::get('switchToEdit') < 1)
 			{
-				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$redirect);
+				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() );
+			}
+			// redirect to details page
+			else
+			{
+				$objFunction = new \PCT\CustomElements\Helper\Functions;
+				$parse = parse_url(\Environment::get('request'));
+				$redirect = $objFunction->addToUrl($parse['query'].'&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
+				
+				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl('jumpto',$redirect);
+				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl('switchToEdit',$redirect);
+				
+				// add the items parameter to the url
+				if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
+				{
+					$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
+				}	
 			}
 			
 			// remove session
@@ -341,28 +357,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 			\Controller::redirect($redirect);
 		}
 		
-		
-		// !switchToEdit on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
-		{
-			$objFunction = new \PCT\CustomElements\Helper\Functions;
-			$parse = parse_url(\Environment::get('request'));
-			$redirect = $objFunction->addToUrl($parse['query'].'&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
-			// add the items parameter to the url
-			if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
-			{
-				$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
-			}	
-			
-			// remove session
-			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Controller::getReferer();
-			
-			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
-			
-			// redirect to edit page
-			\Controller::redirect($redirect);
-		}
 		// !switchToEdit on COPY
 		else if($arrSession[$strTable]['mode'] == 'copy' && \Input::get('jumpto') > 0 && \Input::get('act') == 'copy')
 		{
