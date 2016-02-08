@@ -40,27 +40,36 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			return parent::generate();
 		}
 		
+		// user must be logged in
+		if(!FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		{
+			$this->hasAccess = false;
+		}
+		
 		// check groups
-		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		else if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
 			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
 			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
 			{
 				$this->hasAccess = false;
-				return parent::generate();
 			}
 		}
-	
-		$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 		
-		global $objPage;
-		if(!$objPage->hasJQuery)
+		// include scripts and backend stuff
+		if($this->hasAccess)
 		{
-			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+			
+			global $objPage;
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			}
+			
+			// add backend assets
+			\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
 		}
-		
-		// add backend assets
-		\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
 		
 		return parent::generate();
 	}

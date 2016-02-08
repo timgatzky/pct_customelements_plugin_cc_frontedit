@@ -225,9 +225,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}
 			// simulate a switchToEdit
-			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0)
+			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'])
 			{
-				$href = $objFunction->addToUrl('jumpto='.$objModule->customcatalog_jumpTo, $href);
+				$href = $objFunction->addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
 			// multilanguage, add the langpid
 			if($objCC->get('multilanguage'))

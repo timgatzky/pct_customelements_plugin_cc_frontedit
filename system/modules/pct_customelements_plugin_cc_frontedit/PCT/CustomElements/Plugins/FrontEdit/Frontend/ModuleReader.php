@@ -205,7 +205,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 					if(isset($_POST[$this->saveNcloseSubmitName]))
 					{
 						$url = \Controller::getReferer();
-						foreach(array('act','jumpto','mode','table','do','rt') as $v)
+						foreach(array('act','jumpto','mode','table','do','rt','switchToEdit') as $v)
 						{
 							$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 						}
