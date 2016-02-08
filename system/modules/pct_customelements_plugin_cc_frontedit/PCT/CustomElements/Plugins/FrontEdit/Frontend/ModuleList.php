@@ -40,6 +40,19 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			return parent::generate();
 		}
 		
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($this->customcatalog);
+		if(!$objCC)
+		{
+			return parent::generate();
+		}
+		
+		// check plugin excludes
+		if(in_array($objCC->get('pid'), $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes']))
+		{
+			$this->hasAccess = false;
+			return parent::generate();
+		}
+		
 		// user must be logged in
 		if(!FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{

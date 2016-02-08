@@ -29,6 +29,24 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	public function generate()
 	{
+		if (TL_MODE == 'BE' || !$this->customcatalog_edit_active)
+		{
+			return parent::generate();
+		}
+		
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($this->customcatalog);
+		if(!$objCC)
+		{
+			return parent::generate();
+		}
+		
+		// check plugin excludes
+		if(in_array($objCC->get('pid'), $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes']))
+		{
+			$this->hasAccess = false;
+			return parent::generate();
+		}
+
 		// check permissions when entry is editable
 		if( \PCT\CustomCatalog\FrontEdit::isEditable() )
 		{
@@ -37,11 +55,6 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 				$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
 				die_nicely('', $objTemplate->parse());
 			}
-		}
-		
-		if (TL_MODE == 'BE' || !$this->customcatalog_edit_active)
-		{
-			return parent::generate();
 		}
 		
 		$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';

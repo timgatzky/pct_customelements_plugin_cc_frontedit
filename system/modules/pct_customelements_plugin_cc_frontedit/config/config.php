@@ -36,7 +36,6 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
 
 
-
 /**
  * Register plugin
  */
@@ -44,6 +43,7 @@ $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
 (
 	'tables' 	=> array('tl_pct_customelement','tl_pct_customelement_group','tl_pct_customelement_attribute'),
 	'requires'	=> array('pct_customelements'=>'1.6.0'),
+	'excludes'	=> array()
 );
 
 
@@ -61,6 +61,9 @@ if( TL_MODE == 'BE' && count(\Session::getInstance()->getData()) > 0 )
 
 if($blnInitialize)
 {
+	// set excludes
+	$GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes'] = \PCT\CustomElements\Core\PluginFactory::getExcludes('cc_frontedit');
+	
 	/**
 	 * Front end modules
 	 */

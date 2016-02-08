@@ -60,6 +60,12 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		$objModule = $this->getCustomCatalog()->getOrigin();
 		$objActiveRecord = $this->get('objActiveRecord'); 
 		
+		// check plugin excludes
+		if(in_array($this->getCustomCatalog()->get('pid'),$GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes']))
+		{
+			return false;
+		}
+		
 		// check general permissions
 		if( (!FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll']) || !$objModule->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog) || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog,$this->id) )
 		{
