@@ -193,6 +193,9 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		$objAttribute = $objDC->objAttribute;
 		$strField = $objDC->field;
 		
+		if(!\Database::getInstance()->tableExists($strTable)) {return;}
+		if(!\Database::getInstance()->fieldExists($strField,$strTable)) {return;}
+		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]))
 		{
 			$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
