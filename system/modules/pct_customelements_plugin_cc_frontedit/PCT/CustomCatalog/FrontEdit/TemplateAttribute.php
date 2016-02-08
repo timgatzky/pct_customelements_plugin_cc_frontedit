@@ -393,7 +393,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$objDC->value = implode(',',$values);
 							\Input::setPost($objDC->field,$objDC->value);
 							unset($values);
-		
 						}
 						else if(!$blnSubmitted)
 						{
@@ -401,7 +400,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$arrValues = deserialize($objDC->value);
 							if(!is_array($arrValues))
 							{
-								$arrValues = explode(',',$objDC->value); 
+								$arrValues = array_filter(explode(',',$objDC->value)); 
 							}
 							
 							$objDC->value = array_map('\StringUtil::binToUuid',$arrValues);

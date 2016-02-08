@@ -335,10 +335,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 			{
 				$objFunction = new \PCT\CustomElements\Helper\Functions;
 				$parse = parse_url(\Environment::get('request'));
-				$redirect = $objFunction->addToUrl($parse['query'].'&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
+				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row()).'?'.$parse['query'];
 				
-				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl('jumpto',$redirect);
-				$redirect = \PCT\CustomElements\Helper\Functions::removeFromUrl('switchToEdit',$redirect);
+				$redirect = str_replace(array('switchToEdit=1','jumpto='.\Input::get('jumpto')), '', $redirect);
 				
 				// add the items parameter to the url
 				if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
@@ -349,10 +348,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 			
 			// remove session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Controller::getReferer();
+			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() );
 			
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
-			
 			// redirect to edit page
 			\Controller::redirect($redirect);
 		}
@@ -387,6 +385,12 @@ class Controller extends \PCT\CustomElements\Models\Model
 	public function applyOperationsOnGeneratePage($objPage)
 	{
 		$strTable = \Input::get('table') ?: \Input::get('do');
+		
+		// return reader page when editing is not active
+		if(\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']) && !\Input::get('act'))
+		{
+			return;
+		}
 		
 		// check if the table is allowed to be edited
 		if( strlen($strTable) < 1 || !\PCT\CustomCatalog\FrontEdit::isEditable($strTable) )

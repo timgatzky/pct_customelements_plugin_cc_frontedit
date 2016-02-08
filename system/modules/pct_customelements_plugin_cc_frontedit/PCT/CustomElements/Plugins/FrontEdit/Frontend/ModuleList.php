@@ -72,7 +72,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		// include scripts and backend stuff
 		if($this->hasAccess)
 		{
-			$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+			$GLOBALS['TL_JQUERY'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 			
 			global $objPage;
 			if(!$objPage->hasJQuery)

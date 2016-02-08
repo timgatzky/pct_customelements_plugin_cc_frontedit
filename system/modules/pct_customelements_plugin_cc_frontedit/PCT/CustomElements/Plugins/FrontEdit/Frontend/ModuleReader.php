@@ -25,6 +25,12 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\ModuleReader
 {
 	/**
+	 * Flag if current user has group rights
+	 * @param boolean
+	 */
+	protected $hasAccess = true;
+	
+	/**
 	 * Display wildcard
 	 */
 	public function generate()
@@ -46,9 +52,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			$this->hasAccess = false;
 			return parent::generate();
 		}
+		
+		// editing is not active
+		if(!\Input::get('act') || !\Input::get('table'))
+		{
+			$this->hasAccess = false;
+			return parent::generate();
+		}
 
 		// check permissions when entry is editable
-		if( \PCT\CustomCatalog\FrontEdit::isEditable() )
+		if( \Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable() )
 		{
 			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions( \Input::get('table'), \Input::get('id') ) )
 			{
@@ -57,7 +70,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			}
 		}
 		
-		$GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
+		$GLOBALS['TL_JQUERY'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 		
 		global $objPage;
 		if(!$objPage->hasJQuery)
@@ -67,6 +80,9 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		
 		// add backend assets
 		\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
+		
+		// flag as internal GET parameter
+		\Input::setGet('cc_frontedit',true);
 		
 		return parent::generate();
 	}
@@ -78,7 +94,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	protected function compile()
 	{
-		if(!$this->customcatalog_edit_active)
+		if(!$this->customcatalog_edit_active || !$this->hasAccess)
 		{
 			$this->Template->isEnabled = false;
 			return parent::compile();
