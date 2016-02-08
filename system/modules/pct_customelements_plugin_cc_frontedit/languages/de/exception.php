@@ -13,7 +13,7 @@
  * permanent text corrections which are update-safe. 
  */
 
-
+$GLOBALS['TL_LANG']['XPT']['cc_edit_attribute_not_editable'] 	= '<p class="error">Attribute (%s) ist nicht editierbar</p>';
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission'] 				= 'Keine FrontEdit Rechte';
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_info'] 		= 'Ihr Benutzer verfügt über unzureichende Rechte zum Bearbeiten dieses Eintrags.';
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_hint'] 		= '';

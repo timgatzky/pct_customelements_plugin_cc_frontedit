@@ -78,6 +78,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return '';
 		}
 		
+		// return info text when attribute is supposed to be not editable
+		if($objAttribute->get('notEditable'))
+		{
+			return sprintf($GLOBALS['TL_LANG']['XPT']['cc_edit_attribute_not_editable'],'id:'.$objAttribute->get('id'));
+		}
+		
 		$objSession = \Session::getInstance();
 		
 		/* @var contao ModelModule */
