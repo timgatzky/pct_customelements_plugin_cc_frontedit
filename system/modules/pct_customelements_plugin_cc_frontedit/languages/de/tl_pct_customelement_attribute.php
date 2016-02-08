@@ -21,4 +21,4 @@ $GLOBALS['TL_LANG']['tl_pct_customelement_attribute']['notEditable'] = array('Ni
 /**
  * Legends
  */
-$GLOBALS['TL_LANG']['tl_pct_customelement_attribute']['frontedit_legend'] = 'CustomCatalog FrontEdit-Einstellungen';
+$GLOBALS['TL_LANG']['tl_pct_customelement_attribute']['frontedit_legend'] = 'FrontEdit-Einstellungen';

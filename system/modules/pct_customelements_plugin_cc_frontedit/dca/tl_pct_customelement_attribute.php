@@ -13,19 +13,21 @@
  * @link		http://contao.org
  */
 
+
 /**
  * Table tl_pct_customelement_attribute
  */
 $objDcaHelper = \PCT\CustomElements\Helper\DcaHelper::getInstance()->setTable('tl_pct_customelement_attribute');
-$strType = $objDcaHelper->getActiveRecord()->type;
+$objActiveRecord = $objDcaHelper->getActiveRecord();
 
 /**
  * Palettes
  */
-$arrPalettes = $objDcaHelper->getPalettesAsArray('default');
+$arrPalettes = $objDcaHelper->getPalettesAsArray($objActiveRecord->type);
 $arrPalettes['frontedit_legend:hide'] = array('notEditable');
-$GLOBALS['TL_DCA'][$objDcaHelper->getTable()]['palettes'][$strType] = $objDcaHelper->generatePalettes($arrPalettes);
+$GLOBALS['TL_DCA'][$objDcaHelper->getTable()]['palettes'][$objActiveRecord->type] = $objDcaHelper->generatePalettes($arrPalettes);
 
+	
 /**
  * Fields
  */
