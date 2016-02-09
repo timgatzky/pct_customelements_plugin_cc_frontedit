@@ -72,16 +72,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		// include scripts and backend stuff
 		if($this->hasAccess)
 		{
-			$GLOBALS['TL_JQUERY'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
-			
-			global $objPage;
-			if(!$objPage->hasJQuery)
-			{
-				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
-			}
-			
 			// add backend assets
-			\PCT\CustomCatalog\FrontEdit\Controller::addBackendAssets();
+			\PCT\CustomCatalog\FrontEdit\Controller::addAssets();
 		}
 		
 		return parent::generate();

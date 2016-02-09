@@ -33,8 +33,14 @@ class Controller extends \PCT\CustomElements\Models\Model
 	/**
 	 * Add back end assets to the front end
 	 */
-	public function addBackendAssets()
+	public function addAssets()
 	{
+		global $objPage;
+		if(!$objPage->hasJQuery)
+		{
+			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+		}
+		
 		$strLocale = 'var Contao={'
 				. 'theme:"' . \Backend::getTheme() . '",'
 				. 'lang:{'
@@ -50,7 +56,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				. 'request_token:"' . REQUEST_TOKEN . '",'
 				. 'referer_id:"' . TL_REFERER_ID . '"'
 			. '};';
-		$GLOBALS['TL_HEAD'][] = '<script>'.$strLocale.'</script>';
+		$GLOBALS['TL_JQUERY'][] = '<script>'.$strLocale.'</script>';
 		
 		// css
 		$objCombiner = new \Combiner();
@@ -74,7 +80,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
 	    $objCombiner->add('assets/mootools/mootao/Mootao.js');
 	    $objCombiner->add('assets/contao/js/core-uncompressed.js');
-	    $GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
+	    $GLOBALS['TL_JQUERY'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
+	    
+	    $GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 	}
 	
 	
