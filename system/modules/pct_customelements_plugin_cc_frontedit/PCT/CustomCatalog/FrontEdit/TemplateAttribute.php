@@ -264,7 +264,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
-			
+			$objWidget->label = $strLabel;
+				
 			// any validator need the current field value in the psydo post data
 			$objDC->value = deserialize($objDC->value);
 		
