@@ -363,7 +363,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						{
 						   if(!is_array($objDC->value))
 						   {
-							   $objDC->value = explode(',', $objDC->value);
+							   $objDC->value = array_filter(explode(',', $objDC->value));
 						   }
 						   $values = array();
 						   foreach($objDC->value as $v)
@@ -398,10 +398,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$arrValues = deserialize($objDC->value);
 							if(!is_array($arrValues))
 							{
-								$arrValues = array_filter(explode(',',$objDC->value)); 
+								$arrValues = explode(',',$arrValues); 
 							}
-							
-							$objDC->value = array_map('\StringUtil::binToUuid',$arrValues);
+							$objDC->value = array_map('\StringUtil::binToUuid',array_filter($arrValues));
 							\Input::setPost($objDC->field,implode(',',$objDC->value));
 						}
 					}
@@ -420,7 +419,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						if(!is_array($objDC->value)) 
 						{
-							$objDC->value = explode(',', $objDC->value);
+							$objDC->value = array_filter(explode(',', $objDC->value));
 						}
 						$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
 					}
