@@ -144,7 +144,6 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$this->Template->singleEditMode = true;
 			$this->Template->showHeaderButtons = false;
 		}
-		\PC::debug($this->Template->singleEditMode);
 		
 		// form vars
 		$formName = $objCC->getTable().'_'.$this->id;

@@ -150,8 +150,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
-		\PC::debug($_POST[$objDC->field.'_'.$objDC->activeRecord->id]);
-		
 		$blnSubmitted = false;
 		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
 		{
