@@ -250,8 +250,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		
-		$blnRewriteBackendJavascriptCalls = true;
-		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
 			// create the widget
@@ -694,7 +692,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							$strBuffer = str_replace($func, "CC_FrontEdit.openModal(".$data .");", $strBuffer);
 						}
 					}
-											
+					else
+					{
+						if($method == 'getScrollOffset')
+						{
+							$strBuffer = str_replace($func, "CC_FrontEdit.getScrollOffset();", $strBuffer);
+						}
+					}
+					
 					$processed[] = $func;
 				}
 			}

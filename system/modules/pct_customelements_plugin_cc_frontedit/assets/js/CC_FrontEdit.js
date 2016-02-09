@@ -62,6 +62,16 @@ var CC_FrontEdit =
 	
 	
 	/**
+	 * Scroll to a value
+	 * @param integer||string
+	 */
+	scrollTo(value)
+	{
+		jQuery("html, body").animate({scrollTop: value}, 0);
+	},
+	
+	
+	/**
 	 * Contaos backend class has certain methods that should be only accessible when user is logged on to the back end
 	 * @param string	The Method name called
 	 * @param object	The parameters of the method

@@ -142,6 +142,14 @@ class Callbacks
 			\Session::getInstance()->set('FRONTEND_SCROLLOFFSET',\Input::post('scrollOffset'));
 		}
 		
+		if(\Session::getInstance()->get('FRONTEND_SCROLLOFFSET') && !\Input::post('ajax'))
+		{
+			$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.scrollTo("'.\Session::getInstance()->get('FRONTEND_SCROLLOFFSET').'");</script>';
+			\Session::getInstance()->remove('FRONTEND_SCROLLOFFSET');
+		}
+		
+		
+		
 		// remove the regular call to tabletree.js. It's loaded by the tags widget
 		if(\Input::get('act') && in_array(PCT_TABLETREE_PATH.'/assets/js/tabletree.js', $GLOBALS['TL_JAVASCRIPT']))
 		{
