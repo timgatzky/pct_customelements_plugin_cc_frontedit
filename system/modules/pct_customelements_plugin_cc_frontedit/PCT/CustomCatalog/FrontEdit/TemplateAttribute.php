@@ -467,6 +467,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						\Input::setPost($strOrderField.'_'.$objDC->field,deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
 					}
 					
+					if(!$this->sortable)
+					{
+						$arrFieldDef['sortable'] = false;
+					}
+					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// database update
