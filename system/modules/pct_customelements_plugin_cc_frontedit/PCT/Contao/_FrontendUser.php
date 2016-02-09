@@ -23,7 +23,7 @@ namespace PCT\Contao;
  * FrontendUser
  * Make the regular Contao FrontendUser class more flexible
  */
-class FrontendUser
+class _FrontendUser
 {
 	/**
 	 * Initialize the object

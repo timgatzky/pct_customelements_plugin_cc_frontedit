@@ -44,10 +44,7 @@ ClassLoader::addClasses(array
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader'			=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleReader.php',
 	'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList'				=> $path.'/PCT/CustomElements/Plugins/FrontEdit/Frontend/ModuleList.php',
 	
-	// Pages
-	'PCT\CustomCatalog\FrontEdit\PageNoPermission'							=> $path.'/PCT/CustomCatalog/FrontEdit/PageNoPermission.php',
-	
-	'PCT\Contao\FrontendUser'												=> $path.'/PCT/Contao/FrontendUser.php',
+	'PCT\Contao\_FrontendUser'											=> $path.'/PCT/Contao/_FrontendUser.php',
 	
 	// Controllers
 	'Contao\Controllers\FrontendFile'										=> $path.'/Contao/Controllers/FrontendFile.php',

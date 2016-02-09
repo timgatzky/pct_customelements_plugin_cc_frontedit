@@ -75,7 +75,7 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		// user level
 		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
-			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() );
+			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() );
 			if(!$objUser->hasGroupAccess( deserialize($objModule->reg_groups) ))
 			{
 				return false;

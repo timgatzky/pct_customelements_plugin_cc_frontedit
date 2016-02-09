@@ -62,7 +62,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		// check groups
 		else if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
-			$objUser = new \PCT\Contao\FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
 			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
 			{
 				$this->hasAccess = false;
