@@ -256,9 +256,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			// create the widget
 			$strClass = $GLOBALS['BE_FFL'][$arrFieldDef['inputType']];
-			
-			$arrAttributes = $strClass::getAttributesFromDca($arrFieldDef,$objDC->field,$objDC->value,$objDC->field,$objDC->table,$objDC);
 		
+			$arrAttributes = $strClass::getAttributesFromDca($arrFieldDef,$objDC->field,$objDC->value,$objDC->field,$objDC->table,$objDC);
+			
+			if(is_array($arrAttributes))
+			{
+				$arrAttributes = array_merge($arrAttributes,$arrFieldDef);
+			}
+			
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			
@@ -419,9 +424,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						if(!is_array($objDC->value)) 
 						{
-							$objDC->value = array_filter(explode(',', $objDC->value));
+							$objDC->value = explode(',', $objDC->value);
 						}
-						$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
+						$objDC->value = array_map('\StringUtil::uuidToBin',array_filter($objDC->value));
 					}
 					else if($blnSubmitted && \Validator::isStringUuid($objDC->value))
 					{
@@ -466,12 +471,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						\Input::setPost($strOrderField.'_'.$objDC->field,deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
 					}
 					
-					if(!$this->sortable)
-					{
-						$arrFieldDef['sortable'] = false;
-					}
-					
-					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrAttributes,$objDC,$objDC->value);
 					
 					// database update
 					if($blnSubmitted & isset($_POST[$objDC->field]))
@@ -517,7 +517,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// validate the input
 					$objWidget->validate();
 				}
-				
+					
 				$strBuffer = $objWidget->generateLabel();
 				$strBuffer .= $objWidget->generateWithError();				
 			}
