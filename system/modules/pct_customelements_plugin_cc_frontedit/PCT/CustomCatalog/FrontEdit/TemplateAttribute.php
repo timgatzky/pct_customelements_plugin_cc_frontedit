@@ -286,14 +286,18 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !TIMESTAMP attributes
 				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', deserialize($objAttribute->get('options'))) )
 				{
-					$format = $objAttribute->get('date_format');
+					$rgxp = $arrFieldDef['eval']['rgxp'];
 					if(!$format)
 					{
-						$format = $GLOBALS['TL_CONFIG'][$objAttribute->get('date_rgxp').'Format'];
+						$format = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
 					}
 					
-					$objDC->value = \System::parseDate($format,$objDC->value) ;
-					$objWidget->__set('value', $varValue);
+					if(!$blnSubmitted)
+					{
+						$objDC->value = \System::parseDate($format,$objDC->value);
+						\Input::setPost($objDC->field,$objDC->value);
+					}
+					$objWidget->__set('value', $objDC->value);
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
@@ -736,6 +740,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					   $objDC->value = $callback($objDC->value,$objDC,$this);
 					}
 				}
+			}
+			
+			// trigger the storeValue callback
+			$saveDataAs = $objAttribute->get('saveDataAs') ?: 'data';
+			
+			// run the storeValue Hook here
+			$set = \PCT\CustomElements\Core\Hooks::callstatic( 'storeValueHook',array($objAttribute->get('id'),array($saveDataAs=>$objDC->value)) );
+			
+			if($set[$saveDataAs] != $objDC->value)
+			{
+				$objDC->value = $set[$saveDataAs];
 			}
 			
 			// decode entities
