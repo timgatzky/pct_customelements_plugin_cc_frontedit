@@ -91,6 +91,11 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		
 		parent::compile();
 		
+		if(!$this->CustomCatalog)
+		{
+			return '<p class="error">CustomCatalog not found</p>';
+		}
+		
 		global $objPage;
 		$objCC = $this->CustomCatalog;
 		if(!$objCC->getOrigin())

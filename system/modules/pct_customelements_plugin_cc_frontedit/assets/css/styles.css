@@ -71,3 +71,4 @@ fieldset,form,input,optgroup,select,textarea {
 #tl_ajaxBox {background-image: url('../img/loading.gif')}
 
 .datepicker_bootstrap {z-index: 9999;}
+.datepicker_bootstrap .header {line-height: inherit;}
