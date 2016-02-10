@@ -257,11 +257,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 			$arrAttributes = $strClass::getAttributesFromDca($arrFieldDef,$objDC->field,$objDC->value,$objDC->field,$objDC->table,$objDC);
 			
-			if(is_array($arrAttributes))
-			{
-				$arrAttributes = array_merge($arrAttributes,$arrFieldDef);
-			}
-			
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			$objWidget->label = $strLabel;
@@ -472,6 +467,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					if($this->sortable && !$blnSubmitted)
 					{
 						\Input::setPost($strOrderField.'_'.$objDC->field,deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
+					}
+					
+					// merge dca attributes with field definition
+					if(is_array($arrAttributes))
+					{
+						$arrAttributes = array_merge($arrAttributes,$arrFieldDef);
 					}
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrAttributes,$objDC,$objDC->value);
@@ -721,7 +722,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/page.php',$strBuffer);
 		}
-			
+		
 		// !FORM_SUBMIT add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
@@ -754,7 +755,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// decode entities
-			if($arrFieldDef['eval']['decodeEntities'])
+			if($arrFieldDef['eval']['decodeEntities'] || $arrFieldDef['inputType'] == 'textarea' || strlen($arrFieldDef['eval']['rte']) > 0)
 			{
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
