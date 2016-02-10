@@ -750,7 +750,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getToggleVisibilityButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($strTable);
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -817,7 +817,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	{
 		$strTable = \Input::get('table');
 		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($strTable);
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return;

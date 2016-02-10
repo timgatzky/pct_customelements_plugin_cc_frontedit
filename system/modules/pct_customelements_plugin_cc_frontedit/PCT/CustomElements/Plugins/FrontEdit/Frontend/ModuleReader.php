@@ -73,6 +73,9 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		// add assets
 		\PCT\CustomCatalog\FrontEdit\Controller::addAssets();
 		
+		// set the module ID as internal GET parameter
+		\Input::setGet('mod',$this->id);
+		
 		return parent::generate();
 	}
 
@@ -83,12 +86,14 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 	 */
 	protected function compile()
 	{
+		global $objPage;
+		
 		if(!$this->customcatalog_edit_active || !$this->hasAccess)
 		{
 			$this->Template->isEnabled = false;
 			return parent::compile();
 		}
-		
+
 		parent::compile();
 		
 		if(!$this->CustomCatalog)
@@ -96,12 +101,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			return '<p class="error">CustomCatalog not found</p>';
 		}
 		
-		global $objPage;
 		$objCC = $this->CustomCatalog;
-		if(!$objCC->getOrigin())
-		{
-			$objCC->setOrigin($this);
-		}
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
@@ -112,7 +112,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
             $this->Template->{$key} = $val;
         }
         
-        $this->Template->isEnabled = false;
+         $this->Template->isEnabled = false;
 
         if( in_array(\Input::get('act'), array('edit','editAll','overrideAll')) )
 		{
