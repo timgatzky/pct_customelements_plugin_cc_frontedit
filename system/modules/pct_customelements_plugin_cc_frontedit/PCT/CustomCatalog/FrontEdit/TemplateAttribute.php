@@ -263,7 +263,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				
 			// any validator need the current field value in the psydo post data
 			$objDC->value = deserialize($objDC->value);
-		
+			
 			// append record id to widget name in multiple modes
 			if(\Input::get('act') == 'fe_editAll')
 			{
@@ -602,11 +602,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				
 				$objChildWidget->__set('value',$value);
 				
-				if(\Input::post('FORM_SUBMIT') == $objDC->table && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
+				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
 				{
 					$value = $_POST[$dc->field];
 					
-					\Input::setPost($dc->field,$value);
+					if(!$blnSubmitted)
+					{
+						\Input::setPost($dc->field,$value);
+					}
 					
 					$objChildWidget->validate();
 					
@@ -640,6 +643,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
  			
  			$strBuffer .= implode('', $arr);
+ 			unset($arr);
 		}
 		
 		// trigger CEs parseWidget HOOk
