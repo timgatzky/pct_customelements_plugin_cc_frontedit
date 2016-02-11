@@ -84,6 +84,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return sprintf($GLOBALS['TL_LANG']['XPT']['cc_edit_attribute_not_editable'],'id:'.$objAttribute->get('id'));
 		}
 		
+		// store potential child widgets
+		$this->childWidgets = array();
+		
 		$objSession = \Session::getInstance();
 		
 		/* @var contao ModelModule */
@@ -164,9 +167,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$blnSubmitted = true;
 		}
 		
+		// reset current values in overrideAll mode to start from zero
 		if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
 		{
-			$objDC->value = null;
+			#$objDC->value = null;
 		}
 		
 		// ajax requests, store value in the session and reload page
@@ -482,7 +486,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						$objDC->value = $_POST[$objDC->field];
 						if($this->multiple && !is_array($objDC->value))
 						{
-							$objDC->value = explode(',', $objDC->value);
+							$objDC->value = array_filter(explode(',', $objDC->value));
 						}
 						
 						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
@@ -497,6 +501,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							
 							\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
 						}
+					}
+					
+					if( $blnSubmitted && (empty($objDC->value) || count($objDC->value) < 1) )
+					{
+						$objDC->value = null;
 					}
 					
 					$this->sortable = false;
@@ -590,6 +599,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$arr = array();
 			foreach($objAttribute->get('arrChildAttributes') as $k => $objChildWidget)
 			{
+				$this->childWidgets[ $objChildWidget->__get('name') ] = $objChildWidget;
+				
 				$field = $objChildWidget->__get('name');
 				$value = $objDC->activeRecord->{$field};
 				
@@ -773,31 +784,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
-					$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table);
-						
 					foreach($arrSession['CURRENT']['IDS'] as $id)
 					{
-						if(!is_array($arrSet[$id]))
-						{
-							continue;
-						}
-						
 						$objDC->id = $id;
-						if(array_key_exists($objDC->field, $arrSet[$id]))
-						{
-							$objDC->value = $arrSet[$id][$objDC->field];
-						}
-						
 						\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 					}
 				}
 			}
 			else
 			{
-				if( !array_key_exists($objDC->field, \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objDC->table) ))
-				{
-					\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
-				}
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 			}
 			
 			// remove the session
