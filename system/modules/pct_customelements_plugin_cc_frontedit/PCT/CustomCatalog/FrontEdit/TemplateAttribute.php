@@ -455,7 +455,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 					
 					$arrFieldDef['dataContainer'] = $objDC;
- 					$arrFieldDef['sortable'] = true;
  					
  					// set value for validators
  					if(is_array($objDC->value) && $this->multiple)
