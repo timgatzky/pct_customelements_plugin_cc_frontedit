@@ -1,8 +1,8 @@
 <?php
-
+global $objPage;
 \System::loadLanguageFile('exception');
 $lang = (object) $GLOBALS['TL_LANG']['XPT'];
-$referer = '<a href="'.\Controller::getReferer().'">'.$GLOBALS['TL_LANG']['MSC']['goBack'].'</a>';
+$referer = '<a href="'.$this->replaceInsertTags('{{link_url::'.$objPage->rootId.'}}').'">'.$GLOBALS['TL_LANG']['MSC']['home'].'</a>';
 ?>
 
 <!DOCTYPE html>
