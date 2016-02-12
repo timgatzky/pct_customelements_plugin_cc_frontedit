@@ -60,9 +60,7 @@ TemplateLoader::addFiles(array
 (
 	'mod_customcatalogfrontedit'		=> $path.'/templates',
 	'customcatalog_default_edit'		=> $path.'/templates',
-
-	// frontedit
 	'buttons'							=> $path.'/templates/frontedit',
-	
 	'cc_edit_nopermission'				=> $path.'/templates/pages',
+	'js_cc_frontedit_ajaxhelper'		=> $path.'/templates/js',
 ));

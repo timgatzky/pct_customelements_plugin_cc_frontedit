@@ -103,6 +103,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		$objDC->objAttribute = $objAttribute;
 		$objDC->formSubmit = $objDC->table.'_'.\Input::post('mod');
+		$objDC->isAjax = false;
 		
 		$arrSession = $objSession->getData();
 		$arrIds = $arrSession['CURRENT']['IDS'];
@@ -168,10 +169,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// reset current values in overrideAll mode to start from zero
-		if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
-		{
-			#$objDC->value = null;
-		}
+		#if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
+		#{
+		#	$objDC->value = null;
+		#}
 		
 		// ajax requests, store value in the session and reload page
 		if(strlen(\Input::post('action')) > 0 && (\Input::post('name') == $objDC->field || \Input::post('field') == $objDC->field) )
@@ -225,7 +226,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			
 			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
-			\Controller::reload();
+			$objDC->isAjax = true;
+		
+			// reload the page to avoid wrong javascript
+			#\Controller::reload();
 		}
 		
 		// retrieve from session
@@ -809,6 +813,29 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget = $this;
 		$this->widget->classes = $arrClasses;
 		$this->widget->class = implode(' ', $arrClasses);
+		$this->widget->id = $objWidget->__get('name');
+		
+		// store buffer in the session
+		$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($strBuffer,strlen($strBuffer)));
+		$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+		
+		$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
+		$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+		
+		// wrap the widget in a unique div
+		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container">'.$strBuffer.'</div>';
+		
+		// inject a little javascript ajax helper
+		if($this->isAjaxField || $arrFieldDef['eval']['isAjaxField'])
+		{
+		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
+		   $js_helper->widget = $this->widget;
+		   $js_helper->dataContainer = $objDC;
+		   $js_helper->field = $objDC->field;
+		   $js_helper->session = $arrFeSession[$objDC->table];
+		   $js_helper->isAjax = $objDC->isAjax;
+		   $strBuffer .= $js_helper->parse();
+		}
 		
 		// cache
 		$this->widget = $strBuffer;

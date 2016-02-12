@@ -148,8 +148,15 @@ class Callbacks
 			\Session::getInstance()->remove('FRONTEND_SCROLLOFFSET');
 		}
 		
-		
-		
+		// store the html buffers
+		if(\Input::post('ajax') && \Input::post('action') == 'cc_frontedit_html_buffer')
+		{
+			$field = \Input::post('field');
+			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$arrSession['BUFFER'][$field] = \Input::post('buffer');
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+		}
+				
 		// remove the regular call to tabletree.js. It's loaded by the tags widget
 		if(\Input::get('act') && in_array(PCT_TABLETREE_PATH.'/assets/js/tabletree.js', $GLOBALS['TL_JAVASCRIPT']))
 		{
