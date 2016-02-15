@@ -312,6 +312,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
+					// flag as ajax related field
+					$this->isAjaxField = true;
+					
 					if(\Validator::isBinaryUuid($objDC->value))
 					{
 						$objDC->value = \StringUtil::binToUuid($objDC->value); #\FilesModel::findByUuid($objDC->value)->uuid;
@@ -354,6 +357,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !FILE(s), GALLERY attributes
 				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
 				{
+					// flag as ajax related field
+					$this->isAjaxField = true;
+					
 					if(!$this->multiple)
 					{
 						if(\Validator::isBinaryUuid($objDC->value))
@@ -457,6 +463,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !TAGS attributes
 				else if($objAttribute->get('type') == 'tags')
 				{
+					// flag as ajax related field
+					$this->isAjaxField = true;
+					
 					// load js
 					$objCombiner = new \Combiner();
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');

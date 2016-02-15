@@ -36,6 +36,20 @@ class FrontendPctTableTree extends \Contao\BackendPctTableTree
 		$this->import('Session');
 		
 		$this->User = new \PCT\Contao\_FrontendUser($this->User, array('customcatalog_edit_active' => 1));
+		
+		// remove all preActions callbacks except the one from the pct_tabletree_widget to avoid unwanted calls to the backend that might cause Contao to force a backend login
+		if(count($GLOBALS['TL_HOOKS']['executePreActions']) > 0)
+		{
+			$tmp = array();
+			foreach($GLOBALS['TL_HOOKS']['executePreActions'] as $i => $callback)
+			{
+				if(strlen(strpos($callback[0],'PCT\Widgets\TableTree\TableTreeHelper')) > 0 && strlen(strpos($callback[1],'preActions')) > 0 )
+				{
+					$tmp[] = $callback;
+				}
+			}
+			$GLOBALS['TL_HOOKS']['executePreActions'] = $tmp;
+		}
 	}
 	
 	public function run()
