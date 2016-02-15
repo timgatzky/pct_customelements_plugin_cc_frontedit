@@ -225,6 +225,15 @@ class Controller extends \PCT\CustomElements\Models\Model
 				continue;
 			}
 			
+			// restrict buttons on entry level
+			if(is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
+			{
+				if(!in_array($key, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
+				{
+					continue;
+				}
+			}
+			
 			// overwrite the jumpTo page when editing should be done on a different page
 			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
@@ -248,7 +257,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 			$title = sprintf($button['label'][1],$objRow->id);
 			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
 			// add the items parameter to the url
-			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
+			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 && strlen($objRow->{$strAliasField}) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			// add the request token
 			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
 			{

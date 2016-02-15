@@ -33,6 +33,8 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 // $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = true; // exlucde the whole table, including all entries. No rights at all
 // usage: entry level
 // $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = array(10,11,12); // exlucde the entries with id 10, 11 and 12
+// usage: entry level, restrict certain operations
+// $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'][10] = array('keys'=>array('copy')) // show only copy button for entry id=10
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
 
 
