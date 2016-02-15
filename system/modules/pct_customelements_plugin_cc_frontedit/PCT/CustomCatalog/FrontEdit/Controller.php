@@ -132,6 +132,25 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$arrChilds = deserialize($objCC->get('cTables'));
 		$hasChilds = count($arrChilds) > 0 ? true : false;
 		
+		if(count($arrChilds) > 0)
+		{
+			foreach($arrChilds as $i => $childTable)
+			{
+				$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($childTable);
+				if(!$objCC)
+				{
+					unset($arrChilds[$i]);
+				}
+				
+				else if(!$objCC->get('active'))
+				{
+					unset($arrChilds[$i]);
+				}
+			}
+		}
+		
+		$hasChilds = count($arrChilds) > 0 ? true : false;
+		
 		$strAliasField = $objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
@@ -250,7 +269,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 			// replace the edit button with the editheader button
 			if($hasChilds && $key == 'edit')
 			{
-				$key = 'editheader';
 				$button['icon'] = 'header.gif';	
 			}
 						
@@ -293,15 +311,24 @@ class Controller extends \PCT\CustomElements\Models\Model
 		if($hasChilds)
 		{
 			$pos = 0;
-			if(array_key_exists('editheader', $arrButtons))
+			if(array_key_exists('edit', $arrButtons))
 			{
-				$pos = array_search('editheader', array_keys($arrButtons));
+				$pos = array_search('edit', array_keys($arrButtons));
 			}
+			
+			$insertEditHeader = false;
 				
 			foreach($arrChilds as $i => $childTable)
 			{
-				$pos += $i;
+				// check if child table is active
+				if(!$GLOBALS['PCT_CUSTOMCATALOG']['childTableMustBeAConfiguration'])
+				{
+					continue;
+				}
 				
+				$objChildCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($childTable);
+				
+				$pos += $i;
 				$button = $objDcaHelper->getCustomButton('editchild');
 				
 				$title = sprintf($button['label'][1],$objRow->id);
@@ -321,19 +348,8 @@ class Controller extends \PCT\CustomElements\Models\Model
 				{
 					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 				}
-					
-				\PC::debug($href);
 				
-				$objChildCC = null;
-				if(\PCT\CustomElements\Plugins\CustomCatalog\Core\Cache::getCustomCatalog($childTable))
-				{
-					$objChildCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\Cache::getCustomCatalog($childTable);
-				}
-				else
-				{
-					$objChildCC = CustomCatalogFactory::findByTableName($childTable);
-				}
-				
+								
 				if($objChildCC)
 				{
 					if($objChildCC->get('icon'))
@@ -355,7 +371,17 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$button['html'] = sprintf('<a href="%s" title="%s" class="%s" %s>%s</a>',$href,$title,$class,$attributes,$linkImage);
 			
 				array_insert($arrButtons,$pos,array('edit_'.$childTable=>$button));
+				
+				$insertEditHeader = true;
 			}
+		
+			// remove the regular edit button and insert the editheader button
+			if($insertEditHeader)
+			{
+				array_insert($arrButtons,$pos+1,array('editheader'=>$arrButtons['edit']));
+				unset($arrButtons['edit']);
+			}
+						
 		}
 				
 		// append the clipboard buttons
