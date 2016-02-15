@@ -123,15 +123,21 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
+		$objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getInstance();
 		$objCC = $objConfig->customcatalog;
 		$objModule = $objConfig->module;
-		$arrDefaultDCA = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getDefaultDataContainerArray();
+		$arrDefaultDCA = $objDcaHelper->getDefaultDataContainerArray();
 		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
+		
+		$arrChilds = deserialize($objCC->get('cTables'));
+		$hasChilds = count($arrChilds) > 0 ? true : false;
 		
 		$strAliasField = $objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveBackendLanguage($strTable);
+		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
+			
 		
 		\System::loadLanguageFile('tl_pct_customcatalog');
 		\System::loadLanguageFile('tl_content');
@@ -160,7 +166,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($strTable);
-		$objDC->User = $objUser;
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'];
 		$arrListOperations = deserialize($objCC->get('list_operations'));
@@ -201,10 +206,8 @@ class Controller extends \PCT\CustomElements\Models\Model
 				continue;
 			}
 			
-			$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
-			
 			// overwrite the jumpTo page when editing should be done on a different page
-			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0)
+			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
 				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
 			}
@@ -244,6 +247,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$href = $objFunction->addToUrl('langpid='.$langpid,href);
 			}
 			
+			// replace the edit button with the editheader button
+			if($hasChilds && $key == 'edit')
+			{
+				$key = 'editheader';
+				$button['icon'] = 'header.gif';	
+			}
+						
 			$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
 			$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 			
@@ -264,7 +274,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$attributes = sprintf($attributes,$objRow->id);
 			}
 			$attributes .= ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
-			
+								
 			// html
 			$button['html'] = sprintf('<a href="%s" title="%s" class="%s" %s>%s</a>',$href,$title,$class,$attributes,$linkText);
 			
@@ -279,6 +289,75 @@ class Controller extends \PCT\CustomElements\Models\Model
 			$i++;
 		}
 		
+		// insert child table edit buttons
+		if($hasChilds)
+		{
+			$pos = 0;
+			if(array_key_exists('editheader', $arrButtons))
+			{
+				$pos = array_search('editheader', array_keys($arrButtons));
+			}
+				
+			foreach($arrChilds as $i => $childTable)
+			{
+				$pos += $i;
+				
+				$button = $objDcaHelper->getCustomButton('editchild');
+				
+				$title = sprintf($button['label'][1],$objRow->id);
+				
+				// overwrite the jumpTo page when editing should be done on a different page
+				if($objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
+				{
+					$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
+				}
+				
+				$href = $objFunction->addToUrl('&amp;do='.$strAlias.'&amp;table='.$childTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->id : ''), $strJumpTo);
+				// add the items parameter to the url
+				$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
+			
+				// add the request token
+				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+				{
+					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
+				}
+					
+				\PC::debug($href);
+				
+				$objChildCC = null;
+				if(\PCT\CustomElements\Plugins\CustomCatalog\Core\Cache::getCustomCatalog($childTable))
+				{
+					$objChildCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\Cache::getCustomCatalog($childTable);
+				}
+				else
+				{
+					$objChildCC = CustomCatalogFactory::findByTableName($childTable);
+				}
+				
+				if($objChildCC)
+				{
+					if($objChildCC->get('icon'))
+					{
+						$icon = \FilesModel::findByPk($objChildCC->get('icon'))->path;
+						if(strlen($strIcon) > 0)
+						{
+							$icon = ControllerHelper::getInstance()->call('getImage',array($icon,'16','16','center_center'));
+							$button['icon'] = $icon;
+						}
+					}
+				}
+				
+				$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+				$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
+				$attributes = ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
+				
+				// html
+				$button['html'] = sprintf('<a href="%s" title="%s" class="%s" %s>%s</a>',$href,$title,$class,$attributes,$linkImage);
+			
+				array_insert($arrButtons,$pos,array('edit_'.$childTable=>$button));
+			}
+		}
+				
 		// append the clipboard buttons
 		if(\Input::get('act') == 'paste')
 		{
@@ -314,6 +393,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$objTemplate->customcatalog = $objCC;
 		$objTemplate->activeRecord = $objRow;
 		$objTemplate->buttons = $arrButtons;
+		$objTemplate->hasChilds = $hasChilds;
 		
 		return $objTemplate;
 	}
