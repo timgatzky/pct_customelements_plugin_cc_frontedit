@@ -221,15 +221,18 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   	 $objDC->value = implode(',',trimsplit('\t',\Input::post('value',true)));
 			   	}
 		   	}
-		   	
+		   
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
 			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
-		
+
 			// reload the page to avoid wrong javascript
-			#\Controller::reload();
+			if(!$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+			{
+				\Controller::reload();
+			}
 		}
 		
 		// retrieve from session
@@ -829,12 +832,24 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
 		
-		// store buffer in the session
-		$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($strBuffer,strlen($strBuffer)));
-		$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
-		
-		$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-		$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		{
+			// preserve scripts
+			$orig_allowedTags = \Config::get('allowedTags');
+			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
+			$buffer = $strBuffer;
+			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
+			
+			// store buffer in the session
+			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
+			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+			
+			$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			
+			// reset to standard
+			\Config::set('allowedTags', $orig_allowedTags);
+		}
 		
 		$arrClasses = array('block');
 		$arrClasses[] = $objAttribute->get('type');
@@ -848,7 +863,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
-		if($this->isAjaxField || $arrFieldDef['eval']['isAjaxField'])
+		if( $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'] && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
 		{
 		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
 		   $js_helper->widget = $this->widget;

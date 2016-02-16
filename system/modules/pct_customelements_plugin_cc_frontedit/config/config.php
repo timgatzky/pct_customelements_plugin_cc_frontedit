@@ -27,6 +27,7 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['ignoreButtons']							= array('show'); 
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin'] 				= array('openModalWindow','openModalBrowser');
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] 					= false; // if set to true, editing is allowed without being logged on to the front end
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] 	= true;
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads']			= true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 
 // usage: table level
