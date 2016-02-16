@@ -177,7 +177,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		$this->Template->method = 'post';
 		$this->Template->action = \Environment::get('request');
 		$this->Template->tableless = true;
-		$this->Template->formClass = 'filterform';
+		$this->Template->formClass = 'cc_frontedit_form';
 		$this->Template->hidden = $strHidden;
 		
 		// rewrite the module back link

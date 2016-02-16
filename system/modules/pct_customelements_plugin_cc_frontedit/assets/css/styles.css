@@ -72,3 +72,14 @@ fieldset,form,input,optgroup,select,textarea {
 
 .datepicker_bootstrap {z-index: 9999;}
 .datepicker_bootstrap .header {line-height: inherit;}
+
+.tl_checkbox_single_container label {font-weight: inherit;}
+.chrome form select, .safari form select {height: inherit;}
+
+.cc_frontedit_form .styled_select {line-height: 23px;}
+.cc_frontedit_form .tl_text {width: 99%;}
+.cc_frontedit_form .wizard .tl_text {width: 90%;}
+.cc_frontedit_form .widget_container h3 {font-size: 1.5em; line-height: inherit; font-weight: normal; margin-bottom: 0;}
+.cc_frontedit_form .is_child_attribute {margin-bottom: 1%;}
+
+

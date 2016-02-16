@@ -617,6 +617,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$field = $objChildWidget->__get('name');
 				$value = $objDC->activeRecord->{$field};
 				
+				$class = array($field,'is_child_attribute','block');
+				
 				$dc = new \PCT\CustomElements\Helper\DataContainerHelper;
 				$dc->id = $objDC->id;
 				$dc->field = $field;
@@ -649,6 +651,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// handle wizards in child attributes
 				if(count($objChildWidget->fieldDef['wizard']) > 0)
 				{
+					$class[] = 'wizard';
 					foreach($objChildWidget->fieldDef['wizard'] as $callback)
 					{
 						$strChild .= \System::importStatic($callback[0])->{$callback[1]}($dc);
@@ -662,7 +665,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
-				$arr[] = in_array('pct_autogrid',\Config::getActiveModules()) ? '<div class="'.$field.' autogrid one_half block">'.$strChild.'</div>' : '<div class="'.$field.' w50">'.$strChild.'</div>';
+				$arr[] = in_array('pct_autogrid',\Config::getActiveModules()) ? '<div class="'.implode(' ', $class).' autogrid one_half">'.$strChild.'</div>' : '<div class="'.implode(' ', $class).' w50">'.$strChild.'</div>';
 			}
  			
  			$strBuffer .= implode('', $arr);
@@ -835,9 +838,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		$arrClasses = array('block');
 		$arrClasses[] = $objAttribute->get('type');
-		if($this->multiple)
+		
+		if($objAttribute->get('type') == 'textarea' && $arrFieldDef['eval']['rte'])
 		{
-			$arrClasses[] = 'multiple';
+			$arrClasses[] = 'hasTiny';
 		}
 		
 		// wrap the widget in a unique div
