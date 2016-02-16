@@ -42,11 +42,22 @@ class FrontendFile extends \Contao\BackendFile
 	{
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array($GLOBALS['TL_CONFIG']['uploadPath']);
 		$GLOBALS['loadDataContainer']['tl_files'] = true;
+		
+		$root = array();
 		if($this->User->filemounts)
 		{
 			$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',deserialize($this->User->filemounts)));
-			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $objFiles->fetchEach('path');
+			$root = array_merge($root,$objFiles->fetchEach('path'));
 		}
+		
+		if($this->User->assignDir && $this->User->homeDir)
+		{
+			$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',array($this->User->homeDir)));
+			$root = array_merge($root,$objFiles->fetchEach('path'));
+		}
+		
+		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
+		
 		return parent::run();
 	}
 }	
