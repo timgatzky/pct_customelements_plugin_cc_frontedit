@@ -813,15 +813,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
-		$arrClasses = array();
+		$arrWidgetClasses = array();
+		$arrWidgetClasses[] = $objAttribute->get('type');
+		
 		if($objAttribute->get('eval_tl_class_w50'))
 		{
-			$arrClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
+			$arrWidgetClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
 			
 		$this->widget = $this;
-		$this->widget->classes = $arrClasses;
-		$this->widget->class = implode(' ', $arrClasses);
+		$this->widget->classes = $arrWidgetClasses;
+		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
 		
 		// store buffer in the session
@@ -831,8 +833,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
 		$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 		
+		$arrClasses = array('block');
+		$arrClasses[] = $objAttribute->get('type');
+		
 		// wrap the widget in a unique div
-		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container">'.$strBuffer.'</div>';
+		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
 		if($this->isAjaxField || $arrFieldDef['eval']['isAjaxField'])
