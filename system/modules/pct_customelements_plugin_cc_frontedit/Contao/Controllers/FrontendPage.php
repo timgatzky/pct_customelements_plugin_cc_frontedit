@@ -36,16 +36,18 @@ class FrontendPage extends \Contao\BackendPage
 		$this->import('Session');
 				
 		$this->User = new \PCT\Contao\_FrontendUser($this->User, array('customcatalog_edit_active' => 1));
-	}
-	
-	public function run()
-	{
+		
+		// set pagemounts
 		$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = \PageModel::findPublishedRootPages()->fetchEach('id');
 		$GLOBALS['loadDataContainer']['tl_page'] = true;
 		if($this->User->pagemounts)
 		{
 			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = deserialize($this->User->pagemounts);
 		}
+	}
+	
+	public function run()
+	{
 		return parent::run();
 	}
 }

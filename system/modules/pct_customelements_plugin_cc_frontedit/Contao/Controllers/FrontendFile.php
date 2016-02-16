@@ -36,10 +36,8 @@ class FrontendFile extends \Contao\BackendFile
 		$this->import('Session');
 		
 		$this->User = new \PCT\Contao\_FrontendUser($this->User, array('customcatalog_edit_active' => 1));
-	}
-	
-	public function run()
-	{
+		
+		// set filemounts
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array($GLOBALS['TL_CONFIG']['uploadPath']);
 		$GLOBALS['loadDataContainer']['tl_files'] = true;
 		
@@ -57,7 +55,10 @@ class FrontendFile extends \Contao\BackendFile
 		}
 		
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
-		
+	}
+	
+	public function run()
+	{
 		return parent::run();
 	}
 }	
