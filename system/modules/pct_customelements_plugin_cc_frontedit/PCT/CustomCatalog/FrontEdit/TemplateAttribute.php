@@ -190,28 +190,20 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   	else if(in_array($objAttribute->get('type'),array('files','gallery')) && \Input::post('value'))
 		   	{
 			   	$objDC->value = \Input::post('value');
+			   	
 			   	if($this->multiple)
 			   	{
 				   $objDC->value = trimsplit('\t',\Input::post('value',true));
 				   
 				   foreach($objDC->value as $v)
 				   {
-					   $objFile = \FilesModel::findByPath($v);
-					   if($objFile)
-					   {
-						   $values[] = \StringUtil::binToUuid($objFile->uuid);
-						   continue;
-					   }
-					   
-					   $objFile = new \File(TL_ROOT.'/'.$v,true);
-					   if($objFile !== null)
-					   {
-						   $values[] = \StringUtil::binToUuid($objFile->uuid);
-						   continue;
-					   }
-					}
-					$objDC->value = implode(',',$values);
-				   
+				      $objFile = \Dbafs::addResource($v);
+				      if($objFile)
+				      {
+				   	   	$values[] = \StringUtil::binToUuid($objFile->uuid);
+				   	  }
+				   }
+				   $objDC->value = implode(',',$values);
 				}
 			}
 			else if($objAttribute->get('type') == 'tags' && \Input::post('value'))
