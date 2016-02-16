@@ -1,6 +1,6 @@
 
-<div class="operations">
+<ul class="operations">
 <?php foreach($this->buttons as $key => $button): ?>
-<span class="button <?= $key; ?>"><?= $button['html']; ?></span>
+<li class="button <?= $key; ?>"><?= $button['html']; ?></li>
 <?php endforeach; ?>
-</div>
+</ul>

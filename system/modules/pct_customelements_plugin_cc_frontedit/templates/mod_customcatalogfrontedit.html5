@@ -20,10 +20,9 @@
 <p class="back"><?php echo $this->goBack; ?></p>
 <!-- indexer::continue -->
 <?php endif; ?>
-
-			
+		
 <!-- indexer::stop -->
-<div class="<?php echo $this->formClass; ?> <?php echo $this->tableless ? 'tableless' : 'tableform'; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<div class="<?php echo $this->formClass; ?> <?php echo $this->tableless ? 'tableless' : 'tableform'; ?> edit_list block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
 
   <form<?php if ($this->action): ?> action="<?php echo $this->action; ?>"<?php endif; ?> id="<?php echo $this->formId; ?>" name="<?php echo $this->formName;?>" method="<?php echo $this->method; ?>" enctype="application/x-www-form-urlencoded" <?php echo $this->attributes; ?>>
     <div class="formbody">
@@ -42,7 +41,7 @@
 		<?php echo $this->customcatalog; ?>
 		
 		<?php if($this->selectMode || $this->editMode): ?>
-		<ul class="tl_submits tl_buttons">
+		<ul class="global_edit_submits tl_submits tl_buttons">
 			
 			<?php if($this->hasSave): ?>
 			<li class="save"><div class="widget submit_container submit"><?php echo $this->saveSubmit; ?></div></li>

@@ -156,7 +156,11 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveBackendLanguage($strTable);
 		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
-			
+		
+		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
+		{
+			$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys'] = array();
+		}
 		
 		\System::loadLanguageFile('tl_pct_customcatalog');
 		\System::loadLanguageFile('tl_content');
@@ -226,12 +230,9 @@ class Controller extends \PCT\CustomElements\Models\Model
 			}
 			
 			// restrict buttons on entry level
-			if(is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
+			if(!empty($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']) && !in_array($key, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
 			{
-				if(!in_array($key, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
-				{
-					continue;
-				}
+				continue;
 			}
 			
 			// overwrite the jumpTo page when editing should be done on a different page
@@ -409,7 +410,12 @@ class Controller extends \PCT\CustomElements\Models\Model
 		{
 			$html = '<input data-module="'.$objModule->id.'" id="ids_'.$objRow->id.'" class="tl_tree_checkbox checkbox" type="checkbox" value="'.$objRow->id.'" name="IDS[]">';
 			$select = array('html'=>$html,'class'=>'select');
-			array_insert($arrButtons,count($arrButtons),array('select'=>$select));
+			
+			// restrict buttons on entry level
+			if(empty($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']) || in_array('select', $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
+			{
+				array_insert($arrButtons,count($arrButtons),array('select'=>$select));
+			}
 		}
 		
 		// Hook: Modify buttons
