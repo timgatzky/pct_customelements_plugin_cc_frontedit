@@ -1,5 +1,5 @@
 
-<ul class="operations">
+<ul class="tl_buttons operations">
 <?php foreach($this->buttons as $key => $button): ?>
 <li class="button <?= $key; ?>"><?= $button['html']; ?></li>
 <?php endforeach; ?>

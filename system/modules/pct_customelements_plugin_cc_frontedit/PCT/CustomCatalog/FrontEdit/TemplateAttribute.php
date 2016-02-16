@@ -835,6 +835,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		$arrClasses = array('block');
 		$arrClasses[] = $objAttribute->get('type');
+		if($this->multiple)
+		{
+			$arrClasses[] = 'multiple';
+		}
 		
 		// wrap the widget in a unique div
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
