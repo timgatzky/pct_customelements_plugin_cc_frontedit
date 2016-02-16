@@ -39,7 +39,7 @@ $GLOBALS['TL_DCA'][$objDcaHelper->getTable()]['palettes']['default'] = $objDcaHe
 /**
  * Subpalettes
  */
-$objDcaHelper->addSubpalette('customcatalog_edit_active',array('pagemounts','alpty','filemounts','fop'));
+$objDcaHelper->addSubpalette('customcatalog_edit_active',array('pagemounts','filemounts'));
 
 /**
  * Fields
@@ -55,7 +55,6 @@ $objDcaHelper->addFields(array
 		'sql'			  		=> "char(1) NOT NULL default ''",
 	),
 	'pagemounts' 		=> $GLOBALS['TL_DCA']['tl_user_group']['fields']['pagemounts'],	
-	'alpty'				=> $GLOBALS['TL_DCA']['tl_user_group']['fields']['alpty'],
 	'filemounts' 		=> $GLOBALS['TL_DCA']['tl_user_group']['fields']['filemounts'],
 ));
 
