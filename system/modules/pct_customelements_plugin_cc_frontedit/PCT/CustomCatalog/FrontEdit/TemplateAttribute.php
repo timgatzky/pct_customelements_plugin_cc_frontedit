@@ -154,6 +154,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strLabel = $objAttribute->getTranslatedLabel()[0];
 		}
 		
+		// mark attribute as ajax related field
+		if( in_array($objAttribute->get('type'),array('pagetree','files','gallery','image','tags')) )
+		{
+			$this->isAjaxField = true;
+		}
+				
 		$blnSubmitted = false;
 		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
 		{
@@ -178,7 +184,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen(\Input::post('action')) > 0 && (\Input::post('name') == $objDC->field || \Input::post('field') == $objDC->field) )
 		{
 			$objDC->value = \Input::post('value');
-			
+			// !ajax IMAGE
 			if($objAttribute->get('type') == 'image' && \Input::post('value')) 
 			{
 				$objFile = \Dbafs::addResource(\Input::post('value'));
@@ -187,6 +193,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	   				$objDC->value = $objFile->uuid;
 	   			}
 		   	}
+		   	// !ajax FILE(s), GALLERY
 		   	else if(in_array($objAttribute->get('type'),array('files','gallery')) && \Input::post('value'))
 		   	{
 			   	$objDC->value = \Input::post('value');
@@ -200,13 +207,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				      $objFile = \Dbafs::addResource($v);
 				      if($objFile)
 				      {
-				   	   	$values[] = \StringUtil::binToUuid($objFile->uuid);
+					      $values[] = \StringUtil::binToUuid($objFile->uuid);
 				   	  }
 				   }
 				   $objDC->value = implode(',',$values);
 				}
 			}
-			else if($objAttribute->get('type') == 'tags' && \Input::post('value'))
+			// !ajax TAGS, PAGETREE
+			else if(in_array($objAttribute->get('type'),array('tags','pagetree')) && \Input::post('value'))
 		   	{
 			   	if($this->multiple)
 			   	{
@@ -307,9 +315,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
-					// flag as ajax related field
-					$this->isAjaxField = true;
-					
 					if(\Validator::isBinaryUuid($objDC->value))
 					{
 						$objDC->value = \StringUtil::binToUuid($objDC->value); #\FilesModel::findByUuid($objDC->value)->uuid;
@@ -352,9 +357,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !FILE(s), GALLERY attributes
 				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
 				{
-					// flag as ajax related field
-					$this->isAjaxField = true;
-					
 					if(!$this->multiple)
 					{
 						if(\Validator::isBinaryUuid($objDC->value))
@@ -532,14 +534,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			else
 			{	
-				if($blnSubmitted)
-				{
-					// validate the input
-					$objWidget->validate();
-				}
-					
+								
+				// validate the input
+				$objWidget->validate();
+				
 				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();				
+				$strBuffer .= $objWidget->generateWithError();	
 			}
 		}
 		// HOOK let attribute generate their own widgets
