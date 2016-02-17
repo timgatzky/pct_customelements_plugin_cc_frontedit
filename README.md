@@ -23,10 +23,24 @@ Demo
 Installation
 ------------
 Copy the module folder to /system/modules and update the database. You might need to clear the internal cache as well.
+The plugin brings two new templates:
++ mod_customcatalogedit.html5
++ customcatalog_default_edit.html5
 
 Activate CustomElement plugin
 ------------
 Navigate to "My Content elements" "Meine Inhaltselemente" > Plugin Management and enable the new plugin.
+
+Usage
+------------
+The plugin brings two new methods to your CustomCatalog template.
++ $entry->editable(); 
++ $entry->field('myAttribute')->widget();
+
+The editable() methode callable for a CustomCatalog RowTemplate object (each entry is one of those) checks if the entry can be edited by the current user
+The widget() method callable for a CustomCatalog TemplateAttribute (any attribute in a cc template file is one of those) generates the attributes formular field.
+
+See the customcatalog_default_edit.html5 Template
 
 Requirements
 ------------
