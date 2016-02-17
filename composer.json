@@ -1,0 +1,29 @@
+{
+	"name":"timgatzky/pct_customelements_plugin_cc_frontedit",
+	"description":"Notelist management and resuming notelists for PCT customcatalog",
+	"keywords":["contao","notelist","customcatalog","customelements"],
+	"type":"contao-module",
+	"homepage":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit",
+	"license":"LGPL-3.0+",
+	"authors":
+	[
+		{
+			"name":"Tim Gatzky",
+			"homepage":"http://www.tim-gatzky.de",
+			"role":"Interaction-Designer,Developer"
+		}
+	],
+	"support":
+	{
+		"issues":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit/issues",
+		"source":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit"
+	},
+	"require":
+	{
+		"php":">=5.4",
+		"contao/core":">=3.5",
+		"contao-community-alliance/composer-installer":"*",
+		"pct_customelements":">=1.6",
+		"pct_customelements_plugin_customcatalog",
+	}
+}
