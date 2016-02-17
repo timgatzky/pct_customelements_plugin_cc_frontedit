@@ -18,7 +18,7 @@ Features
 
 Demo
 ------------
-[cc.premium-contao-themes.com/feedit/ link](cc.premium-contao-themes.com/feedit/)
+[cc.premium-contao-themes.com/feedit](cc.premium-contao-themes.com/feedit/)
 
 Installation
 ------------
