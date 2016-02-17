@@ -18,11 +18,15 @@ Features
 
 Demo
 ------------
-cc.premium-contao-themes.com/feedit/
+[cc.premium-contao-themes.com/feedit](http://cc.premium-contao-themes.com/feedit/)
 
 Installation
 ------------
 Copy the module folder to /system/modules and update the database. You might need to clear the internal cache as well.
+
+Activate CustomElement plugin
+------------
+Navigate to "My Content elements" "Meine Inhaltselemente" > Plugin Management and enable the new plugin.
 
 Requirements
 ------------
