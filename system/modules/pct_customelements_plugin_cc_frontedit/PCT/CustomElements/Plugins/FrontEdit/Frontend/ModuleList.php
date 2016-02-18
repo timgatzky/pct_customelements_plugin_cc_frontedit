@@ -118,7 +118,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		$this->Template->referer = \Controller::getReferer();
         $this->Template->back = $GLOBALS['TL_LANG']['MSC']['goBack'];
         $this->Template->goBack = \PCT\CustomCatalog\FrontEdit\FrontendTemplate::backButton(true);
-        
+       
         $this->Template->isEnabled = true;
 		$this->Template->showHeaderButtons = true;
        
@@ -322,7 +322,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		$this->Template->formClass = 'cc_frontedit_form';
 		$this->Template->hidden = $strHidden;
 		
-		//-- handle form actions
+		//!-- handle form actions
 		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable())
 		{
 			$objUser = new \StdClass;
@@ -423,9 +423,10 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				\Controller::reload( \Controller::getReferer() );
 			}
 		}
-		
-		
+		//!-- simulate reviseTable Hook
+		else if(\Input::get('act') != 'edit' && !in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']))
+		{
+			\PCT\CustomCatalog\FrontEdit\Controller::simulateReviseTable($objCC->getTable());
+		}
 	}
-
-	
 }
