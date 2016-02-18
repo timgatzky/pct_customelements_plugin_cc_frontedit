@@ -833,13 +833,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 		}
 		else
 		{
-			$strJumpTo = '';
-			// overwrite the jumpTo page when editing should be done on a different page
-			if($objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
-			{
-				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
-			}
-			
 			$href = Functions::addToUrl('&amp;do='.$strAlias.'&amp;table='.$strTable.'&act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''),$strJumpTo);
 			
 			// switchToEdit
@@ -847,9 +840,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 			{
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
-			
-			// add the items parameter to the url
-			#$href = Functions::addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$arrRow[$strAliasField] ?: $arrRow['id'],$href);
 			
 			// add the request token
 			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -910,16 +900,10 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteafter_.gif');
+			$html = \Image::getHtml('pasteinto_.gif');
 		}
 		else
 		{
-			$strJumpTo = '';
-			// overwrite the jumpTo page when editing should be done on a different page
-			if($objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
-			{
-				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
-			}
 			$href = Functions::addToUrl('&amp;do='.$strAlias.'&amp;table='.$strTable.'act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
 			
 			// switchToEdit
@@ -927,9 +911,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 			{
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
-			
-			// add the items parameter to the url
-			$href = Functions::addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$arrRow['id'],$href);
 			
 			// add the request token
 			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
