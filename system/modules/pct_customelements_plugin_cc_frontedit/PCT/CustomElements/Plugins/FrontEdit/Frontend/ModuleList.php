@@ -131,6 +131,11 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$this->Template->clipboard = true;
 		}
 		
+		if(!$this->Template->clipboard)
+		{
+			$this->Template->back = '';
+		}
+		
 		// check if select mode is active
 		if(\Input::get('act') == 'select')
 		{

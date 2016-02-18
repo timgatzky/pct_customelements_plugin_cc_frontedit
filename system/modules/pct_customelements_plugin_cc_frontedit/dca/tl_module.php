@@ -33,7 +33,7 @@ $GLOBALS['TL_DCA']['tl_module']['palettes']['customcatalogreader'] = $objDcaHelp
 /**
  * Subpalettes
  */
-$objDcaHelper->addSubpalette('customcatalog_edit_active',array('reg_groups,customcatalog_edit_showUnpublished'));
+$objDcaHelper->addSubpalette('customcatalog_edit_active',array('reg_groups,customcatalog_edit_showUnpublished,customcatalog_edit_switchToEdit'));
 
 /**
  * Fields
@@ -48,7 +48,6 @@ $objDcaHelper->addFields(array
 		'eval'            		=> array('tl_class'=>'','submitOnChange'=>true),
 		'sql'			  		=> "char(1) NOT NULL default ''",
 	),
-
 	'customcatalog_edit_showUnpublished' => array
 	(
 		'label'           		=> &$GLOBALS['TL_LANG'][$objDcaHelper->getTable()]['customcatalog_edit_showUnpublished'],
@@ -57,5 +56,14 @@ $objDcaHelper->addFields(array
 		'inputType'       		=> 'checkbox',
 		'eval'            		=> array('tl_class'=>''),
 		'sql'			  		=> "char(1) NOT NULL default '1'",
+	),
+	'customcatalog_edit_switchToEdit' => array
+	(
+		'label'           		=> &$GLOBALS['TL_LANG'][$objDcaHelper->getTable()]['customcatalog_edit_switchToEdit'],
+		'exclude'         		=> true,
+		'default'				=> 1,
+		'inputType'       		=> 'checkbox',
+		'eval'            		=> array('tl_class'=>''),
+		'sql'			  		=> "char(1) NOT NULL default ''",
 	),
 ));
