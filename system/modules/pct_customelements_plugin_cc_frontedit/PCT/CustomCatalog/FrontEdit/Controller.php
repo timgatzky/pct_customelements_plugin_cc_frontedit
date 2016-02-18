@@ -265,7 +265,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}
 			// simulate a switchToEdit
-			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && ($GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] == true || $objModule->customcatalog_edit_switchToEdit))
+			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && ($GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] || $objModule->customcatalog_edit_switchToEdit) )
 			{
 				$href = $objFunction->addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
@@ -504,7 +504,33 @@ class Controller extends \PCT\CustomElements\Models\Model
 			\Controller::redirect($redirect);
 		}
 	}
-
+	
+	
+	/**
+	 * Simulare the revise table function
+	 * Basically deletes all unsaved entries from a table (tstamp <= 0)
+	 * @param string	The table name
+	 */
+	public function simulateReviseTable($strTable)
+	{
+		$objDatabase = \Database::getInstance();
+	
+		if(!$objDatabase->tableExists($strTable))
+		{
+			return;
+		}
+		
+		$objRevised = $objDatabase->execute("SELECT id FROM ".$strTable." WHERE (tstamp <= 0 OR tstamp='')");
+		if($objRevised->numRows < 1)
+		{
+			return;
+		}
+		
+		$objDatabase->execute("DELETE FROM ".$strTable." WHERE id IN(".implode(',', $objRevised->fetchEach('id')).")");
+		
+		\Controller::reload();
+	}
+	
 
 	/**
 	 * POST and GET action listener
@@ -615,6 +641,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 		else if(\Input::get('act') == 'copy')
 		{
 			$intNew = $objDC->copy(true);
+			
+			// set the tstamp column to 0
+			$objNew = \Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
+			if($objNew->tstamp > 0)
+			{
+				\Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>''))->execute($intNew);
+			}
 			
 			if(\Input::get('switchToEdit') || \Input::get('jumpto') > 0)
 			{
