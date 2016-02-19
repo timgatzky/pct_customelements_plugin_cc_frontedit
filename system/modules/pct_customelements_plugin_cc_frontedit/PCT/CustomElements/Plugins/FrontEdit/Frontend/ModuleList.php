@@ -424,7 +424,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			}
 		}
 		//!-- simulate reviseTable Hook
-		else if(\Input::get('act') != 'edit' && !in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']))
+		else if( !in_array(\Input::get('act'), array('edit','copy')) && !in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']))
 		{
 			\PCT\CustomCatalog\FrontEdit\Controller::simulateReviseTable($objCC->getTable());
 		}
