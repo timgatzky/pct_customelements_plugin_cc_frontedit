@@ -120,7 +120,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		}
 		
 		$objConfig = $this->getConfig();
-		
+	
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
 		$objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getInstance();
@@ -136,13 +136,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 		{
 			foreach($arrChilds as $i => $childTable)
 			{
-				$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($childTable);
-				if(!$objCC)
+				$objChildCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($childTable);
+				if(!$objChildCC)
 				{
 					unset($arrChilds[$i]);
 				}
 				
-				else if(!$objCC->get('active'))
+				else if(!$objChildCC->get('active'))
 				{
 					unset($arrChilds[$i]);
 				}
@@ -154,7 +154,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strAliasField = $objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
-		$strLanguage = $objMultilanguage->getActiveBackendLanguage($strTable);
+		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
 		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
@@ -187,6 +187,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 			}
 		}
 		
+		// override the switchToEdit option
+		if(!$objModule->customcatalog_edit_switchToEdit && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'])
+		{
+			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
+		}
+		
+				
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($strTable);
 		
@@ -235,28 +242,31 @@ class Controller extends \PCT\CustomElements\Models\Model
 				continue;
 			}
 			
+			$jumpTo = $strJumpTo; 
+			
 			// overwrite the jumpTo page when editing should be done on a different page
 			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
-				$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
+				$jumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
 			}
 			
 			$href = (isset($button['href']) ? $button['href'] : '');
 			// copy,cut button in mode 4,5,5.1 should call the paste button
 			if(in_array($objCC->get('list_mode'),array(4,5,'5.1')))
 			{
-				if($key == 'copy')
+				if($key == 'copy' && !$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] )
 				{
 					$href = 'act=paste&amp;mode=copy';
 				}
-				else if($key == 'cut')
+				
+				if($key == 'cut')
 				{
 					$href = 'act=paste&amp;mode=cut';
 				}
 			}
 			
 			$title = sprintf($button['label'][1],$objRow->id);
-			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $strJumpTo);
+			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $jumpTo);
 			// add the items parameter to the url
 			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 && strlen($objRow->{$strAliasField}) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			// add the request token
@@ -265,7 +275,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}
 			// simulate a switchToEdit
-			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'])
+			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] )
 			{
 				$href = $objFunction->addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
@@ -273,7 +283,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 			if($objCC->get('multilanguage'))
 			{
 				$langpid = $objMultilanguage->getBaseRecordId($row['id'],$strTable,$strLanguage);
-				$href = $objFunction->addToUrl('langpid='.$langpid,href);
+				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
 			}
 			
 			// replace the edit button with the editheader button
@@ -450,6 +460,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
 		
 		$strTable = \Input::get('table');
+		$objFunction = new \PCT\CustomElements\Helper\Functions;
 		
 		// !switchToEdit on CREATE
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
@@ -472,14 +483,24 @@ class Controller extends \PCT\CustomElements\Models\Model
 				if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
 				{
 					$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
-				}	
+				}
+				
+				// add the request token
+				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+				{
+					$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
+				}
 			}
-			
-			// remove session
+				
+			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
 			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() );
-			
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			
+			// remove VALUE sessions
+			$arrSession[$strTable]['CURRENT']['VALUES'] = array();
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			
 			// redirect to edit page
 			\Controller::redirect($redirect);
 		}
@@ -494,17 +515,67 @@ class Controller extends \PCT\CustomElements\Models\Model
 			// add/rewrite the items parameter to the url
 			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
 			
-			// remove session
+			// add the request token
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			{
+				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
+			}
+			
+			// add the request token
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			{
+				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
+			}
+			
+			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
 			$arrSession[$strTable]['ref'] = \Controller::getReferer();
-			
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			
+			// remove VALUE sessions
+			$arrSession[$strTable]['CURRENT']['VALUES'] = array();
+			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
 			\Controller::redirect($redirect);
 		}
 	}
-
+	
+	
+	/**
+	 * Simulare the revise table function
+	 * Basically deletes all unsaved entries from a table (tstamp <= 0)
+	 * @param string	The table name
+	 * @param boolean	Write log
+	 */
+	public function simulateReviseTable($strTable,$blnLog=true)
+	{
+		// load the data container to the frontend
+		if(!$GLOBALS['TL_DCA'][$strTable])
+		{
+			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
+			
+			// fallback CC <= 1.4.14
+			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
+			{
+				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
+				
+				$objSystem->loadCustomCatalog($strTable,true);
+				
+				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
+			}
+			else
+			{
+				$objSystem->loadDCA($strTable);
+			}
+		}
+		
+		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
+		
+		$objDC->reviseTable();
+	}
+	
 
 	/**
 	 * POST and GET action listener
@@ -615,6 +686,13 @@ class Controller extends \PCT\CustomElements\Models\Model
 		else if(\Input::get('act') == 'copy')
 		{
 			$intNew = $objDC->copy(true);
+			
+			// set the tstamp column to 0
+			$objNew = \Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
+			if($objNew->tstamp > 0)
+			{
+				\Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>''))->execute($intNew);
+			}
 			
 			if(\Input::get('switchToEdit') || \Input::get('jumpto') > 0)
 			{
@@ -751,6 +829,18 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getPasteAfterButton($arrRow,$strTable,$arrClipboard=array())
 	{
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		if(!$objCC)
+		{
+			return '';
+		}
+		
+		$objModule = $objCC->getOrigin();
+		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
+		$strLanguage = str_replace('-','_',$objMultilanguage->getActiveFrontendLanguage());
+		$strAlias = $objCC->getCustomElement()->get('alias');
+		$strAliasField = $objCC->getAliasField();
+		
 		if(count($arrClipboard) < 1)
 		{
 			$arrSession = \Session::getInstance()->get('CLIPBOARD');
@@ -767,7 +857,27 @@ class Controller extends \PCT\CustomElements\Models\Model
 		}
 		else
 		{
-			$href = Functions::addToUrl('act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
+			$href = Functions::addToUrl('&amp;do='.$strAlias.'&amp;table='.$strTable.'&act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
+			
+			// switchToEdit
+			if($objModule->customcatalog_jumpTo > 0 && ($GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] || $objModule->customcatalog_edit_switchToEdit) )
+			{
+				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
+			}
+			
+			// add the request token
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			{
+				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
+			}
+			
+			// multilanguage, add the langpid
+			if($objCC->get('multilanguage'))
+			{
+				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
+				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
+			}
+
 			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$image.'</a>';
 		}
 		
@@ -791,6 +901,17 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getPasteIntoButton($arrRow,$strTable,$arrClipboard=array())
 	{
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		if(!$objCC)
+		{
+			return '';
+		}
+		
+		$objModule = $objCC->getOrigin();
+		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
+		$strLanguage = str_replace('-','_',$objMultilanguage->getActiveFrontendLanguage());
+		$strAlias = $objCC->getCustomElement()->get('alias');
+		
 		if(count($arrClipboard) < 1)
 		{
 			$arrSession = \Session::getInstance()->get('CLIPBOARD');
@@ -803,11 +924,31 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteafter_.gif');
+			$html = \Image::getHtml('pasteinto_.gif');
 		}
 		else
 		{
-			$href = Functions::addToUrl('act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
+			$href = Functions::addToUrl('&amp;do='.$strAlias.'&amp;table='.$strTable.'act='.$arrClipboard['mode'].'&amp;mode=1&amp;pid='.$arrRow['id'].(!is_array($arrClipboard['id']) ? '&amp;id='.$arrClipboard['id'] : ''));
+			
+			// switchToEdit
+			if($objModule->customcatalog_jumpTo > 0 && ($GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] || $objModule->customcatalog_edit_switchToEdit) )
+			{
+				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
+			}
+			
+			// add the request token
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			{
+				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
+			}
+			
+			// multilanguage, add the langpid
+			if($objCC->get('multilanguage'))
+			{
+				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
+				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
+			}
+			
 			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$image.'</a>';
 		}
 		

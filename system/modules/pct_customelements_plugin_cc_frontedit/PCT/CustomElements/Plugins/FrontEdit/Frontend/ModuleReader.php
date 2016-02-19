@@ -185,12 +185,12 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		{
 			// remove parameters from url
 			$url = \Controller::getReferer();
-			foreach(array('act','jumpto','mode','switchToEdit') as $v)
+			foreach(array('act','jumpto','mode') as $v)
 			{
 				$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 			}
-			
 			// add the clear clipboard parameter
+			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$url);
 			\Environment::set('httpReferer',$url);
 			$this->Template->referer = \Environment::get('httpReferer');
 		}

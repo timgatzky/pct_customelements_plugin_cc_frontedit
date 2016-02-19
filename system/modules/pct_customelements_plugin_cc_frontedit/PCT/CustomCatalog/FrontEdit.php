@@ -169,7 +169,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
 		
 		// check user rights
-		if( !$objUser->get('customcatalog_edit_active') || $objUser->customcatalog_edit_disable )
+		if( (boolean)$objUser->get('customcatalog_edit_active') === false || (boolean)$objUser->get('customcatalog_edit_disable') === true )
 		{
 			return false;
 		}

@@ -15,10 +15,12 @@
 /**
  * Fields
  */
-$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][0] = 'Aktivieren';
-$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][1] = 'Wählen Sie hier um die Frontedit-Funktionen bereitzustellen';
-$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][0] = 'Nicht veröffentlichte Einträge anzeigen';
-$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][1] = 'Wählen Sie hier um auch nicht veröffentlichte Einträge in der Liste anzeigen zu lassen.';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][0] 			= 'Aktivieren';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_active'][1] 			= 'Wählen Sie hier um die Frontedit-Funktionen bereitzustellen';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][0] 	= 'Nicht veröffentlichte Einträge anzeigen';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_showUnpublished'][1] 	= 'Wählen Sie hier um auch nicht veröffentlichte Einträge in der Liste anzeigen zu lassen.';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_switchToEdit'][0] 		= 'Nach Operation zur Bearbeitungsebene wechseln (switchToEdit)';
+$GLOBALS['TL_LANG']['tl_module']['customcatalog_edit_switchToEdit'][1]	 	= 'Beim Kopieren oder neu anlegen von Datensätzen direkt zu der Bearbeitungsebene wechseln. Eine Weiterleitungsseite mit Leser wird benötigt. Wird auch durch die DCA Einstellung der Tabellenkonfiguration bestimmt.';
 
 /**
  * Legends
