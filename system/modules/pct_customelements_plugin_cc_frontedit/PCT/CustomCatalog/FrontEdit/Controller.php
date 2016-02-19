@@ -574,31 +574,6 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
 		$objDC->reviseTable();
-		
-		
-		
-		#$objDatabase = \Database::getInstance();
-		#
-		#if(!$objDatabase->tableExists($strTable))
-		#{
-		#	return;
-		#}
-		#
-		#$objRevised = $objDatabase->execute("SELECT id FROM ".$strTable." WHERE (tstamp <= 0 OR tstamp='')");
-		#if($objRevised->numRows < 1)
-		#{
-		#	return;
-		#}
-		#
-		#$objDatabase->execute("DELETE FROM ".$strTable." WHERE id IN(".implode(',', $objRevised->fetchEach('id')).")");
-		#
-		#if($blnLog)
-		#{
-		#	\System::log('Revised entries ('.implode(',', $objRevised->fetchEach('id')).') deleted from '.$strTable,__METHOD__,TL_GENERAL);
-		#}
-		#
-		#
-		#\Controller::reload();
 	}
 	
 
