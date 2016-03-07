@@ -350,7 +350,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 					$objDC->intId = $id;
 					$objDC->delete(true);
 				}
-				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 			}
 			// !save
 			else if(isset($_POST[$this->saveSubmitName]) || isset($_POST[$this->saveNcloseSubmitName]))
@@ -387,7 +387,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 					// go back to regular list view
 					if(isset($_POST[$this->saveNcloseSubmitName]))
 					{
-						\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+						\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 					}
 					
 					// reload the page so changes take effect immediately

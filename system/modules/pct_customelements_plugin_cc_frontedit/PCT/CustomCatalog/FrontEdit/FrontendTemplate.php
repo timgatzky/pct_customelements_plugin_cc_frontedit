@@ -112,7 +112,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strTable = $objCC->getTable();
 		
 		$image = \Image::getHtml('preview.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',\Controller::generateFrontendUrl($objPage->row()));
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -142,7 +142,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strTable = $objCC->getTable();
 		
 		$image = \Image::getHtml('all.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&act=select',\Controller::generateFrontendUrl($objPage->row()));
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&act=select',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -186,7 +186,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		
 		
 		$image = \Image::getHtml('clipboard.gif',$GLOBALS['TL_LANG']['MSC']['clearClipboard']);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',\Controller::generateFrontendUrl($objPage->row()));
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -230,7 +230,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$title = $GLOBALS['TL_LANG']['MSC']['back'];
 		$linkText = $image.$GLOBALS['TL_LANG']['MSC']['goBack'];
 		$class = 'header_back';
-		$href = ( $blnGoToReferer ? \Controller::getReferer() : \Controller::generateFrontendUrl($objPage->row()) );
+		$href = ( $blnGoToReferer ? \Controller::getReferer() : \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 		
 		if($blnClearClipboard)
 		{
