@@ -872,4 +872,95 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		return $strBuffer;
 
 	}
+	
+	
+	/**
+	 * Generate an upload widget
+	 * @param object	Additional settings
+	 * @property objSettings->uploadFolder
+	 * @property objSettings->useHomeDir
+	 * @property objSettings->doNotOverwrite
+	 * @property objSettings->extensions
+	 * @property objSettings->createUploadFolder
+	 
+	 * @return string
+	 */
+	public function uploadWidget($objSettings=null)
+	{
+		if(strlen($this->uploadWidget) > 0)
+		{
+			return $this->uploadWidget;
+		}
+		
+		$objAttribute = $this->attribute();
+		if($objAttribute === null)
+		{
+			return '';
+		}
+		
+		// valid attribute types
+		if( !in_array($objAttribute->get('type'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']) )
+		{
+			return '';
+		}
+		
+		$objModule = $objAttribute->get('objCustomCatalog')->getModel();
+		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
+		$objDC->value = $objAttribute->getValue();
+		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
+		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';
+		
+		// custom upload folder
+		if(strlen($objSettings->uploadFolder) > 0)
+		{
+			$strUploadFolder = $objSettings->uploadFolder;
+		}
+		
+		// check if upload folder exists if it is not supposed to be created on the fly
+		if(!is_dir(TL_ROOT.'/'.$strUploadFolder) && !$objSettings->createUploadFolder)
+		{
+			return sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['invalid_upload_folder'],$strUploadFolder);
+		}
+		
+		$objFolder = new \Folder($strUploadFolder);
+		$intUploadFolder = $objFolder->getModel()->uuid;
+				
+		$objWidget = new $GLOBALS['TL_FFL']['upload'];
+		$objWidget->name = 'upload_'.$objAttribute->get('alias');
+		$objWidget->id = 'upload_'.$objAttribute->get('id');
+		$objWidget->addSubmit = true;
+		$objWidget->slabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_upload'] ?: 'Upload';
+		$objWidget->storeFile = true;
+		$objWidget->uploadFolder = $intUploadFolder;
+		$objWidget->extensions = \Config::get('uploadTypes');
+		
+		// apply settings to widget
+		if(count($objSettings) > 0)
+		{
+			foreach($objSettings as $k => $v)
+			{
+				$objWidget->{$k} = $v;
+			}
+		}
+		
+		if($objSettings->extensions !== null)
+		{
+			$uploadTypes = $objSettings->extensions;
+			if(is_array($uploadTypes))
+			{
+				$uploadTypes = implode(',', $uploadTypes);
+			}
+			$objWidget->extensions = $uploadTypes;
+		}
+		
+		// validate on submit
+		if(\Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
+		{
+			$objWidget->validate();
+		}
+		
+		$this->uploadWidget = $objWidget->generate();
+		
+		return $this->uploadWidget;
+	}
 }

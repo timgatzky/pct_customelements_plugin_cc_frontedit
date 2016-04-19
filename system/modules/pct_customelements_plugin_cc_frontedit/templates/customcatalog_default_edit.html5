@@ -25,6 +25,8 @@
 		<?php if($field->widget()) :?>
 		<!-- // include the widget -->
 		<div class="widget"><?php echo $field->widget(); ?></div>
+		<!-- // include the widget -->
+		<div class="upload_widget"><?php echo $field->uploadWidget(); ?></div>
 		<?php endif; ?>
 	</div>
 	<?php endforeach; ?>
