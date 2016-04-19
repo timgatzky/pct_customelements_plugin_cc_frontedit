@@ -1,3 +1,6 @@
+### 1.0.2
+Fixed: Include the Session and Database class as object variables in the DataContainerHelper class
+
 ### 1.0.1
 Update: Do not use the deprecated Controller::generateFrontendUrl method with static language parameter (>= Contao 3.5.7)
 
