@@ -1,2 +1,9 @@
+### 1.0.2
+Fixed: Include the Session and Database class as object variables in the DataContainerHelper class
+Fixed: Do not initialize in the front end when plugin is not enabled
+
+### 1.0.1
+Update: Do not use the deprecated Controller::generateFrontendUrl method with static language parameter (>= Contao 3.5.7)
+
 ### 1.0.0
 initial commit

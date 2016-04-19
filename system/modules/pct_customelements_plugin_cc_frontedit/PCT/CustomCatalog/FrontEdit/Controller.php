@@ -155,7 +155,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
-		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row() );
+		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row(),'',null,true );
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
 		{
@@ -247,7 +247,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 			// overwrite the jumpTo page when editing should be done on a different page
 			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
-				$jumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
+				$jumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row(),'',null,true );
 			}
 			
 			$href = (isset($button['href']) ? $button['href'] : '');
@@ -356,7 +356,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				// overwrite the jumpTo page when editing should be done on a different page
 				if($objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 				{
-					$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row() );
+					$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row(),'',null,true );
 				}
 				
 				$href = $objFunction->addToUrl('&amp;do='.$strAlias.'&amp;table='.$childTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->id : ''), $strJumpTo);
@@ -468,14 +468,14 @@ class Controller extends \PCT\CustomElements\Models\Model
 			// redirect to lister page
 			if(\Input::get('switchToEdit') < 1)
 			{
-				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() );
+				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(),'',null,true );
 			}
 			// redirect to details page
 			else
 			{
 				$objFunction = new \PCT\CustomElements\Helper\Functions;
 				$parse = parse_url(\Environment::get('request'));
-				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row()).'?'.$parse['query'];
+				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(),'',null,true).'?'.$parse['query'];
 				
 				$redirect = str_replace(array('switchToEdit=1','jumpto='.\Input::get('jumpto')), '', $redirect);
 				
@@ -494,7 +494,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() );
+			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(), '', null, true );
 			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
@@ -511,7 +511,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 			$intNew = $arrSession[$strTable]['id'];
 			$objFunction = new \PCT\CustomElements\Helper\Functions;
 			$parse = parse_url(\Environment::get('request'));
-			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row() ) );
+			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(), '', null, true ) );
 			// add/rewrite the items parameter to the url
 			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
 			
@@ -680,7 +680,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 				}
 			}
 						
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 		}
 		// !COPY
 		else if(\Input::get('act') == 'copy')
@@ -736,7 +736,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 						
 			if($blnDoNotSwitchToEdit)
 			{
-				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 			}
 		}
 		// !EDIT ALL, OVERRIDE ALL
@@ -793,7 +793,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 			$objSession->set('CLIPBOARD',$arrSession);
 			$objSession->set('CURRENT',array());
 			
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row()) );
+			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
 		}
 	}
 	

@@ -27,6 +27,14 @@ class DataContainerHelper extends \PCT\CustomElements\Helper\DataContainerHelper
 	 */
 	public function reviseTable()
 	{
+		if(!$this->Session)
+		{
+			$this->Session = \Session::getInstance();
+		}
+		if(!$this->Database)
+		{
+			$this->Database = \Database::getInstance();
+		}
 		return parent::reviseTable();
 	}
 }
