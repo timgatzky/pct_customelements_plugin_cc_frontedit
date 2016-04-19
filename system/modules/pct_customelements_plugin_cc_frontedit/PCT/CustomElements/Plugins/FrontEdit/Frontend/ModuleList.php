@@ -106,6 +106,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		}
 		
 		$objCC = $this->CustomCatalog;
+		$objSession = \Session::getInstance();
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
@@ -125,7 +126,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
         $arrListOperations = deserialize($objCC->get('list_operations'));
         
         // check if clipboard is active
-		$arrClipboard = $this->Session->get('CLIPBOARD');
+		$arrClipboard = $objSession->get('CLIPBOARD');
 		if(count($arrClipboard[$objCC->getTable()]) > 0 || \Input::get('act') == 'select' || in_array(\Input::get('act'), array('fe_editAll','fe_overrideAll')))
 		{
 			$this->Template->clipboard = true;
@@ -332,14 +333,14 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
 			$objDC->User = $objUser;
 			
-			$arrSession = $this->Session->getData();
+			$arrSession = $objSession->getData();
 			
 			$arrIds = $arrSession['CURRENT']['IDS'];
 			if($_POST['IDS'])
 			{
 				$arrIds = $_POST['IDS'];
 				$arrSession['CURRENT']['IDS'] = $arrIds;
-				$this->Session->setData($arrSession);
+				$objSession->setData($arrSession);
 			}
 			
 			// !DELETE selected
