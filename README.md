@@ -36,9 +36,9 @@ Navigate to "My Content elements" "Meine Inhaltselemente" > Plugin Management an
 Usage
 ------------
 The plugin brings two new methods to your CustomCatalog template.
-+ $entry->editable(); 
-+ $entry->field('myAttribute')->widget();
-+ $entry->field('myFilesAttribute')->uploadWidget( $arrSettings );
++ `$entry->editable();`
++ `$entry->field('myAttribute')->widget();`
++ `$entry->field('myFilesAttribute')->uploadWidget( $arrSettings );`
 
 The editable() methode callable for a CustomCatalog RowTemplate object (each entry is one of those) checks if the entry can be edited by the current user
 The widget() method callable for a CustomCatalog TemplateAttribute (any attribute in a cc template file is one of those) generates the attributes formular field.
