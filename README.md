@@ -38,6 +38,7 @@ Usage
 The plugin brings two new methods to your CustomCatalog template.
 + $entry->editable(); 
 + $entry->field('myAttribute')->widget();
++ $entry->field('myFilesAttribute')->uploadWidget( $arrSettings );
 
 The editable() methode callable for a CustomCatalog RowTemplate object (each entry is one of those) checks if the entry can be edited by the current user
 The widget() method callable for a CustomCatalog TemplateAttribute (any attribute in a cc template file is one of those) generates the attributes formular field.
@@ -48,3 +49,21 @@ Requirements
 ------------
 Requires the pct_customelements alias CustomElements module in version 1.6.0 (or higher) and CustomCatalog in version 1.4.0 (or higher)
 Best experience with the lastest version!
+
+Settings for the upload Widget
+------------
+
+´$arrSettings['uploadFolder']´
+(string) set the path a folder inside contaos files folder. The files folder itself is restricted (default: $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] = files/uploads defined in config.php)
+
+´$arrSettings['useHomeDir']´
+(boolean) upload to the front end member folder (overwrites the upload folder path)
+
+´$arrSettings['doNotOverwrite']´
+(boolean) overwrite files or not (default: true)
+
+´$arrSettings['extensions']´
+(array or string) an array or a commata list of file extensions allowed to be uploaded (default: Contaos system settings extension list)
+
+´$arrSettings['createUploadFolder']´
+(boolean) if set to true the upload folder will be created if it does not exist yet (default: false)
