@@ -50,7 +50,7 @@ Requirements
 Requires the pct_customelements alias CustomElements module in version 1.6.0 (or higher) and CustomCatalog in version 1.4.0 (or higher)
 Best experience with the lastest version!
 
-Settings for the upload Widget
+Optional settings for the upload widget
 ------------
 
 `$arrSettings['uploadFolder']`
