@@ -53,17 +53,17 @@ Best experience with the lastest version!
 Settings for the upload Widget
 ------------
 
-´$arrSettings['uploadFolder']´
+`$arrSettings['uploadFolder']`
 (string) set the path a folder inside contaos files folder. The files folder itself is restricted (default: $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] = files/uploads defined in config.php)
 
-´$arrSettings['useHomeDir']´
+`$arrSettings['useHomeDir']`
 (boolean) upload to the front end member folder (overwrites the upload folder path)
 
-´$arrSettings['doNotOverwrite']´
+`$arrSettings['doNotOverwrite']`
 (boolean) overwrite files or not (default: true)
 
-´$arrSettings['extensions']´
+`$arrSettings['extensions']`
 (array or string) an array or a commata list of file extensions allowed to be uploaded (default: Contaos system settings extension list)
 
-´$arrSettings['createUploadFolder']´
+`$arrSettings['createUploadFolder']`
 (boolean) if set to true the upload folder will be created if it does not exist yet (default: false)
