@@ -24,10 +24,11 @@
 <!-- indexer::stop -->
 <div class="<?php echo $this->formClass; ?> <?php echo $this->tableless ? 'tableless' : 'tableform'; ?> edit_list block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
 
-  <form<?php if ($this->action): ?> action="<?php echo $this->action; ?>"<?php endif; ?> id="<?php echo $this->formId; ?>" name="<?php echo $this->formName;?>" method="<?php echo $this->method; ?>" enctype="application/x-www-form-urlencoded" <?php echo $this->attributes; ?>>
+  <form<?php if ($this->action): ?> action="<?php echo $this->action; ?>"<?php endif; ?> id="<?php echo $this->formId; ?>" name="<?php echo $this->formName;?>" method="<?php echo $this->method; ?>" enctype="multipart/form-data" <?php echo $this->attributes; ?>>
     <div class="formbody">
         <input type="hidden" name="FORM_SUBMIT" value="<?php echo $this->formSubmit; ?>">
         <input type="hidden" name="REQUEST_TOKEN" value="{{request_token}}">
+		<input type="hidden" name="MAX_FILE_SIZE" value="<?php echo \Config::get('maxFileSize'); ?>">
 		<?php echo $this->hidden; ?>
 		
 		<?php if($this->selectMode): ?>
