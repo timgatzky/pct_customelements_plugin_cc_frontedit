@@ -877,15 +877,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	/**
 	 * Generate an upload widget
 	 * @param object	Additional settings
-	 * @property objSettings->uploadFolder
-	 * @property objSettings->useHomeDir
-	 * @property objSettings->doNotOverwrite
-	 * @property objSettings->extensions
-	 * @property objSettings->createUploadFolder
-	 
+	 * @property string 	arrSettings['uploadFolder']
+	 * @property boolean 	arrSettings['useHomeDir']
+	 * @property boolean 	arrSettings['doNotOverwrite']
+	 * @property array 		arrSettings['extensions']
+	 * @property boolean 	arrSettings['createUploadFolder']
 	 * @return string
 	 */
-	public function uploadWidget($objSettings=null)
+	public function uploadWidget($arrSettings=array())
 	{
 		if(strlen($this->uploadWidget) > 0)
 		{
@@ -911,13 +910,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';
 		
 		// custom upload folder
-		if(strlen($objSettings->uploadFolder) > 0)
+		if(strlen($arrSettings['uploadFolder']) > 0)
 		{
-			$strUploadFolder = $objSettings->uploadFolder;
+			$strUploadFolder = $arrSettings['uploadFolder'];
 		}
 		
 		// check if upload folder exists if it is not supposed to be created on the fly
-		if(!is_dir(TL_ROOT.'/'.$strUploadFolder) && !$objSettings->createUploadFolder)
+		if(!is_dir(TL_ROOT.'/'.$strUploadFolder) && !$arrSettings['createUploadFolder'])
 		{
 			return sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['invalid_upload_folder'],$strUploadFolder);
 		}
@@ -935,17 +934,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objWidget->extensions = \Config::get('uploadTypes');
 		
 		// apply settings to widget
-		if(count($objSettings) > 0)
+		if(count($arrSettings) > 0)
 		{
-			foreach($objSettings as $k => $v)
+			foreach($arrSettings as $k => $v)
 			{
 				$objWidget->{$k} = $v;
 			}
 		}
 		
-		if($objSettings->extensions !== null)
+		if($arrSettings['extensions'] !== null)
 		{
-			$uploadTypes = $objSettings->extensions;
+			$uploadTypes = $arrSettings['extensions'];
 			if(is_array($uploadTypes))
 			{
 				$uploadTypes = implode(',', $uploadTypes);
