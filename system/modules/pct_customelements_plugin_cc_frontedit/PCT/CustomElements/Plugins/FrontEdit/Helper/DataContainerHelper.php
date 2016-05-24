@@ -22,19 +22,24 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Helper;
  */
 class DataContainerHelper extends \PCT\CustomElements\Helper\DataContainerHelper
 {
+	public function __construct($strTable='', $arrModule=array(), $blnHardLoaded=false)
+	{
+		parent::__construct($strTable,$arrModules,$blnHardLoaded);
+		if($this->Database === null)
+		{
+			$this->Database = \Database::getInstance();
+		}
+		if($this->Session === null)
+		{
+			$this->Session = \Session::getInstance();
+		}
+	}
+	
 	/**
 	 * Make the reviseTable method public
 	 */
 	public function reviseTable()
 	{
-		if(!$this->Session)
-		{
-			$this->Session = \Session::getInstance();
-		}
-		if(!$this->Database)
-		{
-			$this->Database = \Database::getInstance();
-		}
 		return parent::reviseTable();
 	}
 }
