@@ -195,7 +195,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 				
 		// Create a datacontainer
-		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($strTable);
+		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'];
 		$arrListOperations = deserialize($objCC->get('list_operations'));
@@ -640,7 +640,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		$objUser->id = isset($GLOBALS['TL_CONFIG']['customcatalog_edit_admin']) ? $GLOBALS['TL_CONFIG']['customcatalog_edit_admin'] : 1;
 		
 		// Create a datacontainer
-		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
+		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
 		
 		$blnDoNotSwitchToEdit = true;

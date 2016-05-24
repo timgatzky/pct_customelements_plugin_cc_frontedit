@@ -92,7 +92,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		/* @var contao ModelModule */
 		$objModel = $objAttribute->get('objCustomCatalog')->getModel();
 		
-		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
+		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
 		$objDC->field = $objAttribute->get('alias');
@@ -904,7 +904,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		$objModule = $objAttribute->get('objCustomCatalog')->getModel();
-		$objDC = new \PCT\CustomElements\Helper\DataContainerHelper;
+		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
 		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';

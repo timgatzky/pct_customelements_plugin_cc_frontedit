@@ -330,9 +330,9 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$objUser->id = 1;
 			
 			// Create a datacontainer
-			$objDC = new \PCT\CustomElements\Helper\DataContainerHelper($objCC->getTable());
+			$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 			$objDC->User = $objUser;
-			
+				
 			$arrSession = $objSession->getData();
 			
 			$arrIds = $arrSession['CURRENT']['IDS'];
