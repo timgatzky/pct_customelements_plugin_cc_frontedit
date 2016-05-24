@@ -1,3 +1,7 @@
+### 1.1.1
+Fixed: Inject the Database and Session object in the dataContainer instance if not done yet.
+Update: Use the \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper class when creating dynamic data container objects 
+
 ### 1.1.0
 New: Upload-widget for images and files attributes (#6)
 Added: config.php: $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder']
