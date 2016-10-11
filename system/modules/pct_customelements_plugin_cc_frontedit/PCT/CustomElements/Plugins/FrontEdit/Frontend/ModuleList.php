@@ -105,6 +105,9 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			return '<p class="error">CustomCatalog not found</p>';
 		}
 		
+		// load language file
+		\System::loadLanguageFile('default');
+		
 		$objCC = $this->CustomCatalog;
 		$objSession = \Session::getInstance();
 		
