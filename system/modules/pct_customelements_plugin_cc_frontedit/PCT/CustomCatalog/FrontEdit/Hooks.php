@@ -25,25 +25,12 @@ namespace PCT\CustomCatalog\FrontEdit;
 class Hooks extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Hooks
 {
 	/**
-	 * Current object instance (Singleton)
-	 * @var object
-	 */
-	protected static $objInstance;
-
-
-	/**
 	 * Instantiate this class and return it (Factory)
-	 * @param string
 	 * @return object
-	 * @throws Exception
 	 */
-	public static function getInstance($strTable='')
+	public static function getInstance()
 	{
-		if (!is_object(self::$objInstance))
-		{
-			self::$objInstance = new self();
-		}
-		return self::$objInstance;
+		return new static();
 	}
 	
 	
@@ -56,7 +43,7 @@ class Hooks extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Hooks
 	 * @return array
 	 * Triggered in: PCT\CustomElements\Plugins\CustomCatalog\Core\Filter
 	 */
-	public function storeDatabaseHook($arrSet,$strTable,$objModule)
+	protected function storeDatabaseHook($arrSet,$strTable,$objModule)
 	{
 		if (isset($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['storeDatabase']) && count($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['storeDatabase']) > 0)
 		{

@@ -28,7 +28,7 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
  * Class file
  * Controller
  */
-class Controller extends \PCT\CustomElements\Models\Model
+class Controller
 {
 	/**
 	 * Add back end assets to the front end
