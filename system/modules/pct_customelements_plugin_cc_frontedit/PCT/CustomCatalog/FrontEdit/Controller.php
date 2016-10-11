@@ -642,9 +642,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
+		$objDC->intId = $objDC->id = \Input::get('id');
 		
 		$blnDoNotSwitchToEdit = true;
-			
+		
 		// !CREATE
 		if(\Input::get('act') == 'create')
 		{
