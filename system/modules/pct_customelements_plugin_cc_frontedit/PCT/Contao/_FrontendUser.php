@@ -146,4 +146,23 @@ class _FrontendUser
 		
 		return true;
 	}
+	
+	
+	/**
+	 * @inherit doc
+	 */
+	public function hasAccess($strField,$arr)
+	{
+		$objTester = \BackendUser::getInstance();
+		$objTester->isAdmin = 0;
+		
+		// pass variables
+		foreach($this as $key => $val)
+		{
+			$objTester->{$key} = $val;
+		}
+		
+		return $objTester->hasAccess($strField,$arr);
+		
+	}
 }
