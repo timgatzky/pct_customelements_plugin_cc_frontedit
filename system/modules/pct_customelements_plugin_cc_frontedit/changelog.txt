@@ -1,3 +1,6 @@
+### 1.2.0
+Update: CE/CC 2.0 related updates (#11)
+
 ### 1.1.1
 Fixed: Inject the Database and Session object in the dataContainer instance if not done yet.
 Update: Use the \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper class when creating dynamic data container objects 
