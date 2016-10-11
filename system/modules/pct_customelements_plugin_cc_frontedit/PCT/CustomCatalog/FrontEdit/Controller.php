@@ -28,7 +28,7 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
  * Class file
  * Controller
  */
-class Controller
+class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controller
 {
 	/**
 	 * Add back end assets to the front end
@@ -829,7 +829,7 @@ class Controller
 	 */
 	public function getPasteAfterButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -901,7 +901,7 @@ class Controller
 	 */
 	public function getPasteIntoButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1012,7 +1012,7 @@ class Controller
 	 */
 	public function getToggleVisibilityButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1079,7 +1079,7 @@ class Controller
 	{
 		$strTable = \Input::get('table');
 		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return;
