@@ -151,7 +151,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		$hasChilds = count($arrChilds) > 0 ? true : false;
 		
-		$strAliasField = $objCC->getAliasField();
+		$strAliasField = ''; #$objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
