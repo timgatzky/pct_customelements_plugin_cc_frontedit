@@ -903,7 +903,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return '';
 		}
 		
-		$objModule = $objAttribute->get('objCustomCatalog')->getModel();
+		$objModule = $objAttribute->get('objCustomCatalog')->getModule();
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
