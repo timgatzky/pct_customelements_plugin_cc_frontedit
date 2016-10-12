@@ -1,5 +1,7 @@
 ### 1.2.0
+Fixed: Missing ID in DataContainer object
 Update: CE/CC 2.0 related updates (#11)
+Update: Use ID instead of alias as items parameter because it is saver in case of alias changes in edit modes
 
 ### 1.1.1
 Fixed: Inject the Database and Session object in the dataContainer instance if not done yet.
