@@ -20,7 +20,7 @@ Features
 
 Demo
 ------------
-[cc.premium-contao-themes.com/feedit](http://cc.premium-contao-themes.com/feedit/)
+[cc.feedit.premium-contao-themes.com](http://cc.feedit.premium-contao-themes.com)
 
 Installation
 ------------
