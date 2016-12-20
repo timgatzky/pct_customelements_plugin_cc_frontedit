@@ -105,6 +105,9 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			return '<p class="error">CustomCatalog not found</p>';
 		}
 		
+		// load language file
+		\System::loadLanguageFile('default');
+		
 		$objCC = $this->CustomCatalog;
 		$objSession = \Session::getInstance();
 		
@@ -360,7 +363,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
 				
 				// hook here
-				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
+				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::callstatic('storeDatabaseHook',array($arrSet,$objCC->getTable(),$this));
 				
 				$time = time();
 				

@@ -68,11 +68,11 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		if($objConfig->customcatalog !== null)
 		{
 			$this->set('objCustomCatalog',$objConfig->customcatalog);
-			$this->set('objModule',$objConfig->customcatalog->getModel());
+			$this->set('objModule',$objConfig->customcatalog->getModule());
 			
 			if(!$objConfig->module)
 			{
-				$objConfig->module = $objConfig->customcatalog->getModel();
+				$objConfig->module = $objConfig->customcatalog->getModule();
 			}
 		}
 		

@@ -17,7 +17,7 @@
  * Constants
  */ 
 define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH,'system/modules/pct_customelements_plugin_cc_frontedit');
-define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.1.1');
+define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.2.0');
 
 /**
  * Globals
@@ -47,7 +47,7 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
 $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
 (
 	'tables' 	=> array('tl_pct_customelement','tl_pct_customelement_group','tl_pct_customelement_attribute'),
-	'requires'	=> array('pct_customelements'=>'1.6.0','pct_customelements_plugin_customcatalog'=>'1.5.0'),
+	'requires'	=> array('pct_customelements'=>'2.0.0','pct_customelements_plugin_customcatalog'=>'2.0.0'),
 	'excludes'	=> array()
 );
 

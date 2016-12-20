@@ -204,7 +204,15 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
 				
 				// hook here
-				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::getInstance()->storeDatabaseHook($arrSet,$objCC->getTable(),$this);
+				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::callstatic('storeDatabaseHook',array($arrSet,$objCC->getTable(),$this));
+				
+				// if set list is empty but user wants to save, set atleast the timestamp so the reviseTable will not delete the entry
+				if(empty($arrSet) && (int)\Input::get('id') > 0)
+				{
+					$id = (int)\Input::get('id');
+					
+					$arrSet[$id]['tstamp'] = time();
+				}
 				
 				$time = time();
 				

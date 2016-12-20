@@ -28,7 +28,7 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
  * Class file
  * Controller
  */
-class Controller extends \PCT\CustomElements\Models\Model
+class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controller
 {
 	/**
 	 * Add back end assets to the front end
@@ -151,7 +151,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 		
 		$hasChilds = count($arrChilds) > 0 ? true : false;
 		
-		$strAliasField = $objCC->getAliasField();
+		$strAliasField = ''; #$objCC->getAliasField();
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
@@ -642,9 +642,10 @@ class Controller extends \PCT\CustomElements\Models\Model
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
+		$objDC->intId = $objDC->id = \Input::get('id');
 		
 		$blnDoNotSwitchToEdit = true;
-			
+		
 		// !CREATE
 		if(\Input::get('act') == 'create')
 		{
@@ -829,7 +830,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getPasteAfterButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -901,7 +902,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getPasteIntoButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1012,7 +1013,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	 */
 	public function getToggleVisibilityButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1079,7 +1080,7 @@ class Controller extends \PCT\CustomElements\Models\Model
 	{
 		$strTable = \Input::get('table');
 		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModel( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
 		if(!$objCC)
 		{
 			return;

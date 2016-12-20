@@ -90,7 +90,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objSession = \Session::getInstance();
 		
 		/* @var contao ModelModule */
-		$objModel = $objAttribute->get('objCustomCatalog')->getModel();
+		$objModule = $objAttribute->get('objCustomCatalog')->getModule();
 		
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
@@ -111,7 +111,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']) ?: array();
 		
 		// return when edit mode is not active
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModel->customcatalog_edit_active) )
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModule->customcatalog_edit_active) )
 		{
 			return '';
 		}
@@ -903,7 +903,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return '';
 		}
 		
-		$objModule = $objAttribute->get('objCustomCatalog')->getModel();
+		$objModule = $objAttribute->get('objCustomCatalog')->getModule();
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
