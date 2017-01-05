@@ -197,7 +197,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
-		$arrOperations = $arrDefaultDCA['list']['operations'];
+		$arrOperations = $arrDefaultDCA['list']['operations'] ?: array();
 		$arrListOperations = deserialize($objCC->get('list_operations'));
 		
 		// include the toggle button
@@ -226,6 +226,9 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$arrOperations = $tmp;
 			unset($tmp);
 		}
+		
+		// remove empty values from array
+		$arrOperations = array_filter($arrOperations);
 		
 		$arrButtons = array();
 		$i = 0;
@@ -626,8 +629,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 		}
 		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findCurrent();
-		
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($strTable);
 		if($objCC === null)
 		{
 			return;

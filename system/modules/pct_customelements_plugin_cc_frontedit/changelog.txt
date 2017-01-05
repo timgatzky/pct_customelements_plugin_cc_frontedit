@@ -1,3 +1,7 @@
+### 1.2.1
+Fixed: Prevent rendering empty operation buttons in front end
+Fixed: The switchToEdit feature was not working under CC 2.0 (#15)
+
 ### 1.2.0
 Fixed: Missing ID in DataContainer object
 Update: CE/CC 2.0 related updates (#11)
