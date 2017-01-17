@@ -339,6 +339,12 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$arrSession = $objSession->getData();
 			
 			$arrIds = $arrSession['CURRENT']['IDS'];
+			
+			if(!is_array($arrIds))
+			{
+				$arrIds = explode(',',$arrSession['CURRENT']['IDS']);
+			}
+			
 			if($_POST['IDS'])
 			{
 				$arrIds = $_POST['IDS'];
