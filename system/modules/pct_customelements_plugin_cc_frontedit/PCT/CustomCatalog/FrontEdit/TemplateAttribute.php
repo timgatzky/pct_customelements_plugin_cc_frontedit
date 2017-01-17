@@ -534,9 +534,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			else
 			{	
-								
-				// validate the input
-				$objWidget->validate();
+				if($blnSubmitted)
+				{				
+					// validate the input
+					$objWidget->validate();
+				}
 				
 				$strBuffer = $objWidget->generateLabel();
 				$strBuffer .= $objWidget->generateWithError();	
