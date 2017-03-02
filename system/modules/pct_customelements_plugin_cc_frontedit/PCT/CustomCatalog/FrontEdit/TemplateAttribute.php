@@ -315,10 +315,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
-					if(\Validator::isBinaryUuid($objDC->value))
+					if(!$blnSubmitted && \Validator::isBinaryUuid($_POST[$objDC->field]))
 					{
-						$objDC->value = \StringUtil::binToUuid($objDC->value); #\FilesModel::findByUuid($objDC->value)->uuid;
-						\Input::setPost($objDC->field,$objDC->value);
+						unset($_POST[$objDC->field]);
 					}
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
@@ -534,9 +533,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			else
 			{	
-								
-				// validate the input
-				$objWidget->validate();
+				if($blnSubmitted)
+				{				
+					// validate the input
+					$objWidget->validate();
+				}
 				
 				$strBuffer = $objWidget->generateLabel();
 				$strBuffer .= $objWidget->generateWithError();	
