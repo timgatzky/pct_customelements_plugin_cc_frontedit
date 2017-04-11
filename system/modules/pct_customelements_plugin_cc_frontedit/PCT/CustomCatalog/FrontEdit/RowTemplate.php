@@ -66,6 +66,11 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 			return false;
 		}
 		
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			return true;
+		}
+		
 		// check general permissions
 		if( (!FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll']) || !$objModule->customcatalog_edit_active || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog) || !\PCT\CustomCatalog\FrontEdit::isEditable($objModule->customcatalog,$this->id) )
 		{
