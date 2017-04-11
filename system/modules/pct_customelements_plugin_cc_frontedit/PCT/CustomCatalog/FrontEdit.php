@@ -160,6 +160,11 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 */
 	public function checkPermissions()
 	{
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			return true;
+		}
+		
 		// check if editing is allowed for all or in general for FE Users only
 		if( $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === false && !FE_USER_LOGGED_IN )
 		{

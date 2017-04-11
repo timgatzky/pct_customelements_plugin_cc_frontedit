@@ -1,3 +1,6 @@
+### 1.2.3
+Update: Always bypass permission checks when $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] is boolean true
+
 ### 1.2.2
 Fixed: Validate widgets only on form submit to prevent empty value errors directly in contao widgets (#16)
 Fixed: Added check that variable $arrIds in ModuleList is an array (#18)
