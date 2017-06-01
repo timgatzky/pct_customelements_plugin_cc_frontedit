@@ -525,6 +525,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objWidget->generateLabel();
 					$strBuffer .= $objWidget->generateWithError();	
 				}
+				// !CUSTOMELEMENTS WIDGET attributes
+				else if($objAttribute->get('type') == 'customelement')
+				{
+					$GLOBALS['TL_JQUERY'][] = '<script src="'.PCT_CUSTOMELEMENTS_PATH.'/assets/js/CustomElements.js'.'"></script>';
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+				}
 				// !render	
 				else
 				{
