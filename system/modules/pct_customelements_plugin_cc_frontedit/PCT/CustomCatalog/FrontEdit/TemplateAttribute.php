@@ -528,8 +528,33 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !CUSTOMELEMENTS WIDGET attributes
 				else if($objAttribute->get('type') == 'customelement')
 				{
+					$attribute = \PCT\CustomElements\Core\AttributeFactory::findById($objAttribute->get('id'));
+					$dc = clone($objDC);
+					$dc->field = $attribute->uuid;
+					
+					// bypass the automatic field updater
+					if(!$blnSubmitted && isset($_POST[$objDC->field]))
+					{
+						unset($_POST[$dc->field]);
+						\Input::setPost($dc->field,null);
+						$dc->activeRecord->tstamp = 0;
+					}
+					
+					// form submitted
+					$formSubmitted = false;
+					if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit)
+					{
+						\Input::setPost('FORM_SUBMIT',$objDC->table);
+						$formSubmitted = true;
+					}
+					
 					$GLOBALS['TL_JQUERY'][] = '<script src="'.PCT_CUSTOMELEMENTS_PATH.'/assets/js/CustomElements.js'.'"></script>';
-					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$dc->field,$arrFieldDef,$dc);
+					
+					if($formSubmitted)
+					{
+						\Input::setPost('FORM_SUBMIT',$objDC->formSubmit);
+					}
 				}
 				// !render	
 				else
