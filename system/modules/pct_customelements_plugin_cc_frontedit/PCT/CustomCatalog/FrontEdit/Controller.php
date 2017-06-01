@@ -57,6 +57,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				. 'referer_id:"' . TL_REFERER_ID . '"'
 			. '};';
 		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+		$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
 		
 		// css
 		$objCombiner = new \Combiner();
