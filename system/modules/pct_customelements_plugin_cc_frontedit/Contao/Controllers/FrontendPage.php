@@ -44,6 +44,12 @@ class FrontendPage extends \Contao\BackendPage
 		{
 			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = deserialize($this->User->pagemounts);
 		}
+		
+		// show all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			unset($GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root']);
+		}
 	}
 	
 	public function run()
