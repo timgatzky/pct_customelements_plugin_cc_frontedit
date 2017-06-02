@@ -224,7 +224,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
 
@@ -809,7 +809,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// remove the session
-			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
 		$arrWidgetClasses = array();
