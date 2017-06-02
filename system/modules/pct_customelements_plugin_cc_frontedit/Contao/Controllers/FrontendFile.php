@@ -41,6 +41,12 @@ class FrontendFile extends \Contao\BackendFile
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array($GLOBALS['TL_CONFIG']['uploadPath']);
 		$GLOBALS['loadDataContainer']['tl_files'] = true;
 		
+		// show all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			return;
+		}
+		
 		$root = array();
 		if($this->User->filemounts)
 		{
@@ -52,14 +58,6 @@ class FrontendFile extends \Contao\BackendFile
 		{
 			$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',array($this->User->homeDir)));
 			$root = array_merge($root,$objFiles->fetchEach('path'));
-		}
-		
-		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
-		
-		// show all
-		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
-		{
-			unset($GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root']);
 		}
 	}
 	
