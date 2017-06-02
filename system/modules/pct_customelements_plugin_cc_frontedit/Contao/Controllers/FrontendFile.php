@@ -55,6 +55,12 @@ class FrontendFile extends \Contao\BackendFile
 		}
 		
 		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
+		
+		// show all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			unset($GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root']);
+		}
 	}
 	
 	public function run()
