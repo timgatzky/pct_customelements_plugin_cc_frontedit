@@ -539,8 +539,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$objWidget->validate();
 				}
 				
+				// recheck value
+				if(!is_array($objWidget->value) && $objAttribute->get('eval_multiple'))
+				{
+					$objWidget->value = explode(',', $objWidget->value); 
+				}
+				
 				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();	
+				$strBuffer .= $objWidget->generateWithError();
 			}
 		}
 		// HOOK let attribute generate their own widgets
