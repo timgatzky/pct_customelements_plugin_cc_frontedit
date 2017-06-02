@@ -798,6 +798,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
 			
+			// multiple values in blob fields
+			if(!is_array($objDC->value) && $objAttribute->get('eval_multiple') && strlen(strpos(strtolower($arrFieldDef['sql']),'blob')) > 0)
+			{
+				$objDC->value = explode(',',$objDC->value);
+			}
+			
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
