@@ -224,7 +224,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
 
@@ -570,8 +570,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$objWidget->validate();
 				}
 				
+				// recheck value
+				if(!is_array($objWidget->value) && $objAttribute->get('eval_multiple'))
+				{
+					$objWidget->value = explode(',', $objWidget->value); 
+				}
+				
 				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();	
+				$strBuffer .= $objWidget->generateWithError();
 			}
 		}
 		// HOOK let attribute generate their own widgets
@@ -840,7 +846,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// remove the session
-			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
 		$arrWidgetClasses = array();
@@ -856,7 +862,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
 		
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 		{
 			// preserve scripts
 			$orig_allowedTags = \Config::get('allowedTags');
