@@ -831,7 +831,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
 		
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 		{
 			// preserve scripts
 			$orig_allowedTags = \Config::get('allowedTags');
