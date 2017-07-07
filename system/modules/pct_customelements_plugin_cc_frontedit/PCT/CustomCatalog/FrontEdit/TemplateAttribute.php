@@ -63,9 +63,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	
 	/**
 	 * Generates the widget
+	 * @param string	Custom template name
 	 * @return string
 	 */
-	public function widget()
+	public function widget($strTemplate = '')
 	{
 		if(strlen($this->widget) > 0)
 		{
@@ -260,7 +261,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 		}
-		
+		\PC::debug($strTemplate);
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
 			// create the widget
@@ -271,6 +272,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			$objWidget->label = $strLabel;
+			
+			// set a custom template
+			if(strlen($strTemplate) > 0)
+			{
+				$objWidget->__set('customTpl',$strTemplate);
+			}
 				
 			// any validator need the current field value in the psydo post data
 			$objDC->value = deserialize($objDC->value);
@@ -576,8 +583,16 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$objWidget->value = explode(',', $objWidget->value); 
 				}
 				
-				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();
+				// set custom template
+				if(strlen($strTemplate) > 0)
+				{
+					$strBuffer = $objWidget->parse();
+				}
+				else
+				{
+					$strBuffer = $objWidget->generateLabel();
+					$strBuffer .= $objWidget->generateWithError();
+				}
 			}
 		}
 		// HOOK let attribute generate their own widgets
@@ -926,9 +941,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	 * @property boolean 	arrSettings['doNotOverwrite']
 	 * @property array 		arrSettings['extensions']
 	 * @property boolean 	arrSettings['createUploadFolder']
+	 * @param string	Custom template name
 	 * @return string
 	 */
-	public function uploadWidget($arrSettings=array())
+	public function uploadWidget($arrSettings=array(), $strTemplate='')
 	{
 		if(strlen($this->uploadWidget) > 0)
 		{
@@ -1000,6 +1016,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(\Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
 		{
 			$objWidget->validate();
+		}
+		
+		if(strlen($strTemplate) > 0)
+		{
+			$objWidget->__set('customTpl',$strTemplate);
 		}
 		
 		$this->uploadWidget = $objWidget->generate();
