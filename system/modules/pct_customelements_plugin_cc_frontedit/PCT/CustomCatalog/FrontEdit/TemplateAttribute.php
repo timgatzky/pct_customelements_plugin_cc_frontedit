@@ -967,7 +967,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
+		$objDC->id = \Input::get('id');
+		$objDC->field = $objAttribute->get('alias');
 		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';
+		
+		// custom data container object
+		if(strlen($arrSettings['dataContainer']) > 0)
+		{
+			$objDC = $arrSettings['dataContainer'];
+		}
 		
 		// custom upload folder
 		if(strlen($arrSettings['uploadFolder']) > 0)
@@ -985,7 +993,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$intUploadFolder = $objFolder->getModel()->uuid;
 				
 		$objWidget = new $GLOBALS['TL_FFL']['upload'];
-		$objWidget->name = 'upload_'.$objAttribute->get('alias');
+		$objWidget->name = 'upload_'.$objDC->field;
 		$objWidget->id = 'upload_'.$objAttribute->get('id');
 		$objWidget->addSubmit = true;
 		$objWidget->slabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_upload'] ?: 'Upload';
@@ -1002,6 +1010,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		
+		if($objAttribute->get('type') == 'gallery')
+		{
+			$arrSettings['multiple'] = true;
+		}
+		
 		if($arrSettings['extensions'] !== null)
 		{
 			$uploadTypes = $arrSettings['extensions'];
@@ -1015,7 +1028,55 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// validate on submit
 		if(\Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
 		{
+			$arrFiles = array();
+			
+			// store the upload information
+			if((boolean)$arrSettings['autoUpdate'] === true && isset($_FILES[$objWidget->name]) && count($_FILES[$objWidget->name]) > 0)
+			{
+				$arrFiles = $_FILES;
+			}
+			
 			$objWidget->validate();
+			
+			// update the attribute
+			if(count($arrFiles) > 0)
+			{
+				$setSetValue = array();
+				foreach($arrFiles as $k => $v)
+				{
+					// skip empty or invalid uploads
+					if($v['error'] != 0 || strlen($v['name']) < 1 || $v['size'] == 0)
+					{
+						continue;
+					}
+					
+					// add the file to the file system
+					if(file_exists(TL_ROOT.'/'.$strUploadFolder.'/'.$v['name']))
+					{
+						$setSetValue[$k][] = \Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
+					}
+				}
+				
+				$setSetValue = array_filter($setSetValue);
+				
+				$objDatabase = \Database::getInstance();
+				if(count($setSetValue[$objWidget->name]) > 0 && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
+				{
+					$setValue = $setSetValue[ $objWidget->name ];
+					if(!$arrSettings['multiple'] && is_array($setValue))
+					{
+						$setValue = implode('', $setValue);
+					}
+					
+					$objDatabase->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set( array($objDC->field => $setValue) )->execute($objDC->id);
+					
+					// flush post data and reload page to see changes
+					if((boolean)$arrSettings['autoReload'] !== false || !isset($arrSettings['autoReload']))
+					{
+						\Controller::reload();
+					}
+				}
+			}
 		}
 		
 		if(strlen($strTemplate) > 0)
@@ -1024,6 +1085,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		$this->uploadWidget = $objWidget->generate();
+		
 		
 		return $this->uploadWidget;
 	}

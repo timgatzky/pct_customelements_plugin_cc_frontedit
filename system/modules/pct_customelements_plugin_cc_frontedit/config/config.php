@@ -30,7 +30,7 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads']			= true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder']						= 'files/uploads'; // must be a subdirectory from "files". The files folder itself is restricted
-$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']						= array('image','files');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']						= array('image','files','gallery');
 
 // usage: table level
 // $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = true; // exlucde the whole table, including all entries. No rights at all
