@@ -36,53 +36,113 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	public function addAssets()
 	{
 		global $objPage;
-		if(!$objPage->hasJQuery)
+		
+\PC::debug('asdfasdf');
+
+		$strLocale = 'var Contao={'
+		. 'theme:"' . \Backend::getTheme() . '",'
+		. 'lang:{'
+			. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
+			. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
+			. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
+			. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
+			. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
+			. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
+		. '},'
+		. 'script_url:"' . TL_ASSETS_URL . '",'
+		. 'path:"' . TL_PATH . '",'
+		. 'request_token:"' . REQUEST_TOKEN . '",'
+		. 'referer_id:"' . TL_REFERER_ID . '"'
+		. '};';
+		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+		
+		$strDateString = 'Locale.define("en-US","Date",{'
+		. 'months:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS']) . '"],'
+		. 'days:["' . implode('","', $GLOBALS['TL_LANG']['DAYS']) . '"],'
+		. 'months_abbr:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS_SHORT']) . '"],'
+		. 'days_abbr:["' . implode('","', $GLOBALS['TL_LANG']['DAYS_SHORT']) . '"]'
+		. '});'
+		. 'Locale.define("en-US","DatePicker",{'
+		. 'select_a_time:"' . $GLOBALS['TL_LANG']['DP']['select_a_time'] . '",'
+		. 'use_mouse_wheel:"' . $GLOBALS['TL_LANG']['DP']['use_mouse_wheel'] . '",'
+		. 'time_confirm_button:"' . $GLOBALS['TL_LANG']['DP']['time_confirm_button'] . '",'
+		. 'apply_range:"' . $GLOBALS['TL_LANG']['DP']['apply_range'] . '",'
+		. 'cancel:"' . $GLOBALS['TL_LANG']['DP']['cancel'] . '",'
+		. 'week:"' . $GLOBALS['TL_LANG']['DP']['week'] . '"'
+		. '});';
+		
+		
+		// contao 3
+		if(version_compare(VERSION, '4','<'))
 		{
-			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			}
+		
+			$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
+			
+			// css
+			$objCombiner = new \Combiner();
+		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+		    $objCombiner->add('assets/mootools/chosen/chosen.css');
+		    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
+		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+		    $objCombiner->add('system/themes/default/fonts.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
+		    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+				 
+			// javascripts
+			$objCombiner = new \Combiner();
+		    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
+		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+		    $objCombiner->add('assets/mootools/chosen/chosen.js');
+		    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
+		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+		    $objCombiner->add('assets/mootools/mootao/Mootao.js');
+		    $objCombiner->add('assets/contao/js/core-uncompressed.js');
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+		}
+		// contao 4
+		else
+		{
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = TL_ASSETS_URL.'assets/jquery/js/jquery.js';
+			}
+			
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">$.noConflict();</script>';
+			
+			$strTheme = 'flexible';
+			
+			// css
+			$objCombiner = new \Combiner();
+		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/fonts.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/css/mooRainbow.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/chosen/css/chosen.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'>assets/simplemodal/css/simplemodal.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'>assets/datepicker/css/datepicker.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
+		    #$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
+			$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+
+			// javascript
+			$objCombiner = new \Combiner();
+		    $objCombiner->add(TL_ASSETS_URL.'assets/mootools/js/mootools.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'assets/chosen/js/chosen.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.min.js');
+			$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/core.js');
+			#$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/hover.js');
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strDateString.'</script>';
 		}
 		
-		$strLocale = 'var Contao={'
-				. 'theme:"' . \Backend::getTheme() . '",'
-				. 'lang:{'
-					. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
-					. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
-					. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
-					. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
-					. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
-					. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
-				. '},'
-				. 'script_url:"' . TL_ASSETS_URL . '",'
-				. 'path:"' . TL_PATH . '",'
-				. 'request_token:"' . REQUEST_TOKEN . '",'
-				. 'referer_id:"' . TL_REFERER_ID . '"'
-			. '};';
-		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
-		$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
-		
-		// css
-		$objCombiner = new \Combiner();
-	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-	    $objCombiner->add('assets/mootools/chosen/chosen.css');
-	    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
-	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-	    $objCombiner->add('system/themes/default/fonts.css');
-	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
-	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
-	    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
-			 
-		// javascripts
-		$objCombiner = new \Combiner();
-	    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
-	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-	    $objCombiner->add('assets/mootools/chosen/chosen.js');
-	    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
-	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-	    $objCombiner->add('assets/mootools/mootao/Mootao.js');
-	    $objCombiner->add('assets/contao/js/core-uncompressed.js');
-		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
-	   
 	    $GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 	}
 	
@@ -979,16 +1039,37 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(count($arrClipboard) < 1)
 		{
 			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			if(version_compare(VERSION, '4','>='))
+	 		{
+	 			$objSession = \System::getContainer()->get('session');
+	 			$arrSession = $objSession->get('CLIPBOARD');
+	 		}
 			$arrClipboard = $arrSession[$strTable];
 		}
 			
-		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
-			
+		$image = '';
+		if(version_compare(VERSION, '4','>='))
+		{
+			$image = \Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+		}
+		else
+		{
+			$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+		}	
+		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('cut_.gif');
+			$html = '';
+			if(version_compare(VERSION, '4','>='))
+			{
+				$html = \Image::getHtml('cut_.svg');
+			}
+			else
+			{
+				$html = \Image::getHtml('cut_.gif');
+			}
+			
 		}
 		else
 		{
@@ -1000,7 +1081,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'cut.gif',
+			'icon'	=> ( version_compare(VERSION, '4','>=') ? 'cut.svg' : 'cut.gif' ),
 			'icon_html' => $image,
 		);
 		
