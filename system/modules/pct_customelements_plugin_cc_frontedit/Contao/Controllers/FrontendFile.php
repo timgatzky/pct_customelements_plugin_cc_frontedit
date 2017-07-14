@@ -59,6 +59,8 @@ class FrontendFile extends \Contao\BackendFile
 			$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',array($this->User->homeDir)));
 			$root = array_merge($root,$objFiles->fetchEach('path'));
 		}
+		
+		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
 	}
 	
 	public function run()
