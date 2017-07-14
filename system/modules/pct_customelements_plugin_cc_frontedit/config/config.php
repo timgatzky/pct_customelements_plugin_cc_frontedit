@@ -17,7 +17,7 @@
  * Constants
  */ 
 define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH,'system/modules/pct_customelements_plugin_cc_frontedit');
-define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.2.4');
+define(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION,'1.3.0');
 
 /**
  * Globals
@@ -30,7 +30,7 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads']			= true;
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']								= 'CC_FRONTEDIT';
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder']						= 'files/uploads'; // must be a subdirectory from "files". The files folder itself is restricted
-$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']						= array('image','files');
+$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']						= array('image','files','gallery');
 
 // usage: table level
 // $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'] = true; // exlucde the whole table, including all entries. No rights at all

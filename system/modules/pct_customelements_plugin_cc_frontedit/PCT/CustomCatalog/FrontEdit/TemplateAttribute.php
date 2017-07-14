@@ -63,9 +63,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	
 	/**
 	 * Generates the widget
+	 * @param string	Custom template name
 	 * @return string
 	 */
-	public function widget()
+	public function widget($strTemplate = '')
 	{
 		if(strlen($this->widget) > 0)
 		{
@@ -224,7 +225,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   
 		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
 			
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
 
@@ -260,7 +261,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 		}
-		
+		\PC::debug($strTemplate);
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
 			// create the widget
@@ -271,6 +272,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objWidget = new $strClass($arrAttributes);
 			$objWidget->__set('activeRecord',$objActiveRecord);
 			$objWidget->label = $strLabel;
+			
+			// set a custom template
+			if(strlen($strTemplate) > 0)
+			{
+				$objWidget->__set('customTpl',$strTemplate);
+			}
 				
 			// any validator need the current field value in the psydo post data
 			$objDC->value = deserialize($objDC->value);
@@ -525,6 +532,37 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objWidget->generateLabel();
 					$strBuffer .= $objWidget->generateWithError();	
 				}
+				// !CUSTOMELEMENTS WIDGET attributes
+				else if($objAttribute->get('type') == 'customelement')
+				{
+					$attribute = \PCT\CustomElements\Core\AttributeFactory::findById($objAttribute->get('id'));
+					$dc = clone($objDC);
+					$dc->field = $attribute->uuid;
+					
+					// bypass the automatic field updater
+					if(!$blnSubmitted && isset($_POST[$objDC->field]))
+					{
+						unset($_POST[$dc->field]);
+						\Input::setPost($dc->field,null);
+						$dc->activeRecord->tstamp = 0;
+					}
+					
+					// form submitted
+					$formSubmitted = false;
+					if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit)
+					{
+						\Input::setPost('FORM_SUBMIT',$objDC->table);
+						$formSubmitted = true;
+					}
+					
+					$GLOBALS['TL_JQUERY'][] = '<script src="'.PCT_CUSTOMELEMENTS_PATH.'/assets/js/CustomElements.js'.'"></script>';
+					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$dc->field,$arrFieldDef,$dc);
+					
+					if($formSubmitted)
+					{
+						\Input::setPost('FORM_SUBMIT',$objDC->formSubmit);
+					}
+				}
 				// !render	
 				else
 				{
@@ -539,8 +577,22 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$objWidget->validate();
 				}
 				
-				$strBuffer = $objWidget->generateLabel();
-				$strBuffer .= $objWidget->generateWithError();	
+				// recheck value
+				if(!is_array($objWidget->value) && $objAttribute->get('eval_multiple'))
+				{
+					$objWidget->value = explode(',', $objWidget->value); 
+				}
+				
+				// set custom template
+				if(strlen($strTemplate) > 0)
+				{
+					$strBuffer = $objWidget->parse();
+				}
+				else
+				{
+					$strBuffer = $objWidget->generateLabel();
+					$strBuffer .= $objWidget->generateWithError();
+				}
 			}
 		}
 		// HOOK let attribute generate their own widgets
@@ -792,6 +844,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
 			
+			// multiple values in blob fields
+			if(!is_array($objDC->value) && $objAttribute->get('eval_multiple') && strlen(strpos(strtolower($arrFieldDef['sql']),'blob')) > 0)
+			{
+				$objDC->value = explode(',',$objDC->value);
+			}
+			
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
@@ -809,7 +867,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// remove the session
-			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
 		$arrWidgetClasses = array();
@@ -825,7 +883,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
 		
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 		{
 			// preserve scripts
 			$orig_allowedTags = \Config::get('allowedTags');
@@ -883,9 +941,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	 * @property boolean 	arrSettings['doNotOverwrite']
 	 * @property array 		arrSettings['extensions']
 	 * @property boolean 	arrSettings['createUploadFolder']
+	 * @param string	Custom template name
 	 * @return string
 	 */
-	public function uploadWidget($arrSettings=array())
+	public function uploadWidget($arrSettings=array(), $strTemplate='')
 	{
 		if(strlen($this->uploadWidget) > 0)
 		{
@@ -908,7 +967,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
+		$objDC->id = \Input::get('id');
+		$objDC->field = $objAttribute->get('alias');
 		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';
+		
+		// custom data container object
+		if(strlen($arrSettings['dataContainer']) > 0)
+		{
+			$objDC = $arrSettings['dataContainer'];
+		}
 		
 		// custom upload folder
 		if(strlen($arrSettings['uploadFolder']) > 0)
@@ -926,7 +993,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$intUploadFolder = $objFolder->getModel()->uuid;
 				
 		$objWidget = new $GLOBALS['TL_FFL']['upload'];
-		$objWidget->name = 'upload_'.$objAttribute->get('alias');
+		$objWidget->name = 'upload_'.$objDC->field;
 		$objWidget->id = 'upload_'.$objAttribute->get('id');
 		$objWidget->addSubmit = true;
 		$objWidget->slabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_upload'] ?: 'Upload';
@@ -943,6 +1010,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		
+		if($objAttribute->get('type') == 'gallery')
+		{
+			$arrSettings['multiple'] = true;
+		}
+		
 		if($arrSettings['extensions'] !== null)
 		{
 			$uploadTypes = $arrSettings['extensions'];
@@ -956,10 +1028,64 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// validate on submit
 		if(\Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
 		{
+			$arrFiles = array();
+			
+			// store the upload information
+			if((boolean)$arrSettings['autoUpdate'] === true && isset($_FILES[$objWidget->name]) && count($_FILES[$objWidget->name]) > 0)
+			{
+				$arrFiles = $_FILES;
+			}
+			
 			$objWidget->validate();
+			
+			// update the attribute
+			if(count($arrFiles) > 0)
+			{
+				$setSetValue = array();
+				foreach($arrFiles as $k => $v)
+				{
+					// skip empty or invalid uploads
+					if($v['error'] != 0 || strlen($v['name']) < 1 || $v['size'] == 0)
+					{
+						continue;
+					}
+					
+					// add the file to the file system
+					if(file_exists(TL_ROOT.'/'.$strUploadFolder.'/'.$v['name']))
+					{
+						$setSetValue[$k][] = \Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
+					}
+				}
+				
+				$setSetValue = array_filter($setSetValue);
+				
+				$objDatabase = \Database::getInstance();
+				if(count($setSetValue[$objWidget->name]) > 0 && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
+				{
+					$setValue = $setSetValue[ $objWidget->name ];
+					if(!$arrSettings['multiple'] && is_array($setValue))
+					{
+						$setValue = implode('', $setValue);
+					}
+					
+					$objDatabase->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set( array($objDC->field => $setValue) )->execute($objDC->id);
+					
+					// flush post data and reload page to see changes
+					if((boolean)$arrSettings['autoReload'] !== false || !isset($arrSettings['autoReload']))
+					{
+						\Controller::reload();
+					}
+				}
+			}
+		}
+		
+		if(strlen($strTemplate) > 0)
+		{
+			$objWidget->__set('customTpl',$strTemplate);
 		}
 		
 		$this->uploadWidget = $objWidget->generate();
+		
 		
 		return $this->uploadWidget;
 	}
