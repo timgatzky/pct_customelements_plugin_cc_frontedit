@@ -261,7 +261,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 		}
-		\PC::debug($strTemplate);
+		
 		if($GLOBALS['BE_FFL'][$strInputType] && class_exists($GLOBALS['BE_FFL'][$strInputType]))
 		{
 			// create the widget
