@@ -721,6 +721,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC->intId = $objDC->id = \Input::get('id');
 		
 		$blnDoNotSwitchToEdit = true;
+		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
 		
 		// !CREATE
 		if(\Input::get('act') == 'create')
@@ -737,10 +738,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(\Input::get('act') == 'cut')
 		{
 			$objDC->cut(true);
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::getReferer() );
-			}
+			
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !CUT ALL
 		else if(\Input::get('act') == 'cutAll')
@@ -757,7 +756,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !COPY
 		else if(\Input::get('act') == 'copy')
@@ -789,10 +788,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 			
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::getReferer() );
-			}
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !COPY ALL
 		else if(\Input::get('act') == 'copyAll')
@@ -811,10 +807,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
-			}
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !EDIT ALL, OVERRIDE ALL
 		else if(\Input::get('act') == 'editAll')
@@ -868,9 +861,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$arrSession[$strTable] = array();
 			
 			$objSession->set('CLIPBOARD',$arrSession);
+			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			$objSession->set('CURRENT',array());
 			
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
+			
+			\Controller::redirect( $strCleanUrl );
 		}
 	}
 	
@@ -921,22 +916,21 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(count($arrClipboard) < 1)
 		{
 			$objSession = \Session::getInstance();
-			if(version_compare(VERSION, '4','>='))
-			{
-				$objSession = \System::getContainer()->get('session');
-			}
-			$arrSession = $objSession->get('CLIPBOARD');
-			
+			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
 		
-		$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'pasteafter.'.$ext;	
+		
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
 		#$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteafter_.gif');
+			$icon = 'pasteafter_.'.$ext;
+			$html = $image = \Image::getHtml($icon);
 		}
 		else
 		{
@@ -968,7 +962,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'pasteafter.gif',
+			'icon'	=> $icon,
 			'icon_html' => $image,
 		);
 		
@@ -998,22 +992,21 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(count($arrClipboard) < 1)
 		{
 			$objSession = \Session::getInstance();
-			if(version_compare(VERSION, '4','>='))
-			{
-				$objSession = \System::getContainer()->get('session');
-			}
-			$arrSession = $objSession->get('CLIPBOARD');
-			
+			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
-			
+		
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'pasteafter.'.$ext;	
+		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteinto_.gif');
+			$icon = 'pasteinto_.'.$ext;
+			$html = $image = \Image::getHtml($icon);
 		}
 		else
 		{
@@ -1045,7 +1038,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'pasteinto.gif',
+			'icon'	=> $icon,
 			'icon_html' => $image,
 		);
 		
@@ -1064,14 +1057,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(count($arrClipboard) < 1)
 		{
 			$objSession = \Session::getInstance();
-			if(version_compare(VERSION, '4','>='))
-			{
-				$objSession = \System::getContainer()->get('session');
-			}
 			$arrSession = $objSession->get('CLIPBOARD');
 			$arrClipboard = $arrSession[$strTable];
 		}
-			
+		
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'cut.'.$ext;	
+		
 		$image = '';
 		if(version_compare(VERSION, '4','>='))
 		{
@@ -1086,14 +1078,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
 			$html = '';
-			if(version_compare(VERSION, '4','>='))
-			{
-				$html = \Image::getHtml('cut_.svg');
-			}
-			else
-			{
-				$html = \Image::getHtml('cut_.gif');
-			}
+			$icon = 'cut_.'.$ext;
+			$html = \Image::getHtml($icon);
 			
 		}
 		else
@@ -1106,7 +1092,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> ( version_compare(VERSION, '4','>=') ? 'cut.svg' : 'cut.gif' ),
+			'icon'	=> $icon, #( version_compare(VERSION, '4','>=') ? 'cut.svg' : 'cut.gif' ),
 			'icon_html' => $image,
 		);
 		
