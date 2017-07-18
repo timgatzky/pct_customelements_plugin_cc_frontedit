@@ -357,6 +357,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 						
 			$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+			
+			// set Contao 4 svgs
+			if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
+			{
+				$button['icon'] = str_replace('gif','svg',$button['icon']);
+				$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+			}
+			
 			$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 			
 			$arr = array('operation',$key);
@@ -448,6 +456,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				
 				$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+				if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
+				{
+					$button['icon'] = str_replace('gif','svg',$button['icon']);
+					$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+				}
 				$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 				$attributes = ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
 				
@@ -907,7 +920,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
+			if(version_compare(VERSION, '4','>='))
+			{
+				$objSession = \System::getContainer()->get('session');
+			}
+			$arrSession = $objSession->get('CLIPBOARD');
+			
 			$arrClipboard = $arrSession[$strTable];
 		}
 		
@@ -978,7 +997,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
+			if(version_compare(VERSION, '4','>='))
+			{
+				$objSession = \System::getContainer()->get('session');
+			}
+			$arrSession = $objSession->get('CLIPBOARD');
+			
 			$arrClipboard = $arrSession[$strTable];
 		}
 			
@@ -1038,12 +1063,12 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
 			if(version_compare(VERSION, '4','>='))
-	 		{
-	 			$objSession = \System::getContainer()->get('session');
-	 			$arrSession = $objSession->get('CLIPBOARD');
-	 		}
+			{
+				$objSession = \System::getContainer()->get('session');
+			}
+			$arrSession = $objSession->get('CLIPBOARD');
 			$arrClipboard = $arrSession[$strTable];
 		}
 			
@@ -1117,6 +1142,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$image_off =  \Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
 		$icon_on = 'system/themes/default/images/visible.gif';
 		$icon_off = 'system/themes/default/images/invisible.gif';
+		
+		if(version_compare(VERSION, '4', '>='))
+		{
+			$image_on = \Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+			$image_off =  \Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+			$icon_on = 'system/themes/flexible/icons/visible.svg';
+			$icon_off = 'system/themes/flexible/icons/invisible.svg';
+		}
 		
 		// Check permissions AFTER checking the tid, so hacking attempts are logged
 		#if (!$this->User->isAdmin && !$this->User->hasAccess('create', 'pct_customcatalogsp'))
