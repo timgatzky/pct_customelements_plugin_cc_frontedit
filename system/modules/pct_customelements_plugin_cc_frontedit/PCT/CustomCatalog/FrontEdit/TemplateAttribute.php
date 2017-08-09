@@ -318,6 +318,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 					   $strBuffer = str_replace('value=""', 'value="'.$objDC->value.'"',$strBuffer);
 					}
+					
+					if(version_compare(VERSION, '4','>='))
+					{
+						$search = array('$("ctrl_'.$objDC->field.'")','$("toggle_'.$objDC->field.'")','//');
+						$replace = array('$$("#ctrl_'.$objDC->field.'")[0]','$$("#toggle_'.$objDC->field.'")[0]','/');
+						$strBuffer = str_replace($search,$replace, $strBuffer);
+					}
 				}
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
@@ -338,6 +345,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
 					{
 						$objDC->value = null;
+					}
+					
+					if(version_compare(VERSION, '4','>='))
+					{
+						$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+						$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+						$strBuffer = str_replace($search,$replace, $strBuffer);
 					}
 					
 					// rewrite the preview images in file selections
