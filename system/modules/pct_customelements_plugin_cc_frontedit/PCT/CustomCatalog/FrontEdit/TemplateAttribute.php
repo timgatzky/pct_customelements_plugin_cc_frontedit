@@ -727,6 +727,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = $strBufferFromHook;
 		}
 		
+		// decode entities
+		$strBuffer = \StringUtil::decodeEntities($strBuffer);
+		
 		// rewrite the javascript calls to the Backend class
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
