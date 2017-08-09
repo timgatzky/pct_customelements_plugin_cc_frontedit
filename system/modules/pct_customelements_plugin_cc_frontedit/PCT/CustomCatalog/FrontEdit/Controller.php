@@ -36,8 +36,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	public function addAssets()
 	{
 		global $objPage;
-		
-\PC::debug('asdfasdf');
 
 		$strLocale = 'var Contao={'
 		. 'theme:"' . \Backend::getTheme() . '",'
@@ -54,7 +52,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		. 'request_token:"' . REQUEST_TOKEN . '",'
 		. 'referer_id:"' . TL_REFERER_ID . '"'
 		. '};';
-		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
 		
 		$strDateString = 'Locale.define("en-US","Date",{'
 		. 'months:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS']) . '"],'
@@ -71,10 +68,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		. 'week:"' . $GLOBALS['TL_LANG']['DP']['week'] . '"'
 		. '});';
 		
-		
 		// contao 3
 		if(version_compare(VERSION, '4','<'))
 		{
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+		
 			if(!$objPage->hasJQuery)
 			{
 				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
@@ -114,8 +112,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$GLOBALS['TL_JAVASCRIPT'][] = TL_ASSETS_URL.'assets/jquery/js/jquery.js';
 			}
 			
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">$.noConflict();</script>';
-			
 			$strTheme = 'flexible';
 			
 			// css
@@ -123,24 +119,83 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/fonts.css');
 		    $objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/css/mooRainbow.min.css');
 		    $objCombiner->add(TL_ASSETS_URL.'assets/chosen/css/chosen.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'>assets/simplemodal/css/simplemodal.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'>assets/datepicker/css/datepicker.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/css/simplemodal.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/datepicker/css/datepicker.min.css');
 		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
 		    #$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
 			$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
 
 			// javascript
-			$objCombiner = new \Combiner();
-		    $objCombiner->add(TL_ASSETS_URL.'assets/mootools/js/mootools.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'assets/chosen/js/chosen.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.min.js');
-			$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/core.js');
-			#$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/hover.js');
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strDateString.'</script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+			$GLOBALS['TL_HEAD'][] = '
+			<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
+			<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
+			<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
+			<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
+			<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
+			<script>'.$strDateString.'</script>';
+			
+			// rewrite contaocore.js to make it work with jquery
+			$strFile = 'assets/cc_frontedit/js/contao_core.js';
+			$objContaoCoreJs = new \File($strFile,true);
+			if(!$objContaoCoreJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+			{
+				// grab original
+				$strOrigFile = TL_ASSETS_URL.'bundles/contaocore/core.js';
+				$objFile = new \File($strOrigFile,true);
+				$strContent = $objFile->getContent();
+				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+				{
+					$strContent = file_get_contents($strOrigFile);
+				}
+				if(strlen($strContent) > 0)
+				{
+					$search = array("$('tl_tablewizard')","$('tl_select')");
+					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]");
+					
+					$strContent = str_replace($search,$replace,$strContent);
+					$objTempFile = new \File($strFile);
+					$objTempFile->write($strContent);
+					$objTempFile->close();
+				}
+			}
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objContaoCoreJs->path.'"></script>'; 
+			#$objCombiner->add($objContaoCoreJs->path);
+			
+			
+			// rewrite simplemodal.js to make it work with jquery
+			$strFile = 'assets/cc_frontedit/js/simplemodal.js';
+			$objSimpleModalJs = new \File($strFile,true);
+			if(!$objSimpleModalJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+			{
+				// grab original
+				$strOrigFile = TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js';
+				$objFile = new \File($strOrigFile,true);
+				$strContent = $objFile->getContent();
+				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+				{
+					$strContent = file_get_contents($strOrigFile);
+				}
+				if(strlen($strContent) > 0)
+				{
+					$search = array('$("simple-modal")');
+					$replace = array('$$("#simple-modal")[0]');
+					
+					$strContent = str_replace($search,$replace,$strContent);
+					$objTempFile = new \File($strFile);
+					$objTempFile->write($strContent);
+					$objTempFile->close();
+				}
+			}
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objSimpleModalJs->path.'"></script>';
+			#$objCombiner->add($objSimpleModalJs->path);
+			#$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.js');
+			
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js'.'"></script>';
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.js'.'"></script>';
+			#throw new \Exception('--- STOP ---');
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
 		}
 		
 	    $GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
@@ -440,7 +495,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				{
 					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 				}
-				
 								
 				if($objChildCC)
 				{
@@ -679,7 +733,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
 		{
 			header('HTTP/1.1 400 Bad Request');
-			die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
+			if(version_compare(VERSION, '4', '<'))
+			{
+				die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
+			}
 		}
 		
 		// load the data container to the frontend
@@ -1177,7 +1234,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	/**
 	 * Toggle the published setting of an entry
 	 * @param integer
-	 * @param 
+	 * @param boolean
 	 */
 	protected function toggleVisibility($intId, $blnVisible)
 	{
