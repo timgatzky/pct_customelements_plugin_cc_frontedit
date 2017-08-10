@@ -607,6 +607,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objWidget->generateLabel();
 					$strBuffer .= $objWidget->generateWithError();
 				}
+				
+				// custom order
+				if($blnSubmitted && isset($_POST['orderSRC_'.$objDC->field]))
+				{
+					$objDC->value = $_POST['orderSRC_'.$objDC->field];
+				}
 			}
 		}
 		// HOOK let attribute generate their own widgets
