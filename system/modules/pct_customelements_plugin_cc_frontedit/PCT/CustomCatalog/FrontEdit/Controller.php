@@ -37,7 +37,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		global $objPage;
 
-		$strLocale = 'var Contao={'
+		$strContao = 'var Contao={'
 		. 'theme:"' . \Backend::getTheme() . '",'
 		. 'lang:{'
 			. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
@@ -53,7 +53,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		. 'referer_id:"' . TL_REFERER_ID . '"'
 		. '};';
 		
-		$strDateString = 'Locale.define("en-US","Date",{'
+		$strLocale = 'Locale.define("en-US","Date",{'
 		. 'months:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS']) . '"],'
 		. 'days:["' . implode('","', $GLOBALS['TL_LANG']['DAYS']) . '"],'
 		. 'months_abbr:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS_SHORT']) . '"],'
@@ -71,13 +71,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// contao 3
 		if(version_compare(VERSION, '4','<'))
 		{
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
-		
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
+			
 			if(!$objPage->hasJQuery)
 			{
 				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
 			}
-		
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';			
 			$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
 			
 			// css
@@ -103,6 +103,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		    $objCombiner->add('assets/mootools/mootao/Mootao.js');
 		    $objCombiner->add('assets/contao/js/core-uncompressed.js');
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+		
 		}
 		// contao 4
 		else
@@ -127,14 +129,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 
 			// javascript
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
 			$GLOBALS['TL_HEAD'][] = '
 			<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
 			<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
 			<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
 			<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
 			<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
-			<script>'.$strDateString.'</script>';
+			<script>'.$strLocale.'</script>';
 			
 			// rewrite contaocore.js to make it work with jquery
 			$strFile = 'assets/cc_frontedit/js/contao_core.js';
