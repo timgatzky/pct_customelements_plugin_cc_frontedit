@@ -80,6 +80,7 @@ fieldset,form,input,optgroup,select,textarea {
 .cc_frontedit_form .tl_text {width: 99%;}
 .cc_frontedit_form .wizard .tl_text {width: 90%;}
 .cc_frontedit_form .widget_container h3 {font-size: 1.5em; line-height: inherit; font-weight: normal; margin-bottom: 0;}
+.cc_frontedit_form .widget_container.select {overflow: visible;}
 .cc_frontedit_form .is_child_attribute {margin-bottom: 1%;}
 
 
