@@ -130,13 +130,20 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// javascript
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
-			$GLOBALS['TL_HEAD'][] = '
-			<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
-			<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
-			<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
-			<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
-			<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
-			<script>'.$strLocale.'</script>';
+			#$GLOBALS['TL_HEAD'][] = '
+			#<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
+			#<script>'.$strLocale.'</script>';
+			
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script>'.$strLocale.'</script>';
 			
 			// rewrite contaocore.js to make it work with jquery
 			$strFile = 'assets/cc_frontedit/js/contao_core.js';
@@ -196,7 +203,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js'.'"></script>';
 			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.js'.'"></script>';
-			#throw new \Exception('--- STOP ---');
 			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
 		}
 		
