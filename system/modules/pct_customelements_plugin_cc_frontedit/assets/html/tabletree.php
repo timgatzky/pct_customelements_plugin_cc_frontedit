@@ -12,7 +12,7 @@
  */
 
 // Set the script name
-define('TL_SCRIPT', 'pct_customelements_plugin_cc_frontedit/assets/html/pct/tabletree.php');
+define('TL_SCRIPT', 'app.php');
 
 /**
  * Initialize the system

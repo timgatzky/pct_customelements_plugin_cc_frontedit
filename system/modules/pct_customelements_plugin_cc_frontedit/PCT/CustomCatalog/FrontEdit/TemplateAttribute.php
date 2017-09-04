@@ -336,6 +336,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
+					// remove invalid spans from image title
+					if(version_compare(VERSION, '4.4','>='))
+					{
+						$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
+					}
+					
 					// value for database must be binary
 					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
 					{
@@ -345,13 +351,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
 					{
 						$objDC->value = null;
-					}
-					
-					if(version_compare(VERSION, '4','>='))
-					{
-						$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
-						$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
-						$strBuffer = str_replace($search,$replace, $strBuffer);
 					}
 					
 					// rewrite the preview images in file selections
@@ -620,6 +619,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
+		
+		// make mootools jquery compatible
+		if(version_compare(VERSION, '4.4','>='))
+		{
+			$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+			$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+			$strBuffer = str_replace($search,$replace, $strBuffer);
+		}
 					
 		// wizards
 		if(count($arrFieldDef['wizard']) > 0)
@@ -812,17 +819,61 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		
+		// !rewrite popup locations
 		// rewrite calls to the contao/file.php from file pickers
-		if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
+		if(version_compare(VERSION,'4','<'))
 		{
-			$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/file.php',$strBuffer);
+			if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
+			{
+				$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/file.php',$strBuffer);
+			}
+			
+			// rewrite calls to the contao/page.php e.g. from page pickers
+			if(strlen(strpos($strBuffer, 'contao/page.php')) > 0)
+			{
+				$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/page.php',$strBuffer);
+			}
 		}
 		
-		// rewrite calls to the contao/page.php e.g. from page pickers
-		if(strlen(strpos($strBuffer, 'contao/page.php')) > 0)
+		// Contao 4, pickers
+		if(strlen(strpos($strBuffer, 'picker_builder=1')) > 0)
 		{
-			$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/page.php',$strBuffer);
+			$varValue = $objDC->value;
+			
+			if(isset($varValue))
+			{
+				if(\Validator::isBinaryUuid($varValue))
+				{
+					$varValue = \StringUtil::binToUuid($varValue);
+				}
+				else if($this->multiple)
+				{
+					\Debug::log($varValue);
+				}
+				
+			}
+			else
+			{
+				
+			}
+			
+			$params = array
+			(
+				'_table' 	=> \Input::get('table'),
+				'_id'		=> \Input::get('id'),
+				'_field'	=> \Input::get('field'),
+				#'act'	=> 'show',
+				'rt'		=> REQUEST_TOKEN,
+				'picker' 	=> $objDC->field,
+				'value' 	=> $varValue,
+			);
+			
+			$strBuffer = str_replace('picker_builder=1', http_build_query($params), $strBuffer);
+			unset($params);
+			
+			$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);window.fireEvent('ajax_change');",$strBuffer);
 		}
+		
 		
 		// rewrite calls to the pct table tree widget
 		if(strlen(strpos($strBuffer, 'system/modules/pct_tabletree_widget/assets/html/PageTableTree.php')) > 0)
@@ -937,8 +988,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
-		if( $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'] && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
+		if(\Environment::get('isAjaxRequest') && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'] && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
 		{
+		   \Debug::log($_POST);
 		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
 		   $js_helper->widget = $this->widget;
 		   $js_helper->dataContainer = $objDC;

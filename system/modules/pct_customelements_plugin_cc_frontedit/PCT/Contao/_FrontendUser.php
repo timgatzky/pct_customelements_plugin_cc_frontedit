@@ -35,7 +35,18 @@ class _FrontendUser
 		   return null;
 	   }
 	   
-	   foreach($objUser->getData() as $key => $val)
+	   $arrData = array();
+	   if(strlen(strpos(get_class($objUser), 'MemberModel')) > 0)
+	   {
+		   $arrData = $objUser->row();
+	   }
+	   else
+	   {
+		   $arrData = $objUser->getData();
+	   }
+	   
+	   
+	   foreach($arrData  as $key => $val)
 	   {
 		  $this->{$key} = $val;
 	   }
@@ -162,7 +173,36 @@ class _FrontendUser
 			$objTester->{$key} = $val;
 		}
 		
-		return $objTester->hasAccess($strField,$arr);
+		$objTester->isAdmin = 1;
 		
+		return true;
+		
+		return $objTester->hasAccess($strField,$arr);
+	}
+	
+	
+	/**
+	 * @inherit doc
+	 */
+	public function navigation()
+	{
+		$objTester = \BackendUser::getInstance();
+		$objTester->isAdmin = 0;
+		
+		// pass variables
+		foreach($this as $key => $val)
+		{
+			$objTester->{$key} = $val;
+		}
+		
+		$objTester->isAdmin = 1;
+		
+		return $objTester->navigation();
+	}
+	
+	
+	public function authenticate()
+	{
+		return true;
 	}
 }

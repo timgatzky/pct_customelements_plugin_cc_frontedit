@@ -160,8 +160,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				if(strlen($strContent) > 0)
 				{
-					$search = array("$('tl_tablewizard')","$('tl_select')");
-					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]");
+					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)");
+					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)");
 					
 					$strContent = str_replace($search,$replace,$strContent);
 					$objTempFile = new \File($strFile);
@@ -188,8 +188,16 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				if(strlen($strContent) > 0)
 				{
-					$search = array('$("simple-modal")');
-					$replace = array('$$("#simple-modal")[0]');
+					$search = array
+					(
+						'$("simple-modal")',"$('simple-modal')",
+						'$("simple-modal-overlay")',"$('simple-modal-overlay')"
+					);
+					$replace = array
+					(
+						'$$("#simple-modal")[0]','$$("#simple-modal")[0]',
+						'$$("#simple-modal-overlay")[0]','$$("#simple-modal-overlay")[0]'
+					);
 					
 					$strContent = str_replace($search,$replace,$strContent);
 					$objTempFile = new \File($strFile);
