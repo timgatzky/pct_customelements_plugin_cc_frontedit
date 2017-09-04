@@ -870,6 +870,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
+		// observe ajax on the field
+		$blnIsAjax = false;
+		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && \Input::post('name') == $objDC->field && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		{
+			$blnIsAjax = true;
+		}
+		
 		$arrWidgetClasses = array();
 		$arrWidgetClasses[] = $objAttribute->get('type');
 		
@@ -882,8 +889,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->classes = $arrWidgetClasses;
 		$this->widget->class = implode(' ', $arrWidgetClasses);
 		$this->widget->id = $objWidget->__get('name');
+		$this->widget->ajax = $blnIsAjax;
 		
-		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if($blnIsAjax)
 		{
 			// preserve scripts
 			$orig_allowedTags = \Config::get('allowedTags');
@@ -914,7 +922,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
-		if( $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'] && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
+		if($blnIsAjax && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
 		{
 		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
 		   $js_helper->widget = $this->widget;
@@ -923,6 +931,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   $js_helper->session = $arrFeSession[$objDC->table];
 		   $js_helper->isAjax = $objDC->isAjax;
 		   $strBuffer .= $js_helper->parse();
+		}
+		
+		// remove helper sessions
+		if($blnSubmitted && !\Environment::get('isAjaxRequest'))
+		{
+			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 		
 		// cache
