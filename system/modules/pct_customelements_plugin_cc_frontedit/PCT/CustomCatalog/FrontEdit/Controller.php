@@ -124,9 +124,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		    $objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/css/simplemodal.min.css');
 		    $objCombiner->add(TL_ASSETS_URL.'assets/datepicker/css/datepicker.min.css');
 		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
+		    #$objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/main.css');
 		    #$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
 			$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
-
+			
 			// javascript
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
@@ -160,8 +162,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				if(strlen($strContent) > 0)
 				{
-					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)");
-					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)");
+					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
+					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)","$$('#tl_ajaxBox')[0]","$$('#tl_ajaxOverlay')[0]","$$(document.body)[0]","overlay === null || overlay == undefined","box === null || box == undefined");
 					
 					$strContent = str_replace($search,$replace,$strContent);
 					$objTempFile = new \File($strFile);

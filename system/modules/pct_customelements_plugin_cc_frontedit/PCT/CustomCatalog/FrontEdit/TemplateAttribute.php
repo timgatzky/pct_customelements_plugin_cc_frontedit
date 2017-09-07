@@ -871,7 +871,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = str_replace('picker_builder=1', http_build_query($params), $strBuffer);
 			unset($params);
 			
-			$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);window.fireEvent('ajax_change');",$strBuffer);
+			// inject the AjaxRequest loading box
+			if(strlen(strpos($strBuffer,'"callback":')) > 0)
+			{
+				$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+				$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+				$strBuffer = str_replace('onSuccess',"onRequest: AjaxRequest.displayBox(Contao.lang.loading + ' …'),onSuccess", $strBuffer);
+			}
+			
+			$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);AjaxRequest.hideBox();window.fireEvent('ajax_change');",$strBuffer);
 		}
 		
 		
