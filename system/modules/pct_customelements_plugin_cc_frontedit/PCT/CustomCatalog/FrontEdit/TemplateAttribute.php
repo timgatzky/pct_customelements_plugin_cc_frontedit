@@ -866,6 +866,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
 			}
 			
+			// respect orderSRC fields
+			if(isset($_POST[$strOrderField.'_'.$objDC->field]))
+			{
+				$dc = clone($objDC);
+				$dc->field = $strOrderField.'_'.$objDC->field;
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$dc);
+			}
+			
 			// remove the session
 			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
