@@ -106,7 +106,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * @param integer	Entry id
 	 * @return boolean
 	 */
-	public function isEditable($strTable='', $intId=0)
+	public static function isEditable($strTable='', $intId=0)
 	{
 		// (first level) exclude the whole CC table 
 		if(strlen($strTable) > 0 && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable] === true && !is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable]))
@@ -158,7 +158,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * Check user permissions
 	 * @return boolean
 	 */
-	public function checkPermissions()
+	public static function checkPermissions()
 	{
 		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
 		{
@@ -191,7 +191,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * @param string		The field name
 	 * @param object		The DataContainer object
 	 */
-	public function addToDatabaseSetlist($varValue,$objDC)
+	public static function addToDatabaseSetlist($varValue,$objDC)
 	{
 		$strTable = $objDC->table;
 		$intId = $objDC->id;
@@ -235,7 +235,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * @param string	The table name
 	 * @return array||null
 	 */
-	public function getDatabaseSetlist($strTable='')
+	public static function getDatabaseSetlist($strTable='')
 	{
 		if(strlen($strTable) > 0)
 		{
@@ -249,7 +249,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 * Clear a database set list array by a table name
 	 * @param string	The table name
 	 */
-	public function clearDatabaseSetlist($strTable)
+	public static function clearDatabaseSetlist($strTable)
 	{
 		$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable] = array();
 		
