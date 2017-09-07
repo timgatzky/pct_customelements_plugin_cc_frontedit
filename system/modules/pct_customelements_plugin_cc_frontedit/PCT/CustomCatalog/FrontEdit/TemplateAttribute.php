@@ -430,8 +430,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// reorder
 					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
-						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
-						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
+						$newOrder = \Input::post($strOrderField.'_'.$objDC->field);
+						$objDC->value = \Input::post($strOrderField.'_'.$objDC->field);
 					}
 						
 					// values for database must be binary
@@ -458,7 +458,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					if($blnSubmitted)
 					{
-						$objDC->value = array('value'=>$_POST[$objDC->field]['value'],'unit'=>$_POST[$objDC->field]['unit']);
+						$value = \Input::post($objDC->field);
+						if(!is_array($value))
+						{
+							$value = explode(',', $value ?: '');
+						}
+						$objDC->value = array('value'=>$value['value'],'unit'=>$value['unit']);
 					}
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
@@ -499,7 +504,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// database update
 					if($blnSubmitted & isset($_POST[$objDC->field]))
 					{
-						$objDC->value = $_POST[$objDC->field];
+						$objDC->value = \Input::post($objDC->field);
 						if($this->multiple && !is_array($objDC->value))
 						{
 							$objDC->value = array_filter(explode(',', $objDC->value));
@@ -510,7 +515,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						// save the order field
 						if(isset($_POST[$strOrderField.'_'.$objDC->field]))
 						{
-							$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? $_POST[$strOrderField.'_'.$objDC->field] : explode(',',$_POST[$strOrderField.'_'.$objDC->field]);
+							$newOrder = is_array(\Input::post($strOrderField.'_'.$objDC->field)) ?\Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
 							
 							$dc = clone($objDC);
 							$dc->field = $strOrderField.'_'.$objDC->field;
@@ -675,9 +680,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				
 				$objChildWidget->__set('value',$value);
 				
-				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
+				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && \Input::post($dc->field) != $value)
 				{
-					$value = $_POST[$dc->field];
+					$value = \Input::post($dc->field);
 					
 					if(!$blnSubmitted)
 					{
@@ -867,7 +872,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// respect orderSRC fields
-			if(isset($_POST[$strOrderField.'_'.$objDC->field]))
+			if($this->sortable && \Input::post($strOrderField.'_'.$objDC->field) != '')
 			{
 				$dc = clone($objDC);
 				$dc->field = $strOrderField.'_'.$objDC->field;
