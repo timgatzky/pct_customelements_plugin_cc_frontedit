@@ -57,13 +57,6 @@ ClassLoader::addClasses(array
 	'PCT\Contao\Picker\FilePickerProvider'									=> $path.'/PCT/Contao/Picker/FilePickerProvider.php',
 ));
 
-
-/**
- * Register original paths to templates 
- */
-$GLOBALS['PCT_CUSTOMCATALOG']['BACKEND']['origTemplatePaths']['be_picker'] = str_replace(TL_ROOT,'',\TemplateLoader::getDefaultPath('be_picker','html5'));
-
-
 /**
  * Register the templates
  */
@@ -74,7 +67,4 @@ TemplateLoader::addFiles(array
 	'buttons'							=> $path.'/templates/frontedit',
 	'cc_edit_nopermission'				=> $path.'/templates/pages',
 	'js_cc_frontedit_ajaxhelper'		=> $path.'/templates/js',
-	#'be_main'							=> $path.'/templates/pages',
-	#'be_picker'							=> $path.'/templates/pages'
-
 ));
