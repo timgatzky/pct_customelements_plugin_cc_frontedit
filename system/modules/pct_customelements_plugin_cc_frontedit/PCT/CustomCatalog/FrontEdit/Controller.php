@@ -165,6 +165,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
 					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)","$$('#tl_ajaxBox')[0]","$$('#tl_ajaxOverlay')[0]","$$(document.body)[0]","overlay === null || overlay == undefined","box === null || box == undefined");
 					
+					// in makeMultiSrcSortable
+					$search[] = "$$('#'+oid)";
+					$replace[] = "$$('#'+oid)[0]";
+					
 					$strContent = str_replace($search,$replace,$strContent);
 					$objTempFile = new \File($strFile);
 					$objTempFile->write($strContent);
