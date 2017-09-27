@@ -101,6 +101,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if($objDC->activeRecord !== null)
 		{
 			$objDC->id = $objDC->activeRecord->id;
+			
+			// use the current record value
+			if($objDC->value != $objDC->value = $objDC->activeRecord->{$objDC->field})
+			{
+				$objDC->value = $objDC->activeRecord->{$objDC->field};
+			}
 		}
 		$objDC->objAttribute = $objAttribute;
 		$objDC->formSubmit = $objDC->table.'_'.\Input::post('mod');
@@ -110,7 +116,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$arrIds = $arrSession['CURRENT']['IDS'];
 		
 		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']) ?: array();
-		
+
 		// return when edit mode is not active
 		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModule->customcatalog_edit_active) )
 		{
@@ -606,12 +612,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objWidget->generateLabel();
 					$strBuffer .= $objWidget->generateWithError();
 				}
-				
-				// custom order
-				if($blnSubmitted && isset($_POST['orderSRC_'.$objDC->field]))
-				{
-					$objDC->value = $_POST['orderSRC_'.$objDC->field];
-				}
 			}
 		}
 		// HOOK let attribute generate their own widgets
@@ -637,6 +637,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 
+//! -- sortable
+
 		// make it sortable
 		if($this->sortable && strlen(strpos($strBuffer, 'ctrl_'.$strOrderField)) < 1)
 		{
@@ -644,22 +646,31 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			@$doc->loadHTML(preg_replace("/&(?!(?:apos|quot|[gl]t|amp);|#)/", "&amp;",$strBuffer));
 			$elem = $doc->getElementById('sort_'.$objDC->field);
 			
+			$value = $objDC->value;
+			if(is_array($value))
+			{
+				$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+			}
+			
 			if($elem)
 			{
 				$class = $doc->createAttribute('class');
 				$class->value = 'sortable' . ($arrFieldDef['eval']['isGallery'] ? ' sgallery':'');
 				$elem->appendChild($class);
-				
+					
 				$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 				$str .= $elem->C14N();
-				$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
-				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
+				$str .= '<input type="hidden" id="ctrl_'.$strOrderField.'_'.$objDC->field.'" name="'.$strOrderField.'_'.$objDC->field.'" value="'.$value.'">';
+				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').')</script>';
+				
 				// replace sort container
 				$preg = preg_match('/<ul(.*?)\/ul>/', $strBuffer,$result); 
 				if($preg)
 				{
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
+				
+				unset($value);
 			}
 			// fallback if DOMDocument fails
 			else
@@ -674,8 +685,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 					$str .= $elem;
 					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
-					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
-					
+					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').')</script>';
+	
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
 			}
@@ -818,8 +829,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 		}
-		
-		// !rewrite popup locations
+				
+//! -- rewrite popup locations
+
 		// rewrite calls to the contao/file.php from file pickers
 		if(version_compare(VERSION,'4','<'))
 		{
@@ -848,9 +860,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 				else if($this->multiple)
 				{
-					\Debug::log($varValue);
+					// works fine
 				}
-				
 			}
 			else
 			{
@@ -926,10 +937,40 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
 			
+							
+			// custom order
+			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
+			{
+				$objDC->value = \Input::post('orderSRC_'.$objDC->field);
+			
+				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? \Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
+				
+				// save the order field
+				$dc = clone($objDC);
+				$dc->field = $strOrderField.'_'.$objDC->field;
+				
+				// convert to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) )
+				{
+					$dc->value = array_map('\StringUtil::uuidToBin',$dc->value);
+				}
+				
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
+			}
+			
 			// multiple values in blob fields
 			if(!is_array($objDC->value) && $objAttribute->get('eval_multiple') && strlen(strpos(strtolower($arrFieldDef['sql']),'blob')) > 0)
 			{
-				$objDC->value = explode(',',$objDC->value);
+				if(!is_array($objDC->value))
+				{
+					$objDC->value = array_filter(explode(',', $objDC->value));
+				}
+				
+				// convert to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) )
+				{
+					$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
+				}
 			}
 			
 			if(\Input::get('act') == 'fe_overrideAll')
