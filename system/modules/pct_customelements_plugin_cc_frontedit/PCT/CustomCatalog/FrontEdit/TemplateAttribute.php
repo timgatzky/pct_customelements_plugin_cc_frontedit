@@ -485,9 +485,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !TAGS attributes
 				else if($objAttribute->get('type') == 'tags')
 				{
-					// flag as ajax related field
-					$this->isAjaxField = true;
-					
 					// load js
 					$objCombiner = new \Combiner();
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
@@ -875,22 +872,28 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// Contao 4, pickers
 		if(strlen(strpos($strBuffer, 'picker_builder=1')) > 0)
 		{
-			$varValue = $objDC->value;
-
+			$value = $objDC->value;
+			
 			// convert values
-			if(!empty($varValue))
+			if(!empty($value))
 			{
-				if(\Validator::isBinaryUuid($varValue))
+				if(\Validator::isBinaryUuid($value))
 				{
-					$varValue = \StringUtil::binToUuid($varValue);
+					$value = \StringUtil::binToUuid($value);
 				}
-				else if($this->multiple)
+				else if($this->multiple && is_array($value))
 				{
-					if(in_array($objAttribute->get('type'),array('files','gallery')))
+					// convert binary to uuid
+					if( in_array($objAttribute->get('type'), array('files','gallery')) )
 					{
-						$varValue = array_map('\StringUtil::binToUuid',array_filter($varValue));
+						$value = array_map('\StringUtil::binToUuid',array_filter($value));
 					}
 				}
+			}
+			
+			if(is_array($value))
+			{
+				$value = implode(',', $value);
 			}
 			
 			$params = array
@@ -901,11 +904,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				#'act'	=> 'show',
 				'rt'		=> REQUEST_TOKEN,
 				'picker' 	=> $objDC->field,
-				'value' 	=> $varValue,
+				'value' 	=> $value,
 			);
 			
 			$strBuffer = str_replace('picker_builder=1', http_build_query($params), $strBuffer);
 			unset($params);
+			unset($value);
 		}
 		
 		
@@ -1029,6 +1033,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->id = $objWidget->__get('name');
 		$this->widget->ajax = $blnIsAjax;
 		
+		$strAjaxBuffer = '';
 		if($blnIsAjax)
 		{
 			// preserve scripts
@@ -1037,12 +1042,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$buffer = $strBuffer;
 			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
 			
-			// store buffer in the session
 			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
 			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
 			
-			$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			$strAjaxBuffer = $buffer;
+			
+			// store buffer in the session
+			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
+			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			// reset to standard
 			\Config::set('allowedTags', $orig_allowedTags);
@@ -1060,15 +1067,20 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
-		if($blnIsAjax && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
+		if($blnIsAjax && $this->isAjaxField)
 		{
 		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
 		   $js_helper->widget = $this->widget;
 		   $js_helper->dataContainer = $objDC;
 		   $js_helper->field = $objDC->field;
-		   $js_helper->session = $arrFeSession[$objDC->table];
+		   #$js_helper->session = $arrFeSession[$objDC->table];
 		   $js_helper->isAjax = $objDC->isAjax;
+		   $js_helper->buffer = $strAjaxBuffer;
 		   $strBuffer .= $js_helper->parse();
+		   
+		   // remove the html buffer from the session
+		   unset($arrFeSession[$objDC->table]['BUFFER'][$objDC->field]);
+		   $objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 		}
 		
 		// remove helper sessions
