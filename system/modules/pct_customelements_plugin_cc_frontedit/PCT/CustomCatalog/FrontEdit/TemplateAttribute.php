@@ -649,7 +649,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$value = $objDC->value;
 			if(is_array($value))
 			{
-				$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+				// convert binary values to uuid
+				if(in_array($objAttribute->get('type'), array('files','gallery')))
+				{
+					$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+				}
 			}
 			
 			if($elem)
@@ -669,8 +673,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
-				
-				unset($value);
 			}
 			// fallback if DOMDocument fails
 			else
@@ -684,12 +686,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					
 					$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 					$str .= $elem;
-					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
+					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$value.'">';
 					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').')</script>';
 	
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
 			}
+			
+			unset($value);
 		}
 		
 		// render child attributes
@@ -825,12 +829,33 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 					
+					// contao 4 pickers
+					if(version_compare(VERSION, '4.4','>='))
+					{
+						if($method == 'openModalSelector')
+						{
+							$strBuffer = str_replace('this.href + document.getElementById("ctrl_'.$objDC->field.'")', 'this.href', $strBuffer);
+							$strBuffer = str_replace('this.href.value', 'this.href', $strBuffer);
+							
+							// inject the AjaxRequest loading box
+							if(strlen(strpos($strBuffer,'"callback":')) > 0)
+							{
+								$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+								$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+								$strBuffer = str_replace('onSuccess',"onRequest: AjaxRequest.displayBox(Contao.lang.loading + ' …'),onSuccess", $strBuffer);
+							}
+							
+							$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);AjaxRequest.hideBox();window.fireEvent('ajax_change');",$strBuffer);
+						}
+					}
+					
+					
 					$processed[] = $func;
 				}
 			}
 		}
-				
-//! -- rewrite popup locations
+		
+//! -- rewrite popup locations and pickers
 
 		// rewrite calls to the contao/file.php from file pickers
 		if(version_compare(VERSION,'4','<'))
@@ -851,8 +876,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen(strpos($strBuffer, 'picker_builder=1')) > 0)
 		{
 			$varValue = $objDC->value;
-			
-			if(isset($varValue))
+
+			// convert values
+			if(!empty($varValue))
 			{
 				if(\Validator::isBinaryUuid($varValue))
 				{
@@ -860,12 +886,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 				else if($this->multiple)
 				{
-					// works fine
+					if(in_array($objAttribute->get('type'),array('files','gallery')))
+					{
+						$varValue = array_map('\StringUtil::binToUuid',array_filter($varValue));
+					}
 				}
-			}
-			else
-			{
-				
 			}
 			
 			$params = array
@@ -881,16 +906,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			
 			$strBuffer = str_replace('picker_builder=1', http_build_query($params), $strBuffer);
 			unset($params);
-			
-			// inject the AjaxRequest loading box
-			if(strlen(strpos($strBuffer,'"callback":')) > 0)
-			{
-				$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
-				$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
-				$strBuffer = str_replace('onSuccess',"onRequest: AjaxRequest.displayBox(Contao.lang.loading + ' …'),onSuccess", $strBuffer);
-			}
-			
-			$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);AjaxRequest.hideBox();window.fireEvent('ajax_change');",$strBuffer);
 		}
 		
 		

@@ -125,6 +125,10 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			$arrParams['do'] = 'files';
 		}
+		else if($context == 'page')
+		{
+			$arrParams['do'] = 'page';
+		}
 		
 		if(count($extras) > 0)
 		{
@@ -138,7 +142,10 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		return $strUrl;
 	}
 
-
+	
+	/**
+	 * {@inheritdoc}
+	 */
 	public function createFromData($data)
 	{
 		if(TL_MODE == 'BE')
@@ -150,10 +157,16 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		$strContext = \Input::get('context');
 		$strCurrent = '';
 
+		// create new filepicker	
 		if($strContext == 'file')
 		{
-			// create new filepicker
 			$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,\Config::get('uploadPath') ?: 'files');
+		}
+		// create new pagepicker	
+		else if($strContext == 'page')
+		{
+			// create new filepicker
+			$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router);
 		}
 
 		if($objPicker === null)
@@ -174,8 +187,15 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 			'path'			=> \Input::get('path')
 		);
 		
+		// get the value from the url GET parameter
 		$varValue = \Input::get('value');
-
+		
+		// contao expects value parameter to be a string
+		if(is_array($varValue))
+		{
+			$varValue = implode(',', array_filter($varValue));
+		}
+		
 		// create new picker config
 		$objConfig = new \Contao\CoreBundle\Picker\PickerConfig($strContext,array_filter($arrExtras),$varValue,$strCurrent);
 		
