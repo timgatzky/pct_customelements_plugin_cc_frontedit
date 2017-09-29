@@ -44,27 +44,13 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		$this->router = $router;
 		$this->requestStack = $requestStack;
 		
-		$user = new \PCT\Contao\BackendUser;
-		$user->admin = 1;
-		$user->isAdmin = 1;
-		
-		#\Debug::log($user);
-
-		$this->tokenStorage = new ContaoToken($user);
-
-		#$this->tokenStoage
-		#\Debug::log($this->tokenStorage);
+		#$objUser = new \PCT\Contao\BackendUser;
+		#$objUser->admin = 1;
+		#$objUser->isAdmin = 1;
+		#$this->tokenStorage = new ContaoToken($objUser);
 
 		parent::__construct($menuFactory,$router,$requestStack);
 	}
-
-
-	# public function setTokenStorage(TokenStorageInterface $tokenStorage)
-	#    {
-	#     $this->tokenStorage = $tokenStorage;
-	#    }
-
-
 
 	/**
 	 * {@inheritdoc}
@@ -75,42 +61,27 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			return parent::supportsContext($context,$allowed);
 		}
+		
+		$objPicker = null;
 
-		if(!FE_USER_LOGGED_IN && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		// create new filepicker	
+		if($context == 'file')
 		{
-			return true;
+			$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,\Config::get('uploadPath') ?: 'files');
 		}
-
-		return in_array($context, ['file', 'link'], true) && $this->getUser()->hasAccess('files', 'modules');
-	}
-
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getUser()
-	{
-		if(TL_MODE == 'BE')
+		// create new pagepicker	
+		else if($context == 'page')
 		{
-			return parent::getUser();
-		}
-
-		$objMember = null;
-
-		if(FE_USER_LOGGED_IN)
-		{
-			$objMember = \MemberModel::findByPk( \Controller::replaceInsertTags('{{user::id}}') );
+			// create new filepicker
+			$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router);
 		}
 		
-		$objUser = new \PCT\Contao\_FrontendUser($objMember,array('customcatalog_edit_active' => 1));
-		
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		if($objPicker === null)
 		{
-			$objUser->isAdmin = 1;
-			$objUser->admin = 1;
+			return false;
 		}
 		
-		return $objUser;
+		return $objPicker->supportsContext($context, $allowed);
 	}
 
 
@@ -210,8 +181,6 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		// create new picker config
 		$objConfig = new \Contao\CoreBundle\Picker\PickerConfig($strContext,array_filter($arrExtras),$varValue,$strCurrent);
 		
-		$objReturn = $this->create($objConfig);
-		
-		return $objReturn;
+		return $this->create($objConfig);;
 	}
 }

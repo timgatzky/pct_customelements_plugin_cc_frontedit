@@ -46,7 +46,7 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
      */
     public function supportsContext($context)
     {
-       return in_array($context, ['page', 'link'], true) && $this->getUser()->hasAccess('page', 'modules');
+       return in_array($context, ['page', 'link'], true) && $this->getUser()->hasAccess('page', array('page','modules'));
     }
     
     
@@ -60,12 +60,38 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 			return parent::getUser();
 		}
 		
-		#$objMember = \MemberModel::findByPk( \Controller::replaceInsertTags('{{user::id}}') );
+		$objFrontendUser = null;
+		if(FE_USER_LOGGED_IN)
+		{
+			$objFrontendUser = \FrontendUser::getInstance();
+		}
 		
-		$objUser = new \PCT\Contao\_FrontendUser($objMember,array('customcatalog_edit_active' => 1));
-		$objUser->admin = 1;
-		$objUser->isAdmin = 1;
+		// @var object \PCT\Contao\_FrontendUser
+		$this->User = new \PCT\Contao\_FrontendUser($objFrontendUser,array('customcatalog_edit_active' => 1));
 		
-		return $objUser;	   
+		// allow all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			$this->User->admin = 1;
+			$objRoots = \PageModel::findBy(array('type=?','published=1'), array('root'));
+			if($objRoots !== null)
+			{
+				$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = $objRoots->fetchEach('id');
+			}
+		}
+		
+		// merge with member
+		if(FE_USER_LOGGED_IN)
+		{
+			// set pagemounts
+			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = \PageModel::findPublishedRootPages()->fetchEach('id');
+			$GLOBALS['loadDataContainer']['tl_page'] = true;
+			if($this->User->pagemounts)
+			{
+				$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = deserialize($this->User->pagemounts);
+			}
+		}	
+		
+		return $this->User;  
 	}
 }
