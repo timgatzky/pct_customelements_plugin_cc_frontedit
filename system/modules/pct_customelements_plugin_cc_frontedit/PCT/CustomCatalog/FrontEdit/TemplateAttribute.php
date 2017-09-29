@@ -662,7 +662,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 				$str .= $elem->C14N();
 				$str .= '<input type="hidden" id="ctrl_'.$strOrderField.'_'.$objDC->field.'" name="'.$strOrderField.'_'.$objDC->field.'" value="'.$value.'">';
-				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').')</script>';
+				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').');</script>';
 				
 				// replace sort container
 				$preg = preg_match('/<ul(.*?)\/ul>/', $strBuffer,$result); 
@@ -684,7 +684,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 					$str .= $elem;
 					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$value.'">';
-					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').')</script>';
+					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').');</script>';
 	
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
@@ -831,6 +831,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						if($method == 'openModalSelector')
 						{
+							$strBuffer = str_replace('$("pt_'.$objDC->field.'")','$$("#pt_'.$objDC->field.'")[0]', $strBuffer);
 							$strBuffer = str_replace('this.href + document.getElementById("ctrl_'.$objDC->field.'")', 'this.href', $strBuffer);
 							$strBuffer = str_replace('this.href.value', 'this.href', $strBuffer);
 							
@@ -1033,28 +1034,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->id = $objWidget->__get('name');
 		$this->widget->ajax = $blnIsAjax;
 		
-		$strAjaxBuffer = '';
-		if($blnIsAjax)
-		{
-			// preserve scripts
-			$orig_allowedTags = \Config::get('allowedTags');
-			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
-			$buffer = $strBuffer;
-			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
-			
-			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
-			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
-			
-			$strAjaxBuffer = $buffer;
-			
-			// store buffer in the session
-			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
-			
-			// reset to standard
-			\Config::set('allowedTags', $orig_allowedTags);
-		}
-		
 		$arrClasses = array('block');
 		$arrClasses[] = $objAttribute->get('type');
 		
@@ -1069,18 +1048,31 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// inject a little javascript ajax helper
 		if($blnIsAjax && $this->isAjaxField)
 		{
-		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
-		   $js_helper->widget = $this->widget;
-		   $js_helper->dataContainer = $objDC;
-		   $js_helper->field = $objDC->field;
-		   #$js_helper->session = $arrFeSession[$objDC->table];
-		   $js_helper->isAjax = $objDC->isAjax;
-		   $js_helper->buffer = $strAjaxBuffer;
-		   $strBuffer .= $js_helper->parse();
-		   
-		   // remove the html buffer from the session
-		   unset($arrFeSession[$objDC->table]['BUFFER'][$objDC->field]);
-		   $objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			// preserve scripts
+			$orig_allowedTags = \Config::get('allowedTags');
+			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
+			$buffer = $strBuffer;
+			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
+			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
+			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+			
+			$strAjaxBuffer = $buffer;
+			
+			// store buffer in the session
+			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
+			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			
+			// reset to standard
+			\Config::set('allowedTags', $orig_allowedTags);
+			
+			$js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
+			$js_helper->widget = $this->widget;
+			$js_helper->dataContainer = $objDC;
+			$js_helper->field = $objDC->field;
+			#$js_helper->session = $arrFeSession[$objDC->table];
+			$js_helper->isAjax = $objDC->isAjax;
+			$js_helper->buffer = $strAjaxBuffer;
+			$strBuffer .= $js_helper->parse();
 		}
 		
 		// remove helper sessions
