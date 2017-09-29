@@ -51,7 +51,6 @@ ClassLoader::addClasses(array
 	'Contao\Controllers\FrontendPctTableTree'								=> $path.'/Contao/Controllers/FrontendPctTableTree.php',
 	// Contao >= 4
 	'PCT\Contao\BackendMain'												=> $path.'/PCT/Contao/BackendMain.php',
-	'PCT\Contao\BackendUser'												=> $path.'/PCT/Contao/BackendUser.php',
 	'PCT\Contao\Picker\PickerBuilder'										=> $path.'/PCT/Contao/Picker/PickerBuilder.php',
 	'PCT\Contao\Picker\PagePickerProvider'									=> $path.'/PCT/Contao/Picker/PagePickerProvider.php',
 	'PCT\Contao\Picker\FilePickerProvider'									=> $path.'/PCT/Contao/Picker/FilePickerProvider.php',
