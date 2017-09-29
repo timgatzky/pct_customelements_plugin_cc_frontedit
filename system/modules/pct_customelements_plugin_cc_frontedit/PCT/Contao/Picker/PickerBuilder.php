@@ -39,7 +39,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			return parent::__construct($menuFactory,$router,$requestStack);
 		}
-
+		
 		$this->menuFactory = $menuFactory;
 		$this->router = $router;
 		$this->requestStack = $requestStack;
@@ -95,10 +95,21 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 			return parent::getUser();
 		}
 
-		#$objMember = \MemberModel::findByPk( \Controller::replaceInsertTags('{{user::id}}') );
-		$objUser = new \PCT\Contao\_FrontendUser($objMember,array('customcatalog_edit_active' => 1));
-		$objUser->isAdmin = 1;
+		$objMember = null;
 
+		if(FE_USER_LOGGED_IN)
+		{
+			$objMember = \MemberModel::findByPk( \Controller::replaceInsertTags('{{user::id}}') );
+		}
+		
+		$objUser = new \PCT\Contao\_FrontendUser($objMember,array('customcatalog_edit_active' => 1));
+		
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
+		{
+			$objUser->isAdmin = 1;
+			$objUser->admin = 1;
+		}
+		
 		return $objUser;
 	}
 

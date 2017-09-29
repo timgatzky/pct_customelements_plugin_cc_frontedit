@@ -46,7 +46,7 @@ class FilePickerProvider extends \Contao\CoreBundle\Picker\FilePickerProvider
      */
     public function supportsContext($context)
     {
-       return in_array($context, ['file', 'link'], true) && $this->getUser()->hasAccess('files', 'modules');
+       return in_array($context, ['file', 'link'], true) && $this->getUser()->hasAccess('files', array('files','modules'));
     }
     
     
@@ -60,12 +60,44 @@ class FilePickerProvider extends \Contao\CoreBundle\Picker\FilePickerProvider
 			return parent::getUser();
 		}
 		
-		#$objMember = \MemberModel::findByPk( \Controller::replaceInsertTags('{{user::id}}') );
+		$objFrontendUser = null;
+		if(FE_USER_LOGGED_IN)
+		{
+			$objFrontendUser = \FrontendUser::getInstance();
+		}
 		
-		$objUser = new \PCT\Contao\_FrontendUser($objMember,array('customcatalog_edit_active' => 1));
-		$objUser->admin = 1;
-		$objUser->isAdmin = 1;
+		// @var object \PCT\Contao\_FrontendUser
+		$this->User = new \PCT\Contao\_FrontendUser($objFrontendUser,array('customcatalog_edit_active' => 1));
 		
-		return $objUser;	   
+		// allow all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			$this->User->admin = 1;
+			return $this->User;
+		}
+		
+		// merge with member
+		if(FE_USER_LOGGED_IN)
+		{
+			// set filemounts
+			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array($GLOBALS['TL_CONFIG']['uploadPath']);
+				
+			$root = array();
+			if($this->User->filemounts)
+			{
+				$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',deserialize($this->User->filemounts)));
+				$root = array_merge($root,$objFiles->fetchEach('path'));
+			}
+			
+			if($this->User->assignDir && $this->User->homeDir)
+			{
+				$objFiles = \FilesModel::findMultipleByUuids(array_map('StringUtil::binToUuid',array($this->User->homeDir)));
+				$root = array_merge($root,$objFiles->fetchEach('path'));
+			}
+			
+			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
+		}
+		
+		return $this->User;	   
 	}
 }

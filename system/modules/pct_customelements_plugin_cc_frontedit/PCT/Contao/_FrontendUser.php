@@ -34,7 +34,7 @@ class _FrontendUser
 	   {
 		   return null;
 	   }
-	   
+	  
 	   $arrData = array();
 	   if(strlen(strpos(get_class($objUser), 'MemberModel')) > 0)
 	   {
@@ -44,7 +44,6 @@ class _FrontendUser
 	   {
 		   $arrData = $objUser->getData();
 	   }
-	   
 	   
 	   foreach($arrData  as $key => $val)
 	   {
@@ -165,17 +164,21 @@ class _FrontendUser
 	public function hasAccess($strField,$arr)
 	{
 		$objTester = \BackendUser::getInstance();
-		$objTester->isAdmin = 0;
 		
+		// allow all
+		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			$objTester->admin = 1;
+			$objTester->isAdmin = 1;
+		}
+		
+		$objTester->{$arr} = $arr;
+			
 		// pass variables
 		foreach($this as $key => $val)
 		{
 			$objTester->{$key} = $val;
 		}
-		
-		$objTester->isAdmin = 1;
-		
-		return true;
 		
 		return $objTester->hasAccess($strField,$arr);
 	}

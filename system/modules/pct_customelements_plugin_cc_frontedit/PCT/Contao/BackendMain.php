@@ -5,7 +5,7 @@
  * 
  * Copyright (C) 2005-2015 Leo Feyer
  * 
- * @copyright	Tim Gatzky 2015
+ * @copyright	Tim Gatzky 2017
  * @author		Tim Gatzky <info@tim-gatzky.de>
  * @package		pct_customelements
  * @subpackage	pct_customelements_plugin_customcatalog
@@ -33,13 +33,13 @@ class BackendMain extends \Contao\BackendMain
 		{
 			return parent::__construct();
 		}
+	
+		\System::loadLanguageFile('default');
 		
 		// import the fe user as cached User class for further use
 		$this->import('PCT\Contao\_FrontendUser', 'User');
-		#$this->User = new \PCT\Contao\BackendUser;
+		// trick Contaos access level and simulate an admin here
 		$this->User->admin = 1;
-		
-		\System::loadLanguageFile('default');
 	}
 	
 	
