@@ -81,7 +81,7 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 		}
 		
 		// merge with member
-		if(FE_USER_LOGGED_IN)
+		if(FE_USER_LOGGED_IN && (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === false)
 		{
 			// set pagemounts
 			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = \PageModel::findPublishedRootPages()->fetchEach('id');
