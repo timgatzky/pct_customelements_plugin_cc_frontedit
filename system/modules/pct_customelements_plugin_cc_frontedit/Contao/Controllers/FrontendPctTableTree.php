@@ -54,6 +54,12 @@ class FrontendPctTableTree extends \Contao\BackendPctTableTree
 	
 	public function run()
 	{
+		\System::loadLanguageFile('default');
+		
+		// add css to the be_main template
+		$GLOBALS['TL_CSS'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/main.css';
+		
+		// prepare the be_main template
 		return parent::run();
 	}
 }	

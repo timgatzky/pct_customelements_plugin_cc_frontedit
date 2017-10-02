@@ -36,53 +36,190 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	public function addAssets()
 	{
 		global $objPage;
-		if(!$objPage->hasJQuery)
+
+		$strContao = 'var Contao={'
+		. 'theme:"' . \Backend::getTheme() . '",'
+		. 'lang:{'
+			. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
+			. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
+			. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
+			. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
+			. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
+			. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
+		. '},'
+		. 'script_url:"' . TL_ASSETS_URL . '",'
+		. 'path:"' . TL_PATH . '",'
+		. 'request_token:"' . REQUEST_TOKEN . '",'
+		. 'referer_id:"' . TL_REFERER_ID . '"'
+		. '};';
+		
+		$strLocale = 'Locale.define("en-US","Date",{'
+		. 'months:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS']) . '"],'
+		. 'days:["' . implode('","', $GLOBALS['TL_LANG']['DAYS']) . '"],'
+		. 'months_abbr:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS_SHORT']) . '"],'
+		. 'days_abbr:["' . implode('","', $GLOBALS['TL_LANG']['DAYS_SHORT']) . '"]'
+		. '});'
+		. 'Locale.define("en-US","DatePicker",{'
+		. 'select_a_time:"' . $GLOBALS['TL_LANG']['DP']['select_a_time'] . '",'
+		. 'use_mouse_wheel:"' . $GLOBALS['TL_LANG']['DP']['use_mouse_wheel'] . '",'
+		. 'time_confirm_button:"' . $GLOBALS['TL_LANG']['DP']['time_confirm_button'] . '",'
+		. 'apply_range:"' . $GLOBALS['TL_LANG']['DP']['apply_range'] . '",'
+		. 'cancel:"' . $GLOBALS['TL_LANG']['DP']['cancel'] . '",'
+		. 'week:"' . $GLOBALS['TL_LANG']['DP']['week'] . '"'
+		. '});';
+		
+		// contao 3
+		if(version_compare(VERSION, '4','<'))
 		{
-			$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
+			
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
+			}
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';			
+			$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
+			
+			// css
+			$objCombiner = new \Combiner();
+		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+		    $objCombiner->add('assets/mootools/chosen/chosen.css');
+		    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
+		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+		    $objCombiner->add('system/themes/default/fonts.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
+		    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+				 
+			// javascripts
+			$objCombiner = new \Combiner();
+		    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
+		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
+		    $objCombiner->add('assets/mootools/chosen/chosen.js');
+		    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
+		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
+		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
+		    $objCombiner->add('assets/mootools/mootao/Mootao.js');
+		    $objCombiner->add('assets/contao/js/core-uncompressed.js');
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
+		
+		}
+		// contao 4
+		else
+		{
+			if(!$objPage->hasJQuery)
+			{
+				$GLOBALS['TL_JAVASCRIPT'][] = TL_ASSETS_URL.'assets/jquery/js/jquery.js';
+			}
+			
+			$strTheme = 'flexible';
+			
+			// css
+			$objCombiner = new \Combiner();
+		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/fonts.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/css/mooRainbow.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/chosen/css/chosen.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/css/simplemodal.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'assets/datepicker/css/datepicker.min.css');
+		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
+		    #$objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
+		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/main.css');
+		    #$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
+			$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+			
+			// javascript
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
+			#$GLOBALS['TL_HEAD'][] = '
+			#<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
+			#<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
+			#<script>'.$strLocale.'</script>';
+			
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>';
+			$GLOBALS['TL_HEAD'][] =	'<script>'.$strLocale.'</script>';
+			
+			// rewrite contaocore.js to make it work with jquery
+			$strFile = 'assets/cc_frontedit/js/contao_core.js';
+			$objContaoCoreJs = new \File($strFile,true);
+			if(!$objContaoCoreJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+			{
+				// grab original
+				$strOrigFile = TL_ASSETS_URL.'bundles/contaocore/core.js';
+				$objFile = new \File($strOrigFile,true);
+				$strContent = $objFile->getContent();
+				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+				{
+					$strContent = file_get_contents($strOrigFile);
+				}
+				if(strlen($strContent) > 0)
+				{
+					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
+					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)","$$('#tl_ajaxBox')[0]","$$('#tl_ajaxOverlay')[0]","$$(document.body)[0]","overlay === null || overlay == undefined","box === null || box == undefined");
+					
+					// in makeMultiSrcSortable
+					$search[] = "$$('#'+oid)";
+					$replace[] = "$$('#'+oid)[0]";
+					
+					$strContent = str_replace($search,$replace,$strContent);
+					$objTempFile = new \File($strFile);
+					$objTempFile->write($strContent);
+					$objTempFile->close();
+				}
+			}
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objContaoCoreJs->path.'"></script>'; 
+			#$objCombiner->add($objContaoCoreJs->path);
+			
+			
+			// rewrite simplemodal.js to make it work with jquery
+			$strFile = 'assets/cc_frontedit/js/simplemodal.js';
+			$objSimpleModalJs = new \File($strFile,true);
+			if(!$objSimpleModalJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+			{
+				// grab original
+				$strOrigFile = TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js';
+				$objFile = new \File($strOrigFile,true);
+				$strContent = $objFile->getContent();
+				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+				{
+					$strContent = file_get_contents($strOrigFile);
+				}
+				if(strlen($strContent) > 0)
+				{
+					$search = array
+					(
+						'$("simple-modal")',"$('simple-modal')",
+						'$("simple-modal-overlay")',"$('simple-modal-overlay')"
+					);
+					$replace = array
+					(
+						'$$("#simple-modal")[0]','$$("#simple-modal")[0]',
+						'$$("#simple-modal-overlay")[0]','$$("#simple-modal-overlay")[0]'
+					);
+					
+					$strContent = str_replace($search,$replace,$strContent);
+					$objTempFile = new \File($strFile);
+					$objTempFile->write($strContent);
+					$objTempFile->close();
+				}
+			}
+			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objSimpleModalJs->path.'"></script>';
+			#$objCombiner->add($objSimpleModalJs->path);
+			#$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.js');
+			
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js'.'"></script>';
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.js'.'"></script>';
+			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
 		}
 		
-		$strLocale = 'var Contao={'
-				. 'theme:"' . \Backend::getTheme() . '",'
-				. 'lang:{'
-					. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
-					. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
-					. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
-					. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
-					. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
-					. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
-				. '},'
-				. 'script_url:"' . TL_ASSETS_URL . '",'
-				. 'path:"' . TL_PATH . '",'
-				. 'request_token:"' . REQUEST_TOKEN . '",'
-				. 'referer_id:"' . TL_REFERER_ID . '"'
-			. '};';
-		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
-		$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
-		
-		// css
-		$objCombiner = new \Combiner();
-	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-	    $objCombiner->add('assets/mootools/chosen/chosen.css');
-	    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
-	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-	    $objCombiner->add('system/themes/default/fonts.css');
-	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
-	    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
-	    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
-			 
-		// javascripts
-		$objCombiner = new \Combiner();
-	    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
-	    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-	    $objCombiner->add('assets/mootools/chosen/chosen.js');
-	    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
-	    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-	    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-	    $objCombiner->add('assets/mootools/mootao/Mootao.js');
-	    $objCombiner->add('assets/contao/js/core-uncompressed.js');
-		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
-	   
 	    $GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 	}
 	
@@ -297,6 +434,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 						
 			$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+			
+			// set Contao 4 svgs
+			if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
+			{
+				$button['icon'] = str_replace('gif','svg',$button['icon']);
+				$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+			}
+			
 			$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 			
 			$arr = array('operation',$key);
@@ -372,7 +517,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				{
 					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
 				}
-				
 								
 				if($objChildCC)
 				{
@@ -388,6 +532,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				
 				$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+				if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
+				{
+					$button['icon'] = str_replace('gif','svg',$button['icon']);
+					$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+				}
 				$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 				$attributes = ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
 				
@@ -606,7 +755,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
 		{
 			header('HTTP/1.1 400 Bad Request');
-			die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
+			if(version_compare(VERSION, '4', '<'))
+			{
+				die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
+			}
 		}
 		
 		// load the data container to the frontend
@@ -648,6 +800,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC->intId = $objDC->id = \Input::get('id');
 		
 		$blnDoNotSwitchToEdit = true;
+		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
 		
 		// !CREATE
 		if(\Input::get('act') == 'create')
@@ -664,10 +817,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(\Input::get('act') == 'cut')
 		{
 			$objDC->cut(true);
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::getReferer() );
-			}
+			
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !CUT ALL
 		else if(\Input::get('act') == 'cutAll')
@@ -684,7 +835,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !COPY
 		else if(\Input::get('act') == 'copy')
@@ -716,10 +867,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 			
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::getReferer() );
-			}
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !COPY ALL
 		else if(\Input::get('act') == 'copyAll')
@@ -738,10 +886,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			if($blnDoNotSwitchToEdit)
-			{
-				\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
-			}
+			\Controller::redirect( $strCleanUrl );
 		}
 		// !EDIT ALL, OVERRIDE ALL
 		else if(\Input::get('act') == 'editAll')
@@ -795,9 +940,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$arrSession[$strTable] = array();
 			
 			$objSession->set('CLIPBOARD',$arrSession);
+			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			$objSession->set('CURRENT',array());
 			
-			\Controller::redirect( \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
+			
+			\Controller::redirect( $strCleanUrl );
 		}
 	}
 	
@@ -847,17 +994,22 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
+			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
 		
-		$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'pasteafter.'.$ext;	
+		
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
 		#$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteafter_.gif');
+			$icon = 'pasteafter_.'.$ext;
+			$html = $image = \Image::getHtml($icon);
 		}
 		else
 		{
@@ -889,7 +1041,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'pasteafter.gif',
+			'icon'	=> $icon,
 			'icon_html' => $image,
 		);
 		
@@ -918,17 +1070,22 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
+			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
-			
+		
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'pasteafter.'.$ext;	
+		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('pasteinto_.gif');
+			$icon = 'pasteinto_.'.$ext;
+			$html = $image = \Image::getHtml($icon);
 		}
 		else
 		{
@@ -960,7 +1117,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'pasteinto.gif',
+			'icon'	=> $icon,
 			'icon_html' => $image,
 		);
 		
@@ -978,17 +1135,31 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		if(count($arrClipboard) < 1)
 		{
-			$arrSession = \Session::getInstance()->get('CLIPBOARD');
+			$objSession = \Session::getInstance();
+			$arrSession = $objSession->get('CLIPBOARD');
 			$arrClipboard = $arrSession[$strTable];
 		}
-			
-		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
-			
+		
+		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
+		$icon = 'cut.'.$ext;	
+		
+		$image = '';
+		if(version_compare(VERSION, '4','>='))
+		{
+			$image = \Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+		}
+		else
+		{
+			$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+		}	
+		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
-			$html = \Image::getHtml('cut_.gif');
+			$html = '';
+			$icon = 'cut_.'.$ext;
+			$html = \Image::getHtml($icon);
+			
 		}
 		else
 		{
@@ -1000,7 +1171,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		(
 			'html' 	=> $html,
 			'href'	=> $href,
-			'icon'	=> 'cut.gif',
+			'icon'	=> $icon, #( version_compare(VERSION, '4','>=') ? 'cut.svg' : 'cut.gif' ),
 			'icon_html' => $image,
 		);
 		
@@ -1036,6 +1207,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$image_off =  \Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
 		$icon_on = 'system/themes/default/images/visible.gif';
 		$icon_off = 'system/themes/default/images/invisible.gif';
+		
+		if(version_compare(VERSION, '4', '>='))
+		{
+			$image_on = \Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+			$image_off =  \Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+			$icon_on = 'system/themes/flexible/icons/visible.svg';
+			$icon_off = 'system/themes/flexible/icons/invisible.svg';
+		}
 		
 		// Check permissions AFTER checking the tid, so hacking attempts are logged
 		#if (!$this->User->isAdmin && !$this->User->hasAccess('create', 'pct_customcatalogsp'))
@@ -1077,7 +1256,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	/**
 	 * Toggle the published setting of an entry
 	 * @param integer
-	 * @param 
+	 * @param boolean
 	 */
 	protected function toggleVisibility($intId, $blnVisible)
 	{

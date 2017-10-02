@@ -135,6 +135,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			'tableless' => true,
 		);
 		$objSaveSubmit = new \FormSubmit($arr);
+		$objSaveSubmit->addAttribute('value',$arr['value']);
 		$objSaveSubmit->tableless = true;
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
 		$this->Template->submitLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_save'] ?: 'Save';
@@ -152,6 +153,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			'tableless' => true,
 		);
 		$objSaveNcloseSubmit = new \FormSubmit($arr);
+		$objSaveNcloseSubmit->addAttribute('value',$arr['value']);
 		$this->Template->saveNcloseSubmit = $objSaveNcloseSubmit->parse();
 		$this->Template->saveNcloseLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back';
 		$this->saveNcloseSubmitName = $objSaveNcloseSubmit->__get('name');
