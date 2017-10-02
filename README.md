@@ -29,9 +29,37 @@ The plugin brings two new templates:
 + mod_customcatalogedit.html5
 + customcatalog_default_edit.html5
 
+Installation Contao 4.4.x
+------------
+Copy the module folder to /system/modules and update the database. Manually clear the internal cache (var/cache).
+Once the module is installed it will create a config.yml (or append an existing one) in the /app/config folder on first load.
++ If the file has not been created automatically copy the config.yml file coming with this extension to the /app/config folder (or append your config.yml)
+
++ If you already use a config.yml, append these configurations:
+‘‘‘
+# contao.picker.builder::customcatalog_frontedit
+services:
+   contao.picker.builder:
+      class: PCT\Contao\Picker\PickerBuilder
+      arguments:
+            - '@knp_menu.factory'
+            - '@router'
+            - '@request_stack'
+
+# contao.picker.page_provider::customcatalog_frontedit
+services:
+   contao.picker.page_provider:
+      class: PCT\Contao\Picker\PagePickerProvider
+
+# contao.picker.file_provider::customcatalog_frontedit
+services:
+   contao.picker.file_provider:
+      class: PCT\Contao\Picker\FilePickerProvider
+‘‘‘
+
 Activate CustomElement plugin
 ------------
-Navigate to "My Content elements" "Meine Inhaltselemente" > Plugin Management and enable the new plugin.
+Navigate to "My Content elements" / "Meine Inhaltselemente" > Plugin Management and enable the new plugin.
 
 Usage
 ------------
