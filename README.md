@@ -36,7 +36,7 @@ Once the module is installed it will create a config.yml (or append an existing 
 + If the file has not been created automatically copy the config.yml file coming with this extension to the /app/config folder (or append your config.yml)
 
 + If you already use a config.yml, append these configurations:
-‘‘‘
+```
 # contao.picker.builder::customcatalog_frontedit
 services:
    contao.picker.builder:
@@ -55,7 +55,7 @@ services:
 services:
    contao.picker.file_provider:
       class: PCT\Contao\Picker\FilePickerProvider
-‘‘‘
+```
 
 Activate CustomElement plugin
 ------------
