@@ -57,6 +57,11 @@ services:
       class: PCT\Contao\Picker\FilePickerProvider
 ```
 
+Deinstallation
+------------
++ Delete the module folder and clear the cache.
++ Contao 4.4.x: Delete the config.yml file or remove the configuration blocks from your custom config.yml
+
 Activate CustomElement plugin
 ------------
 Navigate to "My Content elements" / "Meine Inhaltselemente" > Plugin Management and enable the new plugin.
