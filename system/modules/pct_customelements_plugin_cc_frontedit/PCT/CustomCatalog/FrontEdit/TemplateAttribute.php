@@ -52,8 +52,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   }
 			       $arrFields[$field] = $_this;
 		        }
-			     $objRowTemplate->set('fields',$arrFields);
-		    }
+			    $objRowTemplate->set('fields',$arrFields);
+			    $objRowTemplate->set('field',$arrFields);
+			}
+			    
 	        $arrReturn[$i] = $objRowTemplate;
 		}
 		return $arrReturn;
