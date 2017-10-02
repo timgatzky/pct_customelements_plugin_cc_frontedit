@@ -3,34 +3,54 @@
 /**
  * Contao Open Source CMS
  * 
- * Copyright (C) 2005-2013 Leo Feyer
+ * Copyright (C) 2005-2015 Leo Feyer
  * 
- * @copyright	Tim Gatzky 2014, Premium Contao Webworks, Premium Contao Themes
+ * @copyright	Tim Gatzky 2017
  * @author		Tim Gatzky <info@tim-gatzky.de>
- * @package		pct_tabltree
+ * @package		pct_customelements
+ * @subpackage	pct_customelements_plugin_customcatalog
+ * @subpackage	pct_customelements_plugin_cc_frontedit
  * @link		http://contao.org
  */
 
 // Set the script name
-define('TL_SCRIPT', 'app.php');
+define('TL_SCRIPT', 'system/modules/pct_customelements_plugin_cc_frontedit/assets/html/tabletree.php');
 
 /**
  * Initialize the system
  */
 define('TL_MODE', 'FE');
 
-// Apache server
-if(strlen(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'apache')) > 0 || strlen(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'litespeed')) > 0 || strlen(strpos(strtolower($_SERVER['SERVER_SOFTWARE']), 'nginx')) > 0)
+$_subfolder = '';
+$_subs = array();
+$_dirs = array_filter(explode('/', $_SERVER['SCRIPT_NAME']));
+foreach($_dirs as $i => $part)
 {
-	$path_to_initialize = str_replace(substr($_SERVER['SCRIPT_FILENAME'], strpos($_SERVER['SCRIPT_FILENAME'],'system/modules')),'',$_SERVER['SCRIPT_FILENAME']).'system/initialize.php';
+	if($part == 'system' && $_dirs[$i+1] == 'modules')
+	{
+		break;
+	}
+	$_subs[] = $part;
+}
+if(count($_subs) > 0)
+{
+	$_subfolder = '/'.implode('/', $_subs).'/';
 }
 
-if(!file_exists($path_to_initialize) || strlen(strpos($path_to_initialize,'initialize.php')) < 1)
+// contao 3 structure
+if( file_exists( realpath($_SERVER['DOCUMENT_ROOT']). $_subfolder . '/system/initialize.php') )
 {
-	throw new \Exception('Contaos initialize.php not found in: '.$path_to_initialize);
+	require_once realpath($_SERVER['DOCUMENT_ROOT']). $_subfolder . '/system/initialize.php';
 }
-
-require_once $path_to_initialize;
+// contao 4 structure runs in a relative subfolder
+else if( file_exists( realpath($_SERVER['DOCUMENT_ROOT'].'/../') . '/system/initialize.php') )
+{
+	require_once realpath($_SERVER['DOCUMENT_ROOT'].'/../') . '/system/initialize.php';
+}
+else
+{
+	throw new \Exception('Contaos initialize.php not found');
+}
 
 /**
  * Instantiate the controller

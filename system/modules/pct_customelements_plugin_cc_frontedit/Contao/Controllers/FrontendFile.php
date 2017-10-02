@@ -65,19 +65,6 @@ class FrontendFile extends \Contao\BackendFile
 	
 	public function run()
 	{
-		if(version_compare(VERSION, '4.4','>='))
-		{
-			$objResponse = parent::run();
-			$strBuffer = $objResponse->getContent();
-			
-			header('Content-Type: text/html; charset=' . \Config::get('characterSet'));
-			echo $strBuffer;
-			
-			exit;
-			
-			return $objResponse;
-		}
-		
 		return parent::run();
 	}
 }	

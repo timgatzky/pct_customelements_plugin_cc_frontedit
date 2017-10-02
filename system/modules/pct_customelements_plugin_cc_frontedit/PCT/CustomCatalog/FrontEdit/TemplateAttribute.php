@@ -768,8 +768,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		// decode entities
 		$strBuffer = \StringUtil::decodeEntities($strBuffer);
-		
-		// rewrite the javascript calls to the Backend class
+	
+//! -- rewrite the javascript calls to the Backend class
+	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
 			$objFunctions = \PCT\CustomElements\Helper\Functions::getInstance();	
@@ -913,11 +914,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			unset($value);
 		}
 		
-		
 		// rewrite calls to the pct table tree widget
 		if(strlen(strpos($strBuffer, 'system/modules/pct_tabletree_widget/assets/html/PageTableTree.php')) > 0)
 		{
-			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/pct/tabletree.php',$strBuffer);
+			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/tabletree.php',$strBuffer);
 		}
 		
 		// !FORM_SUBMIT add to save list
