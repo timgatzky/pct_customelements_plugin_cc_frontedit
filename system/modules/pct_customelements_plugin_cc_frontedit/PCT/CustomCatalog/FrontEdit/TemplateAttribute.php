@@ -52,8 +52,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   }
 			       $arrFields[$field] = $_this;
 		        }
-			     $objRowTemplate->set('fields',$arrFields);
-		    }
+			    $objRowTemplate->set('fields',$arrFields);
+			    $objRowTemplate->set('field',$arrFields);
+			}
+			    
 	        $arrReturn[$i] = $objRowTemplate;
 		}
 		return $arrReturn;
@@ -101,6 +103,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if($objDC->activeRecord !== null)
 		{
 			$objDC->id = $objDC->activeRecord->id;
+			
+			// use the current record value
+			if($objDC->value != $objDC->value = $objDC->activeRecord->{$objDC->field})
+			{
+				$objDC->value = $objDC->activeRecord->{$objDC->field};
+			}
 		}
 		$objDC->objAttribute = $objAttribute;
 		$objDC->formSubmit = $objDC->table.'_'.\Input::post('mod');
@@ -110,7 +118,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$arrIds = $arrSession['CURRENT']['IDS'];
 		
 		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']) ?: array();
-		
+
 		// return when edit mode is not active
 		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModule->customcatalog_edit_active) )
 		{
@@ -318,6 +326,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 					   $strBuffer = str_replace('value=""', 'value="'.$objDC->value.'"',$strBuffer);
 					}
+					
+					if(version_compare(VERSION, '4','>='))
+					{
+						$search = array('$("ctrl_'.$objDC->field.'")','$("toggle_'.$objDC->field.'")','//');
+						$replace = array('$$("#ctrl_'.$objDC->field.'")[0]','$$("#toggle_'.$objDC->field.'")[0]','/');
+						$strBuffer = str_replace($search,$replace, $strBuffer);
+					}
 				}
 				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
@@ -328,6 +343,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
+					
+					// remove invalid spans from image title
+					if(version_compare(VERSION, '4.4','>='))
+					{
+						$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
+					}
 					
 					// value for database must be binary
 					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
@@ -430,8 +451,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// reorder
 					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
-						$newOrder = \Input::post($strOrderField.'_'.$objDC->field);
-						$objDC->value = \Input::post($strOrderField.'_'.$objDC->field);
+						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
+						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
 					}
 						
 					// values for database must be binary
@@ -458,12 +479,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					if($blnSubmitted)
 					{
-						$value = \Input::post($objDC->field);
-						if(!is_array($value))
-						{
-							$value = explode(',', $value ?: '');
-						}
-						$objDC->value = array('value'=>$value['value'],'unit'=>$value['unit']);
+						$objDC->value = array('value'=>$_POST[$objDC->field]['value'],'unit'=>$_POST[$objDC->field]['unit']);
 					}
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
@@ -471,9 +487,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// !TAGS attributes
 				else if($objAttribute->get('type') == 'tags')
 				{
-					// flag as ajax related field
-					$this->isAjaxField = true;
-					
 					// load js
 					$objCombiner = new \Combiner();
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
@@ -504,7 +517,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// database update
 					if($blnSubmitted & isset($_POST[$objDC->field]))
 					{
-						$objDC->value = \Input::post($objDC->field);
+						$objDC->value = $_POST[$objDC->field];
 						if($this->multiple && !is_array($objDC->value))
 						{
 							$objDC->value = array_filter(explode(',', $objDC->value));
@@ -515,7 +528,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						// save the order field
 						if(isset($_POST[$strOrderField.'_'.$objDC->field]))
 						{
-							$newOrder = is_array(\Input::post($strOrderField.'_'.$objDC->field)) ?\Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
+							$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? $_POST[$strOrderField.'_'.$objDC->field] : explode(',',$_POST[$strOrderField.'_'.$objDC->field]);
 							
 							$dc = clone($objDC);
 							$dc->field = $strOrderField.'_'.$objDC->field;
@@ -605,6 +618,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
+		
+		// make mootools jquery compatible
+		if(version_compare(VERSION, '4.4','>='))
+		{
+			$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+			$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+			$strBuffer = str_replace($search,$replace, $strBuffer);
+		}
 					
 		// wizards
 		if(count($arrFieldDef['wizard']) > 0)
@@ -615,6 +636,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 
+//! -- sortable
+
 		// make it sortable
 		if($this->sortable && strlen(strpos($strBuffer, 'ctrl_'.$strOrderField)) < 1)
 		{
@@ -622,16 +645,27 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			@$doc->loadHTML(preg_replace("/&(?!(?:apos|quot|[gl]t|amp);|#)/", "&amp;",$strBuffer));
 			$elem = $doc->getElementById('sort_'.$objDC->field);
 			
+			$value = $objDC->value;
+			if(is_array($value))
+			{
+				// convert binary values to uuid
+				if(in_array($objAttribute->get('type'), array('files','gallery')))
+				{
+					$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+				}
+			}
+			
 			if($elem)
 			{
 				$class = $doc->createAttribute('class');
 				$class->value = 'sortable' . ($arrFieldDef['eval']['isGallery'] ? ' sgallery':'');
 				$elem->appendChild($class);
-				
+					
 				$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 				$str .= $elem->C14N();
-				$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
-				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
+				$str .= '<input type="hidden" id="ctrl_'.$strOrderField.'_'.$objDC->field.'" name="'.$strOrderField.'_'.$objDC->field.'" value="'.$value.'">';
+				$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').');</script>';
+				
 				// replace sort container
 				$preg = preg_match('/<ul(.*?)\/ul>/', $strBuffer,$result); 
 				if($preg)
@@ -651,12 +685,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					
 					$str = '<p class="sort_hint">' . $GLOBALS['TL_LANG']['MSC']['dragItemsHint'] . '</p>';
 					$str .= $elem;
-					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$varValue.'">';
-					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_orderSRC_'.$objDC->field.'")</script>';
-					
+					$str .= '<input type="hidden" id="ctrl_orderSRC_'.$objDC->field.'" name="orderSRC_'.$objDC->field.'" value="'.$value.'">';
+					$str .= '<script>Backend.makeMultiSrcSortable("sort_'.$objDC->field.'", "ctrl_'.$strOrderField.'_'.$objDC->field.'"'.(version_compare(VERSION, '4.4','>=') ? ', "ctrl_'.$objDC->field.'"':'').');</script>';
+	
 					$strBuffer = str_replace($result[0], $str, $strBuffer);
 				}
 			}
+			
+			unset($value);
 		}
 		
 		// render child attributes
@@ -680,9 +716,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				
 				$objChildWidget->__set('value',$value);
 				
-				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && \Input::post($dc->field) != $value)
+				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
 				{
-					$value = \Input::post($dc->field);
+					$value = $_POST[$dc->field];
 					
 					if(!$blnSubmitted)
 					{
@@ -732,7 +768,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$strBuffer = $strBufferFromHook;
 		}
 		
-		// rewrite the javascript calls to the Backend class
+		// decode entities
+		$strBuffer = \StringUtil::decodeEntities($strBuffer);
+	
+//! -- rewrite the javascript calls to the Backend class
+	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
 			$objFunctions = \PCT\CustomElements\Helper\Functions::getInstance();	
@@ -789,27 +829,97 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 					
+					// contao 4 pickers
+					if(version_compare(VERSION, '4.4','>='))
+					{
+						if($method == 'openModalSelector')
+						{
+							$strBuffer = str_replace('$("pt_'.$objDC->field.'")','$$("#pt_'.$objDC->field.'")[0]', $strBuffer);
+							$strBuffer = str_replace('this.href + document.getElementById("ctrl_'.$objDC->field.'")', 'this.href', $strBuffer);
+							$strBuffer = str_replace('this.href.value', 'this.href', $strBuffer);
+							
+							// inject the AjaxRequest loading box
+							if(strlen(strpos($strBuffer,'"callback":')) > 0)
+							{
+								$search = array('$("ft_'.$objDC->field.'")','$("ctrl_'.$objDC->field.'")');
+								$replace = array('$$("#ft_'.$objDC->field.'")[0]','$$("#ctrl_'.$objDC->field.'")[0]');
+								$strBuffer = str_replace('onSuccess',"onRequest: AjaxRequest.displayBox(Contao.lang.loading + ' …'),onSuccess", $strBuffer);
+							}
+							
+							$strBuffer = str_replace('Browser.exec(json.javascript);',"Browser.exec(json.javascript);AjaxRequest.hideBox();window.fireEvent('ajax_change');",$strBuffer);
+						}
+					}
+					
+					
 					$processed[] = $func;
 				}
 			}
 		}
 		
+//! -- rewrite popup locations and pickers
+
 		// rewrite calls to the contao/file.php from file pickers
-		if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
+		if(version_compare(VERSION,'4','<'))
 		{
-			$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/file.php',$strBuffer);
+			if(strlen(strpos($strBuffer, 'contao/file.php')) > 0)
+			{
+				$strBuffer = str_replace('contao/file.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/file.php',$strBuffer);
+			}
+			
+			// rewrite calls to the contao/page.php e.g. from page pickers
+			if(strlen(strpos($strBuffer, 'contao/page.php')) > 0)
+			{
+				$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/page.php',$strBuffer);
+			}
 		}
 		
-		// rewrite calls to the contao/page.php e.g. from page pickers
-		if(strlen(strpos($strBuffer, 'contao/page.php')) > 0)
+		// Contao 4, pickers
+		if(strlen(strpos($strBuffer, 'picker_builder=1')) > 0)
 		{
-			$strBuffer = str_replace('contao/page.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/contao/page.php',$strBuffer);
+			$value = $objDC->value;
+			
+			// convert values
+			if(!empty($value))
+			{
+				if(\Validator::isBinaryUuid($value))
+				{
+					$value = \StringUtil::binToUuid($value);
+				}
+				else if($this->multiple && is_array($value))
+				{
+					// convert binary to uuid
+					if( in_array($objAttribute->get('type'), array('files','gallery')) )
+					{
+						$value = array_map('\StringUtil::binToUuid',array_filter($value));
+					}
+				}
+			}
+			
+			if(is_array($value))
+			{
+				$value = implode(',', $value);
+			}
+			
+			$params = array
+			(
+				'_table' 	=> \Input::get('table'),
+				'_id'		=> \Input::get('id'),
+				'_field'	=> \Input::get('field'),
+				#'act'	=> 'show',
+				'rt'		=> REQUEST_TOKEN,
+				'picker' 	=> $objDC->field,
+				'value' 	=> $value,
+			);
+			
+			$strBuffer = str_replace('picker_builder=1', http_build_query($params), $strBuffer);
+			unset($params);
+			unset($value);
 		}
 		
 		// rewrite calls to the pct table tree widget
 		if(strlen(strpos($strBuffer, 'system/modules/pct_tabletree_widget/assets/html/PageTableTree.php')) > 0)
 		{
-			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/pct/tabletree.php',$strBuffer);
+			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/tabletree.php',$strBuffer);
 		}
 		
 		// !FORM_SUBMIT add to save list
@@ -849,10 +959,40 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$objDC->value = \StringUtil::decodeEntities($objDC->value);
 			}
 			
+							
+			// custom order
+			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
+			{
+				$objDC->value = \Input::post('orderSRC_'.$objDC->field);
+			
+				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? \Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
+				
+				// save the order field
+				$dc = clone($objDC);
+				$dc->field = $strOrderField.'_'.$objDC->field;
+				
+				// convert to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) )
+				{
+					$dc->value = array_map('\StringUtil::uuidToBin',$dc->value);
+				}
+				
+				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
+			}
+			
 			// multiple values in blob fields
 			if(!is_array($objDC->value) && $objAttribute->get('eval_multiple') && strlen(strpos(strtolower($arrFieldDef['sql']),'blob')) > 0)
 			{
-				$objDC->value = explode(',',$objDC->value);
+				if(!is_array($objDC->value))
+				{
+					$objDC->value = array_filter(explode(',', $objDC->value));
+				}
+				
+				// convert to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) )
+				{
+					$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
+				}
 			}
 			
 			if(\Input::get('act') == 'fe_overrideAll')
@@ -869,14 +1009,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			else
 			{
 				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$objDC);
-			}
-			
-			// respect orderSRC fields
-			if($this->sortable && \Input::post($strOrderField.'_'.$objDC->field) != '')
-			{
-				$dc = clone($objDC);
-				$dc->field = $strOrderField.'_'.$objDC->field;
-				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($objDC->value,$dc);
 			}
 			
 			// remove the session
@@ -904,25 +1036,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$this->widget->id = $objWidget->__get('name');
 		$this->widget->ajax = $blnIsAjax;
 		
-		if($blnIsAjax)
-		{
-			// preserve scripts
-			$orig_allowedTags = \Config::get('allowedTags');
-			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
-			$buffer = $strBuffer;
-			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
-			
-			// store buffer in the session
-			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
-			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
-			
-			$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
-			
-			// reset to standard
-			\Config::set('allowedTags', $orig_allowedTags);
-		}
-		
 		$arrClasses = array('block');
 		$arrClasses[] = $objAttribute->get('type');
 		
@@ -935,15 +1048,33 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
-		if($blnIsAjax && ($this->isAjaxField || $arrFieldDef['eval']['isAjaxField']) )
+		if($blnIsAjax && $this->isAjaxField)
 		{
-		   $js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
-		   $js_helper->widget = $this->widget;
-		   $js_helper->dataContainer = $objDC;
-		   $js_helper->field = $objDC->field;
-		   $js_helper->session = $arrFeSession[$objDC->table];
-		   $js_helper->isAjax = $objDC->isAjax;
-		   $strBuffer .= $js_helper->parse();
+			// preserve scripts
+			$orig_allowedTags = \Config::get('allowedTags');
+			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
+			$buffer = $strBuffer;
+			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
+			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
+			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+			
+			$strAjaxBuffer = $buffer;
+			
+			// store buffer in the session
+			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
+			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
+			
+			// reset to standard
+			\Config::set('allowedTags', $orig_allowedTags);
+			
+			$js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
+			$js_helper->widget = $this->widget;
+			$js_helper->dataContainer = $objDC;
+			$js_helper->field = $objDC->field;
+			#$js_helper->session = $arrFeSession[$objDC->table];
+			$js_helper->isAjax = $objDC->isAjax;
+			$js_helper->buffer = $strAjaxBuffer;
+			$strBuffer .= $js_helper->parse();
 		}
 		
 		// remove helper sessions

@@ -1,0 +1,19 @@
+
+# contao.picker.builder::customcatalog_frontedit
+services:
+   contao.picker.builder:
+      class: PCT\Contao\Picker\PickerBuilder
+      arguments:
+            - '@knp_menu.factory'
+            - '@router'
+            - '@request_stack'
+
+# contao.picker.page_provider::customcatalog_frontedit
+services:
+   contao.picker.page_provider:
+      class: PCT\Contao\Picker\PagePickerProvider
+
+# contao.picker.file_provider::customcatalog_frontedit
+services:
+   contao.picker.file_provider:
+      class: PCT\Contao\Picker\FilePickerProvider
