@@ -58,7 +58,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			    $arrProcessed[] = $field;
 			}
 			
-			// precess the field array
+			// prpcess the field array
 			if(count($objRowTemplate->get('field')) > 0)
 			{
 				$arrFields = $objRowTemplate->get('field');
