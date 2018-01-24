@@ -1,4 +1,5 @@
 ### 1.4.1
+Fixed: ->field() method did not return the attribute correctly
 Update: Put constants in quotations for php 7.2
 
 ### 1.4.0
