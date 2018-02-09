@@ -1,3 +1,7 @@
+### 1.4.1
+Fixed: ->field() method did not return the attribute correctly
+Update: Put constants in quotations for php 7.2
+
 ### 1.4.0
 Update: Contao 4 related updates (#29)
 Update: Support direct widget access through ->field('ALIAS-OF-THE-ATTRIBUTE')->widget() (#23)
