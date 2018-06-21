@@ -41,7 +41,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$arrProcessed = array();
 		foreach($arrEntries as $i => $objRowTemplate)
 		{
-			if(count($objRowTemplate->get('fields')) > 0)
+			if(!empty($objRowTemplate->get('fields')))
 	        {
 		    	$arrFields = $objRowTemplate->get('fields');
 		    	foreach($arrFields as $field => $objAttributeTemplate)
@@ -59,7 +59,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 			
 			// process the field array
-			if(count($objRowTemplate->get('field')) > 0)
+			if(!empty($objRowTemplate->get('field')))
 			{
 				$arrFields = $objRowTemplate->get('field');
 		    	foreach($arrFields as $field => $objAttributeTemplate)
