@@ -1,3 +1,6 @@
+### 1.4.2
+Fixed: Load module templates selection correctly under Contao 4.4
+
 ### 1.4.1
 Fixed: ->field() method did not return the attribute correctly
 Update: Put constants in quotations for php 7.2
