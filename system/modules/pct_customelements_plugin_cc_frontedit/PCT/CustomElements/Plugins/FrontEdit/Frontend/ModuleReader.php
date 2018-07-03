@@ -66,7 +66,14 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions( \Input::get('table'), \Input::get('id') ) )
 			{
 				$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
-				die_nicely('', $objTemplate->parse());
+				if(version_compare(VERSION, '4.4', '>='))
+				{
+					throw new \Contao\CoreBundle\Exception\AccessDeniedException( $objTemplate->parse() );
+				}
+				else
+				{
+					die_nicely('',$objTemplate->parse()); 
+				}
 			}
 		}
 		
