@@ -105,6 +105,9 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			return '<p class="error">CustomCatalog not found</p>';
 		}
 		
+		// apply operations
+		\PCT\CustomCatalog\FrontEdit\Controller::applyOperationsOnGeneratePage($objPage);
+		
 		// load language file
 		\System::loadLanguageFile('default');
 		

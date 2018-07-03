@@ -108,6 +108,9 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			return '<p class="error">CustomCatalog not found</p>';
 		}
 		
+		// apply operations
+		\PCT\CustomCatalog\FrontEdit\Controller::applyOperationsOnGeneratePage($objPage);
+		
 		$objCC = $this->CustomCatalog;
 		
 		$objOrigTemplate = $this->Template;
