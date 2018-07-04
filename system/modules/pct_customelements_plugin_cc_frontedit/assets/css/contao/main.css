@@ -22,3 +22,5 @@ body.popup #tl_buttons {display: none;}
 	background:#fff;
 	opacity: 0.5;
 }
+
+.datepicker_bootstrap {z-index: 9999;}
