@@ -61,19 +61,30 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 
 		// check permissions when entry is editable
-		if( \Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable() )
+		if( \Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable(\Input::get('table'), \Input::get('id')) )
 		{
-			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions( \Input::get('table'), \Input::get('id') ) )
+			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions() )
 			{
-				$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
-				if(version_compare(VERSION, '4.4', '>='))
-				{
-					throw new \Contao\CoreBundle\Exception\AccessDeniedException( $objTemplate->parse() );
-				}
-				else
-				{
-					die_nicely('',$objTemplate->parse()); 
-				}
+				$this->hasAccess = false;
+			}
+			
+			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+			{
+				$this->hasAccess = false;
+			}
+		}
+		
+		if($this->hasAccess === false)
+		{
+			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
+			if(version_compare(VERSION, '4.4', '>='))
+			{
+				throw new \Contao\CoreBundle\Exception\AccessDeniedException( $objTemplate->parse() );
+			}
+			else
+			{
+				die_nicely('',$objTemplate->parse()); 
 			}
 		}
 		
