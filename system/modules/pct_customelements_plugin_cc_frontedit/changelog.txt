@@ -1,9 +1,8 @@
-### 1.4.3
-Fixed: Operations should only be applied within the module process not on [generatePage]
-Update: Throw Contao 4 compatible exceptions
-
 ### 1.4.2
 Fixed: Load module templates selection correctly under Contao 4.4
+Fixed: Operations should only be applied within the module process not on [generatePage]
+Fixed: Authenticate users when not done before (#74)
+Update: Throw Contao 4 compatible exceptions
 
 ### 1.4.1
 Fixed: ->field() method did not return the attribute correctly
