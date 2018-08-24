@@ -33,13 +33,26 @@ class BackendMain extends \Contao\BackendMain
 		{
 			return parent::__construct();
 		}
-	
+		
 		\System::loadLanguageFile('default');
 		
-		// import the fe user as cached User class for further use
-		$this->import('PCT\Contao\_FrontendUser', 'User');
-		// trick Contaos access level and simulate an admin here
-		$this->User->admin = 1;
+		if(FE_USER_LOGGED_IN || (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
+		{
+			$objUser = \FrontendUser::getInstance();
+			
+			// import the fe user as cached User class for further use
+			$this->import('\FrontendUser', 'User');
+			
+			// authenticate user
+			if($this->User->id < 1)
+			{
+				$this->User->authenticate();
+			}
+		
+			$this->User = new \PCT\Contao\_FrontendUser($objUser);
+			// trick Contaos access level and simulate an admin here
+			$this->User->admin = 1;
+		}
 	}
 	
 	

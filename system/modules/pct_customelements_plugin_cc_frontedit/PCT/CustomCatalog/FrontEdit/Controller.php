@@ -755,7 +755,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
 		{
 			header('HTTP/1.1 400 Bad Request');
-			if(version_compare(VERSION, '4', '<'))
+			if(version_compare(VERSION, '4.4', '>='))
+			{
+				throw new \Contao\CoreBundle\Exception\InvalidRequestTokenException('Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
+			}
+			else
 			{
 				die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
 			}

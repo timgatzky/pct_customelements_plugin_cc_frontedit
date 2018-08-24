@@ -64,6 +64,10 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 		if(FE_USER_LOGGED_IN)
 		{
 			$objFrontendUser = \FrontendUser::getInstance();
+			if($objFrontendUser->id === null)
+			{
+				$objFrontendUser->authenticate();
+			}
 		}
 		
 		// @var object \PCT\Contao\_FrontendUser

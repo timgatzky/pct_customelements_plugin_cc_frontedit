@@ -19,6 +19,12 @@
 $objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getInstance()->setTable('tl_module');
 
 /**
+ * Config
+ */
+$GLOBALS['TL_DCA']['tl_module']['config']['onload_callback'][] = array('PCT\CustomElements\Plugins\FrontEdit\Backend\TableModule', 'modifyDca');
+
+
+/**
  * Palettes
  */
 // customcataloglist
