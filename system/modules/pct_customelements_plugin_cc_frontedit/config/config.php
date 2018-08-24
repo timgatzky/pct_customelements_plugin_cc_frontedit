@@ -17,7 +17,7 @@
  * Constants
  */ 
 define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH','system/modules/pct_customelements_plugin_cc_frontedit');
-define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.4.3');
+define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.4.2');
 
 /**
  * Globals
