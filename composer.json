@@ -1,6 +1,6 @@
 {
 	"name":"premium-contao-themes/pct_customelements_plugin_cc_frontedit",
-	"description":"Frontend editing tool for Premium Contao Themes CustomCatalog Module: https://cc.feedit.premium-contao-themes.com/",
+	"description":"Frontend editing tool for Premium Contao Themes CustomCatalog Module: https://cc.feedit.premium-contao-themes.com",
 	"keywords":["contao","customcatalog","catalog","customelements","themes","premiumcontaothemes","premium-contao-themes"],
 	"type":"contao-module",
     "homepage":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit",
@@ -23,7 +23,7 @@
 		"issues":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit/issues",
 		"source":"https://github.com/timgatzky/pct_customelements_plugin_cc_frontedit",
 		"forum":"https://forum.premium-contao-themes.com",
-		"example":"http://cc.feedit.ratings.premium-contao-themes.com"
+		"example":"http://cc.feedit.premium-contao-themes.com"
 	},
 	"require":
 	{
