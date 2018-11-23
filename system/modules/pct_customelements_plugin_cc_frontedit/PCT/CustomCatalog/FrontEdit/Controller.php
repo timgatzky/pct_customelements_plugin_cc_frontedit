@@ -639,7 +639,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 				
 				// add the request token
-				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
 				{
 					$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
 				}
@@ -669,13 +669,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
 			
 			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-			{
-				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
-			}
-			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck']  && \Input::get('rt') == '')
 			{
 				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
 			}
@@ -1026,7 +1020,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 			
 			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
 			{
 				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}
@@ -1102,7 +1096,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 			
 			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
+			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
 			{
 				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}

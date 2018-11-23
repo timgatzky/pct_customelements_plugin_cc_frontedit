@@ -17,7 +17,7 @@
  * Constants
  */ 
 define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH','system/modules/pct_customelements_plugin_cc_frontedit');
-define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.4.2');
+define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.4.4');
 
 /**
  * Globals
@@ -39,6 +39,15 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['uploadableAttributes']						= array('im
 // usage: entry level, restrict certain operations
 // $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']['myTable'][10] = array('keys'=>array('copy')) // show only copy button for entry id=10
 $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
+
+
+/**
+ * Front end modules
+ */
+// new customcataloglist class
+$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList';
+// new customcatalogreader class
+$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogreader'] 	= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader';
 
 
 /**
@@ -68,21 +77,12 @@ if($blnInitialize)
 {
 	// set excludes
 	$GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes'] = \PCT\CustomElements\Core\PluginFactory::getExcludes('cc_frontedit');
-	
-	/**
-	 * Front end modules
-	 */
-	// new customcataloglist class
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList';
-	// new customcatalogreader class
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogreader'] 	= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader';
 }
-
 
 /**
  * Hooks
  */
-if($blnInitialize)
+if($blnInitialize === true)
 {
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\TemplateAttribute','__override');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\RowTemplate','__override');
