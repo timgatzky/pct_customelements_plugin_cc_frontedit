@@ -40,6 +40,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			return parent::generate();
 		}
 		
+		// write system log when plugin is not activated
+		if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()))
+		{
+			// load language file
+			\System::loadLanguageFile('exception');
+			// write log
+			\System::log('CustomCatalog Frontedit plugin not activated as CustomElement plugin yet' ,__METHOD__,TL_ERROR);
+			return sprintf($GLOBALS['TL_LANG']['XPT']['cc_edit_plugin_not_active'],$this->id);
+		}
+		
 		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($this->customcatalog);
 		if(!$objCC)
 		{

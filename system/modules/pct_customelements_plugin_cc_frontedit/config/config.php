@@ -42,6 +42,15 @@ $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE']									= array();
 
 
 /**
+ * Front end modules
+ */
+// new customcataloglist class
+$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList';
+// new customcatalogreader class
+$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogreader'] 	= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader';
+
+
+/**
  * Register plugin
  */
 $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
@@ -68,21 +77,12 @@ if($blnInitialize)
 {
 	// set excludes
 	$GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes'] = \PCT\CustomElements\Core\PluginFactory::getExcludes('cc_frontedit');
-	
-	/**
-	 * Front end modules
-	 */
-	// new customcataloglist class
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcataloglist'] 		= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleList';
-	// new customcatalogreader class
-	$GLOBALS['FE_MOD']['pct_customcatalog_node']['customcatalogreader'] 	= 'PCT\CustomElements\Plugins\FrontEdit\Frontend\ModuleReader';
 }
-
 
 /**
  * Hooks
  */
-if($blnInitialize)
+if($blnInitialize === true)
 {
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\TemplateAttribute','__override');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['getEntries'][] 		= array('PCT\CustomCatalog\FrontEdit\RowTemplate','__override');

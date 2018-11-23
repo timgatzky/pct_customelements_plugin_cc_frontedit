@@ -18,3 +18,4 @@ $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission'] 				= 'Keine FrontEdit Rechte
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_info'] 		= 'Ihr Benutzer verfügt über unzureichende Rechte zum Bearbeiten dieses Eintrags.';
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_hint'] 		= '';
 $GLOBALS['TL_LANG']['XPT']['cc_edit_noPermission_referer'] 		= 'Klicken Sie diesen Link %s, um die Bearbeitungsebene zu verlassen.';
+$GLOBALS['TL_LANG']['XPT']['cc_edit_plugin_not_active'] 		= 'Bitte aktivieren Sie das CustomCatalog Frontedit Plugin unter "Meine Inhaltselemente > Plugin verwalten" um auf alle Funktionen der Frontend-Bearbeitung für das Modul (id=%s) zurückgreifen zu können.';
