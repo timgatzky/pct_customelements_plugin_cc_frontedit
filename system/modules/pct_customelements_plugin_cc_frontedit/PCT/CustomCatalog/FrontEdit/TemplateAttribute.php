@@ -475,8 +475,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// reorder
 					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
-						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
-						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
+						$newOrder = \Input::post($strOrderField.'_'.$objDC->field);
+						$objDC->value = \Input::post($strOrderField.'_'.$objDC->field);
 					}
 						
 					// values for database must be binary
