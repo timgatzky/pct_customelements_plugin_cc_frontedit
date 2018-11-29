@@ -16,13 +16,13 @@ $referer = '<a href="'.$this->replaceInsertTags('{{link_url::'.$objPage->rootId.
 
    <style>
    <?php
-    if(file_exists(TL_ASSETS_URL . '/system/themes/flexible/basic.css'))
+	if(file_exists(TL_ROOT . '/system/themes/flexible/basic.css'))
     {
-	    include TL_ASSETS_URL . '/system/themes/flexible/basic.css';
+	    include TL_ROOT . '/system/themes/flexible/basic.css';
     }
-    if(file_exists(TL_ASSETS_URL . '/system/themes/flexible/error.css'))
+    if(file_exists(TL_ROOT . '/system/themes/flexible/error.css'))
     {
-	    include TL_ASSETS_URL . '/system/themes/flexible/error.css';
+	    include TL_ROOT . '/system/themes/flexible/error.css';
     }
   	?>
   </style>
