@@ -652,7 +652,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 					
 		// wizards
-		if(count($arrFieldDef['wizard']) > 0)
+		if(!empty($arrFieldDef['wizard']) && is_array($arrFieldDef['wizard']))
 		{
 			foreach($arrFieldDef['wizard'] as $callback)
 			{

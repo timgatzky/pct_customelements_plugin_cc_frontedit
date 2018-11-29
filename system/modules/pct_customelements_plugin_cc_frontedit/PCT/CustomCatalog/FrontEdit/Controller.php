@@ -786,7 +786,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			return;
 		}
 			
-		if(!defined(CURRENT_ID)) {define(CURRENT_ID, \Input::get('id'));}
+		if(!defined('CURRENT_ID')) {define('CURRENT_ID', \Input::get('id'));}
 		
 		// Set a user ID for versions
 		$objUser = new \StdClass;
