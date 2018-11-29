@@ -905,17 +905,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// convert values
 			if(!empty($value))
 			{
-				if(\Validator::isBinaryUuid($value))
-				{
-					$value = \StringUtil::binToUuid($value);
-				}
-				else if($this->multiple && is_array($value))
+				if($this->multiple && is_array($value))
 				{
 					// convert binary to uuid
 					if( in_array($objAttribute->get('type'), array('files','gallery')) )
 					{
 						$value = array_map('\StringUtil::binToUuid',array_filter($value));
 					}
+				}
+				else if(\Validator::isBinaryUuid($value))
+				{
+					$value = \StringUtil::binToUuid($value);
 				}
 			}
 			
