@@ -1017,6 +1017,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 			
+			// autosubmit member id to protection attribute when submitted empty
+			if($objAttribute->get('type') == 'protection' && FE_USER_LOGGED_IN && $objAttribute->get('isDownload') && empty($objDC->value))
+			{
+				$objUser = \FrontendUser::getInstance();
+				$objDC->value = $objUser->id;
+				unset($objUser);
+			}
+				
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
