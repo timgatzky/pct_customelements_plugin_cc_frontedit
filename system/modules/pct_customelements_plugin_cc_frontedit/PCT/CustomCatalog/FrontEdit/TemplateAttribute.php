@@ -670,14 +670,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$elem = $doc->getElementById('sort_'.$objDC->field);
 			
 			$value = $objDC->value;
-			if(is_array($value))
-			{
-				// convert binary values to uuid
-				if(in_array($objAttribute->get('type'), array('files','gallery')))
-				{
-					$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
-				}
-			}
+		
+			#if(is_array($value))
+			#{
+			#	// convert binary values to uuid
+			#	if(in_array($objAttribute->get('type'), array('files','gallery')))
+			#	{
+			#		$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+			#	}
+			#}
 			
 			if($elem)
 			{
@@ -902,22 +903,22 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$value = $objDC->value;
 			
-			// convert values
-			if(!empty($value))
-			{
-				if($this->multiple && is_array($value))
-				{
-					// convert binary to uuid
-					if( in_array($objAttribute->get('type'), array('files','gallery')) )
-					{
-						$value = array_map('\StringUtil::binToUuid',array_filter($value));
-					}
-				}
-				else if(\Validator::isBinaryUuid($value))
-				{
-					$value = \StringUtil::binToUuid($value);
-				}
-			}
+			#// convert values
+			#if(!empty($value))
+			#{
+			#	if($this->multiple && is_array($value))
+			#	{
+			#		// convert binary to uuid
+			#		if( in_array($objAttribute->get('type'), array('files','gallery')) )
+			#		{
+			#			$value = array_map('\StringUtil::binToUuid',array_filter($value));
+			#		}
+			#	}
+			#	else if(\Validator::isBinaryUuid($value))
+			#	{
+			#		$value = \StringUtil::binToUuid($value);
+			#	}
+			#}
 			
 			if(is_array($value))
 			{
@@ -1248,7 +1249,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$setSetValue = array_filter($setSetValue);
 				
 				$objDatabase = \Database::getInstance();
-				if(count($setSetValue[$objWidget->name]) > 0 && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
+				if(!empty($setSetValue[$objWidget->name]) && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
 				{
 					$setValue = $setSetValue[ $objWidget->name ];
 					if(!$arrSettings['multiple'] && is_array($setValue))
