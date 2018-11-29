@@ -85,6 +85,12 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			}
 		}
 		
+		// grand access even when not logged in
+		if( (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true )
+		{
+			$this->hasAccess = true;
+		}
+		
 		if($this->hasAccess === false)
 		{
 			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
