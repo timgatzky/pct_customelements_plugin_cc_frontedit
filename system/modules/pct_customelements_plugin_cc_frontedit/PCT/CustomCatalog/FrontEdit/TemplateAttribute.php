@@ -987,21 +987,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// custom order
 			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
 			{
-				$objDC->value = \Input::post('orderSRC_'.$objDC->field);
-			
 				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? \Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
 				
 				// save the order field
 				$dc = clone($objDC);
 				$dc->field = $strOrderField.'_'.$objDC->field;
 				
-				// convert to binary
-				if( in_array($objAttribute->get('type'), array('files','gallery')) )
-				{
-					$dc->value = array_map('\StringUtil::uuidToBin',$dc->value);
-				}
-				
 				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
+			
+				// convert new order to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) && $objAttribute->get('eval_multiple') )
+				{
+					$objDC->value = array_map('\StringUtil::uuidToBin',$newOrder);
+				}
 			}
 			
 			// multiple values in blob fields
