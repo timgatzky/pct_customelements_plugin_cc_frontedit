@@ -14,10 +14,18 @@ $referer = '<a href="'.$this->replaceInsertTags('{{link_url::'.$objPage->rootId.
   <meta name="generator" content="Contao Open Source CMS">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-   <style><?php
-    include TL_ROOT . '/system/themes/flexible/basic.css';
-    include TL_ROOT . '/system/themes/flexible/error.css';
-  ?></style>
+   <style>
+   <?php
+    if(file_exists(TL_ASSETS_URL . '/system/themes/flexible/basic.css'))
+    {
+	    include TL_ASSETS_URL . '/system/themes/flexible/basic.css';
+    }
+    if(file_exists(TL_ASSETS_URL . '/system/themes/flexible/error.css'))
+    {
+	    include TL_ASSETS_URL . '/system/themes/flexible/error.css';
+    }
+  	?>
+  </style>
 
 </head>
 <body class="<?= \Environment::get('agent')->class ?>">
