@@ -1,6 +1,8 @@
 ### 1.4.4
 Fixed: Contao 4: Check if the url already has a request token to avoid duplicate REQUEST_TOKEN calls that might cause trouble in Contao 4 (#54)
+Fixed: Wrong value in file(s) attributes when attribute can be sorted manually (#59)
 Update: Write System log information when Plugin is not activated but a list or reader module called in the frontend (#55)
+Update: Always gain access to list or reader module when global setting is "allowAll" (#62)
 
 ### 1.4.3
 No changes just added packagist composer.json in repository
