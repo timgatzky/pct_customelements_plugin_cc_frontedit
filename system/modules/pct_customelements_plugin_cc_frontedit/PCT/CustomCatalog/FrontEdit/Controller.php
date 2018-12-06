@@ -154,12 +154,15 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			{
 				// grab original
 				$strOrigFile = TL_ASSETS_URL.'bundles/contaocore/core.js';
+				
 				$objFile = new \File($strOrigFile,true);
-				$strContent = $objFile->getContent();
+				$strContent = ''; #$objFile->getContent();
+				
 				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
 				{
 					$strContent = file_get_contents($strOrigFile);
 				}
+				
 				if(strlen($strContent) > 0)
 				{
 					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
@@ -186,8 +189,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			{
 				// grab original
 				$strOrigFile = TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js';
-				$objFile = new \File($strOrigFile,true);
-				$strContent = $objFile->getContent();
+				#$objFile = new \File($strOrigFile,true);
+				$strContent = ''; #$objFile->getContent();
 				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
 				{
 					$strContent = file_get_contents($strOrigFile);
@@ -786,7 +789,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			return;
 		}
 			
-		if(!defined(CURRENT_ID)) {define(CURRENT_ID, \Input::get('id'));}
+		if(!defined('CURRENT_ID')) {define('CURRENT_ID', \Input::get('id'));}
 		
 		// Set a user ID for versions
 		$objUser = new \StdClass;

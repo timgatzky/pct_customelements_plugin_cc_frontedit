@@ -475,8 +475,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// reorder
 					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
-						$newOrder = $_POST[$strOrderField.'_'.$objDC->field];
-						$objDC->value = $_POST[$strOrderField.'_'.$objDC->field];
+						$newOrder = \Input::post($strOrderField.'_'.$objDC->field);
+						$objDC->value = \Input::post($strOrderField.'_'.$objDC->field);
 					}
 						
 					// values for database must be binary
@@ -652,7 +652,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 					
 		// wizards
-		if(count($arrFieldDef['wizard']) > 0)
+		if(!empty($arrFieldDef['wizard']) && is_array($arrFieldDef['wizard']))
 		{
 			foreach($arrFieldDef['wizard'] as $callback)
 			{
@@ -670,14 +670,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$elem = $doc->getElementById('sort_'.$objDC->field);
 			
 			$value = $objDC->value;
-			if(is_array($value))
-			{
-				// convert binary values to uuid
-				if(in_array($objAttribute->get('type'), array('files','gallery')))
-				{
-					$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
-				}
-			}
+		
+			#if(is_array($value))
+			#{
+			#	// convert binary values to uuid
+			#	if(in_array($objAttribute->get('type'), array('files','gallery')))
+			#	{
+			#		$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+			#	}
+			#}
 			
 			if($elem)
 			{
@@ -902,22 +903,22 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$value = $objDC->value;
 			
-			// convert values
-			if(!empty($value))
-			{
-				if(\Validator::isBinaryUuid($value))
-				{
-					$value = \StringUtil::binToUuid($value);
-				}
-				else if($this->multiple && is_array($value))
-				{
-					// convert binary to uuid
-					if( in_array($objAttribute->get('type'), array('files','gallery')) )
-					{
-						$value = array_map('\StringUtil::binToUuid',array_filter($value));
-					}
-				}
-			}
+			#// convert values
+			#if(!empty($value))
+			#{
+			#	if($this->multiple && is_array($value))
+			#	{
+			#		// convert binary to uuid
+			#		if( in_array($objAttribute->get('type'), array('files','gallery')) )
+			#		{
+			#			$value = array_map('\StringUtil::binToUuid',array_filter($value));
+			#		}
+			#	}
+			#	else if(\Validator::isBinaryUuid($value))
+			#	{
+			#		$value = \StringUtil::binToUuid($value);
+			#	}
+			#}
 			
 			if(is_array($value))
 			{
@@ -987,21 +988,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// custom order
 			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
 			{
-				$objDC->value = \Input::post('orderSRC_'.$objDC->field);
-			
 				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? \Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
 				
 				// save the order field
 				$dc = clone($objDC);
 				$dc->field = $strOrderField.'_'.$objDC->field;
 				
-				// convert to binary
-				if( in_array($objAttribute->get('type'), array('files','gallery')) )
-				{
-					$dc->value = array_map('\StringUtil::uuidToBin',$dc->value);
-				}
-				
 				\PCT\CustomCatalog\FrontEdit::addToDatabaseSetlist($newOrder,$dc);
+			
+				// convert new order to binary
+				if( in_array($objAttribute->get('type'), array('files','gallery')) && $objAttribute->get('eval_multiple') )
+				{
+					$objDC->value = array_map('\StringUtil::uuidToBin',$newOrder);
+				}
 			}
 			
 			// multiple values in blob fields
@@ -1019,6 +1018,14 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				}
 			}
 			
+			// autosubmit member id to protection attribute when submitted empty
+			if($objAttribute->get('type') == 'protection' && FE_USER_LOGGED_IN && $objAttribute->get('isDownload') && empty($objDC->value))
+			{
+				$objUser = \FrontendUser::getInstance();
+				$objDC->value = $objUser->id;
+				unset($objUser);
+			}
+				
 			if(\Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
@@ -1242,7 +1249,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$setSetValue = array_filter($setSetValue);
 				
 				$objDatabase = \Database::getInstance();
-				if(count($setSetValue[$objWidget->name]) > 0 && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
+				if(!empty($setSetValue[$objWidget->name]) && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
 				{
 					$setValue = $setSetValue[ $objWidget->name ];
 					if(!$arrSettings['multiple'] && is_array($setValue))
