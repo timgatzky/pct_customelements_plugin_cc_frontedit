@@ -3,6 +3,8 @@ Fixed: Contao 4: Check if the url already has a request token to avoid duplicate
 Fixed: Wrong value in file(s) attributes when attribute can be sorted manually (#59)
 Update: Write System log information when Plugin is not activated but a list or reader module called in the frontend (#55)
 Update: Always gain access to list or reader module when global setting is "allowAll" (#62)
+Update: Support the auto-submit option for the CC protection attribute (#61)
+Update: PHP 7.2 compatibility (#60)
 
 ### 1.4.3
 No changes just added packagist composer.json in repository
