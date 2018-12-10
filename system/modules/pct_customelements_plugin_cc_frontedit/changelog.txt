@@ -1,3 +1,8 @@
+### 1.4.5
+Fixed: "switchToEdit" feature had some session flaws (#66)
+Update: Support ptable field in create mode (#67)
+Update: Add "pid" field to database set list for dynamicPtable defined DCA tables respecting GET to POST values (#68)
+
 ### 1.4.4
 Fixed: Contao 4: Check if the url already has a request token to avoid duplicate REQUEST_TOKEN calls that might cause trouble in Contao 4 (#54)
 Fixed: Wrong value in file(s) attributes when attribute can be sorted manually (#59)
