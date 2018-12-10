@@ -811,6 +811,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
 		$objDC->intId = $objDC->id = \Input::get('id');
+		// handle parent tables
+		if(!empty($GLOBALS['TL_DCA'][$strTable]['config']['ptable']))
+		{
+			$objDC->ptable = $GLOBALS['TL_DCA'][$strTable]['config']['ptable'];
+		}
 		
 		$blnDoNotSwitchToEdit = true;
 		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
