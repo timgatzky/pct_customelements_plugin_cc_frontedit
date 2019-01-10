@@ -272,6 +272,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
 		{
 			$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
+			
+			// convert paths to uuid when not done before
+			if( in_array($objAttribute->get('type'), array('files','gallery')) && !$this->multiple)
+			{
+				$objFile = \FilesModel::findByPath($objDC->value);
+				if($objFile === null)
+				{
+					$objFile = 	\Dbafs::addResource($objDC->value);	
+				}
+				$objDC->value = $objFile->uuid;
+			}
 		}
 		
 		// trigger load callback
@@ -950,6 +961,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// !FORM_SUBMIT add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
+			// convert to binary when not done before
+			if( in_array($objAttribute->get('type'), array('files','gallery')) && \Validator::isBinaryUuid($objDC->value) === false )
+			{
+				$objDC->value = \StringUtil::uuidToBin($objDC->value);
+			}
+			
 			// trigger save callback
 			if(is_array($arrFieldDef['save_callback']))
 			{
