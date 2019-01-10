@@ -274,15 +274,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
 			
 			// convert paths to uuid when not done before
-			if( in_array($objAttribute->get('type'), array('files','gallery')) && !$this->multiple)
+			if( in_array($objAttribute->get('type'), array('files','gallery')) && !$this->multiple && !empty($objDC->value))
 			{
-				$objFile = \FilesModel::findByPath($objDC->value);
-				if($objFile === null)
-				{
-					$objFile = 	\Dbafs::addResource($objDC->value);	
-				}
-				$objDC->value = $objFile->uuid;
+				$objDC->value = \FilesModel::findByPath($objDC->value)->uuid;
 			}
+			
+			
+			
 		}
 		
 		// trigger load callback
