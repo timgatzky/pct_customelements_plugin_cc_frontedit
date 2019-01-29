@@ -378,10 +378,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// remove invalid spans from image title
-					if(version_compare(VERSION, '4.4','>='))
-					{
-						$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
-					}
+					$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
 					
 					// value for database must be binary
 					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
@@ -804,7 +801,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		// decode entities
 		$strBuffer = \StringUtil::decodeEntities($strBuffer);
-	
+
 //! -- rewrite the javascript calls to the Backend class
 	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
