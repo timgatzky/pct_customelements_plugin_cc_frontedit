@@ -392,7 +392,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					// rewrite the preview images in file selections
-					if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true && isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
+					if( isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]) )
 					{
 						$newValue = \StringUtil::binToUuid($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
 						$currValue = '';
