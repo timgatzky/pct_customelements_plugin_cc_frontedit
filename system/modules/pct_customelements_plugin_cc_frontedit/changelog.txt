@@ -1,5 +1,7 @@
 ### 1.4.5
 Fixed: "switchToEdit" feature had some session flaws (#66)
+Fixed: Never validate field values when coming from ajax requests (#71)
+Fixed: File selector did not show files in member home directories correctly (#70)
 Update: Support ptable field in create mode (#67)
 Update: Add "pid" field to database set list for dynamicPtable defined DCA tables respecting GET to POST values (#68)
 
