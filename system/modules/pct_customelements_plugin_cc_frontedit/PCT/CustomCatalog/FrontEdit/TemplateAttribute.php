@@ -329,7 +329,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				\Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
-			else
+			else if($blnIsAjax === false)
 			{
 				\Input::setPost($objDC->field,$objDC->value);
 			}
