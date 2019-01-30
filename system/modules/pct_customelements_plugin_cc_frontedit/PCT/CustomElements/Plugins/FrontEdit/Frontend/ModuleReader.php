@@ -70,6 +70,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			return parent::generate();
 		}
 
+		
 		// check permissions when entry is editable
 		if( \Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable(\Input::get('table'), \Input::get('id')) )
 		{
@@ -239,8 +240,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		{
 			if($_POST[$this->saveSubmitName] || isset($_POST[$this->saveNcloseSubmitName]) )
 			{
+				$strTable = $objCC->getTable();
+				
 				// get current database set list 
-				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($objCC->getTable());
+				$arrSet = \PCT\CustomCatalog\FrontEdit::getDatabaseSetlist($strTable);
+				
+				// load datacontainer
+				if(!$GLOBALS['loadDataContainer'][$strTable])
+				{
+					\Controller::loadDataContainer($strTable);
+				}
 				
 				// hook here
 				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::callstatic('storeDatabaseHook',array($arrSet,$objCC->getTable(),$this));
@@ -263,6 +272,12 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 						if(!isset($set['tstamp']))
 						{
 							$set['tstamp'] = $time;
+						}
+						
+						// set pid from GET respectitive from POST
+						if(!isset($set['pid']) && !empty($GLOBALS['TL_DCA'][$strTable]['config']['ptable']))
+						{
+							$set['pid'] = \Input::get('pid') ?: \Input::post('pid');
 						}
 						
 						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);

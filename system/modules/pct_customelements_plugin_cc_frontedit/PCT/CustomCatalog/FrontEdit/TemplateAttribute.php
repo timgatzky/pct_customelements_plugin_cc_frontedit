@@ -272,6 +272,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
 		{
 			$objDC->value = $arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field];
+			
+			// convert paths to uuid when not done before
+			if( in_array($objAttribute->get('type'), array('files','gallery')) && !$this->multiple && !empty($objDC->value))
+			{
+				$objDC->value = \FilesModel::findByPath($objDC->value)->uuid;
+			}
+			
+			
+			
 		}
 		
 		// trigger load callback
@@ -320,7 +329,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				\Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
-			else
+			else if($blnIsAjax === false)
 			{
 				\Input::setPost($objDC->field,$objDC->value);
 			}
@@ -369,10 +378,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// remove invalid spans from image title
-					if(version_compare(VERSION, '4.4','>='))
-					{
-						$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
-					}
+					$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
 					
 					// value for database must be binary
 					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
@@ -386,7 +392,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					// rewrite the preview images in file selections
-					if($arrFeSession[$objDC->table]['AJAX_REQUEST'][$objDC->field] === true && isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]))
+					if( isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]) )
 					{
 						$newValue = \StringUtil::binToUuid($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
 						$currValue = '';
@@ -795,7 +801,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		// decode entities
 		$strBuffer = \StringUtil::decodeEntities($strBuffer);
-	
+
 //! -- rewrite the javascript calls to the Backend class
 	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
@@ -950,6 +956,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// !FORM_SUBMIT add to save list
 		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
+			// convert to binary when not done before
+			if( in_array($objAttribute->get('type'), array('files','gallery')) && \Validator::isBinaryUuid($objDC->value) === false )
+			{
+				$objDC->value = \StringUtil::uuidToBin($objDC->value);
+			}
+			
 			// trigger save callback
 			if(is_array($arrFieldDef['save_callback']))
 			{

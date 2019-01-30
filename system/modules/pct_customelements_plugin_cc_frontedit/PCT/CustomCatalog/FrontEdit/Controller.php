@@ -78,7 +78,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
 			}
 			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';			
-			$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
+			#$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
 			
 			// css
 			$objCombiner = new \Combiner();
@@ -613,11 +613,23 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public function simulateSwitchToEdit()
 	{
-		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
-		
 		$strTable = \Input::get('table');
 		$objFunction = new \PCT\CustomElements\Helper\Functions;
+		$objSession = \Session::getInstance();
+		if(version_compare(VERSION, '4.4','>='))
+		{
+			$objSession = \System::getContainer()->get('session');
+		}
+
+		$arrSession = $objSession->get('CLIPBOARD_HELPER');
+		$arrOrigSession = $objSession->get('CLIPBOARD') ?: array();
+		$new_records = $objSession->get('new_records') ?: array();
 		
+		if(!empty($new_records[$strTable]) && isset($arrOrigSession[$strTable]))
+		{
+			$arrSession[$strTable]['mode'] = (\Input::get('act') == 'copy' ? 'copy' : 'create');
+		}
+			
 		// !switchToEdit on CREATE
 		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
 		{
@@ -799,6 +811,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
 		$objDC->intId = $objDC->id = \Input::get('id');
+		// handle parent tables
+		if(!empty($GLOBALS['TL_DCA'][$strTable]['config']['ptable']))
+		{
+			$objDC->ptable = $GLOBALS['TL_DCA'][$strTable]['config']['ptable'];
+		}
 		
 		$blnDoNotSwitchToEdit = true;
 		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
@@ -806,6 +823,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// !CREATE
 		if(\Input::get('act') == 'create')
 		{
+			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
 			$objDC->create();
 		}
 		
