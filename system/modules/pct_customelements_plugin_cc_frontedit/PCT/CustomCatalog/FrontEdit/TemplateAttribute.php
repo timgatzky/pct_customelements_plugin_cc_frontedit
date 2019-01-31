@@ -278,9 +278,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				$objDC->value = \FilesModel::findByPath($objDC->value)->uuid;
 			}
-			
-			
-			
 		}
 		
 		// trigger load callback
@@ -1091,6 +1088,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
+		//! -- ajax
 		if($blnIsAjax && $this->isAjaxField)
 		{
 			// preserve scripts
