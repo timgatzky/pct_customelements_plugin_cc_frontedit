@@ -44,11 +44,9 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		$this->router = $router;
 		$this->requestStack = $requestStack;
 		
-		#$objUser = new \PCT\Contao\BackendUser;
-		#$objUser->admin = 1;
-		#$objUser->isAdmin = 1;
-		#$this->tokenStorage = new ContaoToken($objUser);
-
+		$objUser = new \PCT\Contao\User;
+		$this->tokenStorage = new ContaoToken($objUser);
+		
 		parent::__construct($menuFactory,$router,$requestStack);
 	}
 
