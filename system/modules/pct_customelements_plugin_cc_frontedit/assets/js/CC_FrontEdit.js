@@ -142,8 +142,16 @@ var CC_FrontEdit =
 				alert('Could not find the SimpleModal frame');
 				return;
 			}
-			inp = frm.document.getElementById('tl_select').getElementsByTagName('input');
-			console.log(inp);
+
+			// contao 4
+			if( url.indexOf('context=file') > 0 )
+			{
+				inp = frm.document.getElementById('tl_listing').getElementsByTagName('input');
+			}
+			else
+			{
+				inp = frm.document.getElementById('tl_select').getElementsByTagName('input');
+			}
 			
 			for (i=0; i<inp.length; i++) {
 				if (inp[i].checked && !inp[i].id.match(/^reset_/)) {
