@@ -1,6 +1,7 @@
 ### 1.4.6
 Fixed: Support file picking from inside TinyMCE under Contao 4.4
-Fixed: A token restriction issue when entering edit mode under Contao 4.4 due to user token restrictions in pickers
+Fixed: A token restriction issue when entering edit mode under Contao 4.4 due to user token restrictions in pickers (75)
+Update: PHP 7.2 compatibility (#60)
 
 ### 1.4.5
 Fixed: "switchToEdit" feature had some session flaws (#66)
