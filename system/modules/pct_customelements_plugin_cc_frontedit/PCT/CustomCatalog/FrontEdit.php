@@ -45,8 +45,6 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 */
 	public function __construct($objConfig=null)
 	{
-		parent::__construct();
-		
 		/**
 		 * Info: Configuration object:
 		 * @property object $customcatalog 						The CustomCatalog working on

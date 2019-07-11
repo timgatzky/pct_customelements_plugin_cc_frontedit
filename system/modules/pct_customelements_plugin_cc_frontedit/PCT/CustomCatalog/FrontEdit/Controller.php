@@ -31,17 +31,17 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
 class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controller
 {
 	/**	
-	 * Initiate the class
+	 * Return the Contao session bag
+	 * @return object
 	 */
-	public function __construct()
+	public static function getSession()
 	{
-		$this->Session = \Session::getInstance();
+		$objReturn = \Session::getInstance();
 		if(version_compare(VERSION, '4.4','>='))
 		{
-			$this->Session = \System::getContainer()->get('session');
+			$objReturn = \System::getContainer()->get('session');
 		}
-		
-		$this->Functions = new Functions;
+		return $objReturn;
 	}
 
 
@@ -630,7 +630,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		$strTable = \Input::get('table');
 		$objFunction = new \PCT\CustomElements\Helper\Functions;
-		$objSession = $this->Session;
+		$objSession = static::getSession();
 
 		$arrSession = $objSession->get('CLIPBOARD_HELPER');
 		$arrOrigSession = $objSession->get('CLIPBOARD') ?: array();
@@ -755,7 +755,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 * Apply operations
 	 * called from generatePage Hook
 	 */
-	public function applyOperationsOnGeneratePage($objPage)
+	public static function applyOperationsOnGeneratePage($objPage)
 	{
 		$strTable = \Input::get('table') ?: \Input::get('do');
 		
@@ -853,7 +853,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// TODO: !CUT ALL
 		else if(\Input::get('act') == 'cutAll')
 		{
-			$arrClipboard = $this->Session->get('CLIPBOARD');
+			$arrClipboard = static::getSession()->get('CLIPBOARD');
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
 				foreach($arrClipboard[$strTable]['id'] as $id)
@@ -888,7 +888,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				);
 
 				// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
-				$this->Session->set('CLIPBOARD_HELPER',$arrClipboard);
+				static::getSession()->set('CLIPBOARD_HELPER',$arrClipboard);
 				
 				// reload the page to make the session take effect
 				if($blnDoNotSwitchToEdit)
@@ -903,7 +903,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(\Input::get('act') == 'copyAll')
 		{
 			#$objDC->copyAll();
-			$arrClipboard = $this->Session->get('CLIPBOARD');
+			$arrClipboard = static::getSession()->get('CLIPBOARD');
 
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
@@ -928,7 +928,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(\Input::get('act') == 'paste')
 		{
 			$reload = false;
-			$objSession = $this->Session;
+			$objSession = static::getSession();
 			$arrClipboard = $objSession->get('CLIPBOARD');
 			
 			if(count($arrClipboard[$strTable]) < 1)
@@ -964,7 +964,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// TODO: !CLIPBOARD clear
 		if(strlen($strTable) > 0 && \Input::get('clear_clipboard'))
 		{
-			$objSession = $this->Session;
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			
 			$arrSession[$strTable] = array();
@@ -1024,7 +1024,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = $this->Session;
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
@@ -1061,7 +1061,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			if($objCC->get('multilanguage'))
 			{
 				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
-				$href = $this->Functions->addToUrl('langpid='.$langpid,$href);
+				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 
 			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
@@ -1100,7 +1100,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = $this->Session;
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
@@ -1137,7 +1137,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			if($objCC->get('multilanguage'))
 			{
 				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
-				$href = $this->Functions->addToUrl('langpid='.$langpid,$href);
+				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 			
 			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
@@ -1165,7 +1165,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = $this->Session;
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			$arrClipboard = $arrSession[$strTable];
 		}
