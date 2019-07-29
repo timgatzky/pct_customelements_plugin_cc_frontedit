@@ -30,6 +30,21 @@ use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
  */
 class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controller
 {
+	/**	
+	 * Return the Contao session bag
+	 * @return object
+	 */
+	public static function getSession()
+	{
+		$objReturn = \Session::getInstance();
+		if(version_compare(VERSION, '4.4','>='))
+		{
+			$objReturn = \System::getContainer()->get('session');
+		}
+		return $objReturn;
+	}
+
+
 	/**
 	 * Add back end assets to the front end
 	 */
@@ -426,7 +441,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// multilanguage, add the langpid
 			if($objCC->get('multilanguage'))
 			{
-				$langpid = $objMultilanguage->getBaseRecordId($row['id'],$strTable,$strLanguage);
+				$langpid = $objMultilanguage->getBaseRecordId($objRow->id,$strTable,$strLanguage);
 				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
 			}
 			
@@ -471,7 +486,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// trigger the button callbacks
 			if(is_array($button['button_callback']))
 			{
-				$button['html'] = \System::importStatic($button['button_callback'][0])->{$button['button_callback'][1]}($objRow->row(),$href,$title,$icon,$attributes,$strTable);
+				$button['html'] = \System::importStatic($button['button_callback'][0])->{$button['button_callback'][1]}($objRow->row(),$href,$title,$button['icon'],$attributes,$strTable);
 			}
 			
 			$arrButtons[$key] = $button;
@@ -526,7 +541,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 					if($objChildCC->get('icon'))
 					{
 						$icon = \FilesModel::findByPk($objChildCC->get('icon'))->path;
-						if(strlen($strIcon) > 0)
+						if(strlen($icon) > 0)
 						{
 							$icon = ControllerHelper::getInstance()->call('getImage',array($icon,'16','16','center_center'));
 							$button['icon'] = $icon;
@@ -615,11 +630,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		$strTable = \Input::get('table');
 		$objFunction = new \PCT\CustomElements\Helper\Functions;
-		$objSession = \Session::getInstance();
-		if(version_compare(VERSION, '4.4','>='))
-		{
-			$objSession = \System::getContainer()->get('session');
-		}
+		$objSession = static::getSession();
 
 		$arrSession = $objSession->get('CLIPBOARD_HELPER');
 		$arrOrigSession = $objSession->get('CLIPBOARD') ?: array();
@@ -663,11 +674,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
 			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(), '', null, true );
-			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
 			$arrSession[$strTable]['CURRENT']['VALUES'] = array();
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
 			\Controller::redirect($redirect);
@@ -692,11 +703,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
 			$arrSession[$strTable]['ref'] = \Controller::getReferer();
-			\Session::getInstance()->set('CLIPBOARD_HELPER',$arrSession);
+			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
 			$arrSession[$strTable]['CURRENT']['VALUES'] = array();
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
 			\Controller::redirect($redirect);
@@ -744,7 +755,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 * Apply operations
 	 * called from generatePage Hook
 	 */
-	public function applyOperationsOnGeneratePage($objPage)
+	public static function applyOperationsOnGeneratePage($objPage)
 	{
 		$strTable = \Input::get('table') ?: \Input::get('do');
 		
@@ -820,14 +831,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$blnDoNotSwitchToEdit = true;
 		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
 		
-		// !CREATE
+		// TODO: !CREATE
 		if(\Input::get('act') == 'create')
 		{
 			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
 			$objDC->create();
 		}
 		
-		// !DELETE
+		// TODO: !DELETE
 		if(\Input::get('act') == 'delete')
 		{
 			$objDC->delete();
@@ -839,10 +850,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			\Controller::redirect( $strCleanUrl );
 		}
-		// !CUT ALL
+		// TODO: !CUT ALL
 		else if(\Input::get('act') == 'cutAll')
 		{
-			$arrClipboard = \Session::getInstance()->get('CLIPBOARD');
+			$arrClipboard = static::getSession()->get('CLIPBOARD');
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
 				foreach($arrClipboard[$strTable]['id'] as $id)
@@ -856,7 +867,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 						
 			\Controller::redirect( $strCleanUrl );
 		}
-		// !COPY
+		// TODO: !COPY
 		else if(\Input::get('act') == 'copy')
 		{
 			$intNew = $objDC->copy(true);
@@ -865,7 +876,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objNew = \Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
 			if($objNew->tstamp > 0)
 			{
-				\Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>''))->execute($intNew);
+				\Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>0))->execute($intNew);
 			}
 			
 			if(\Input::get('switchToEdit') || \Input::get('jumpto') > 0)
@@ -877,7 +888,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				);
 
 				// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
-				\Session::getInstance()->set('CLIPBOARD_HELPER',$arrClipboard);
+				static::getSession()->set('CLIPBOARD_HELPER',$arrClipboard);
 				
 				// reload the page to make the session take effect
 				if($blnDoNotSwitchToEdit)
@@ -888,11 +899,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			\Controller::redirect( $strCleanUrl );
 		}
-		// !COPY ALL
+		// TODO: !COPY ALL
 		else if(\Input::get('act') == 'copyAll')
 		{
 			#$objDC->copyAll();
-			$arrClipboard = \Session::getInstance()->get('CLIPBOARD');
+			$arrClipboard = static::getSession()->get('CLIPBOARD');
 
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
@@ -907,17 +918,17 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 						
 			\Controller::redirect( $strCleanUrl );
 		}
-		// !EDIT ALL, OVERRIDE ALL
+		// TODO: !EDIT ALL, OVERRIDE ALL
 		else if(\Input::get('act') == 'editAll')
 		{
 			
 		}	
 	
-		// !PASTE set the clipboard session
+		// TODO: !PASTE set the clipboard session
 		else if(\Input::get('act') == 'paste')
 		{
 			$reload = false;
-			$objSession = \Session::getInstance();
+			$objSession = static::getSession();
 			$arrClipboard = $objSession->get('CLIPBOARD');
 			
 			if(count($arrClipboard[$strTable]) < 1)
@@ -950,10 +961,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			}
 		}
 		
-		// !CLIPBOARD clear
+		// TODO: !CLIPBOARD clear
 		if(strlen($strTable) > 0 && \Input::get('clear_clipboard'))
 		{
-			$objSession = \Session::getInstance();
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			
 			$arrSession[$strTable] = array();
@@ -1013,7 +1024,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = \Session::getInstance();
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
@@ -1021,7 +1032,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
 		$icon = 'pasteafter.'.$ext;	
 		
-		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id']));
 		#$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
@@ -1050,10 +1061,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			if($objCC->get('multilanguage'))
 			{
 				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
-				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
+				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1089,7 +1100,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = \Session::getInstance();
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD_HELPER');
 			$arrClipboard = $arrSession[$strTable];
 		}
@@ -1098,7 +1109,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$icon = 'pasteafter.'.$ext;	
 		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
+		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $arrRow['id']));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
@@ -1126,10 +1137,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			if($objCC->get('multilanguage'))
 			{
 				$langpid = $objMultilanguage->getBaseRecordId($arrRow['id'],$strTable,$strLanguage);
-				$href = $objFunction->addToUrl('langpid='.$langpid,$href);
+				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 			
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id)).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1154,7 +1165,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	{
 		if(count($arrClipboard) < 1)
 		{
-			$objSession = \Session::getInstance();
+			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			$arrClipboard = $arrSession[$strTable];
 		}
@@ -1165,11 +1176,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$image = '';
 		if(version_compare(VERSION, '4','>='))
 		{
-			$image = \Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+			$image = \Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
 		}
 		else
 		{
-			$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id));
+			$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
 		}	
 		
 		$href = '';
@@ -1183,7 +1194,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else
 		{
 			$href = 'act=paste&amp;mode=cut';
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $objRow->id)).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1222,15 +1233,15 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$strPublishedField = $objCC->getPublishedField();
 		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image_on = \Image::getHtml('visible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
-		$image_off =  \Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+		$image_on = \Image::getHtml('visible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+		$image_off =  \Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
 		$icon_on = 'system/themes/default/images/visible.gif';
 		$icon_off = 'system/themes/default/images/invisible.gif';
 		
 		if(version_compare(VERSION, '4', '>='))
 		{
-			$image_on = \Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
-			$image_off =  \Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $objRow->id));
+			$image_on = \Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+			$image_off =  \Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
 			$icon_on = 'system/themes/flexible/icons/visible.svg';
 			$icon_off = 'system/themes/flexible/icons/invisible.svg';
 		}
@@ -1320,8 +1331,5 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		#$objVersions->create();
 		
 		\System::log('A new version of record "'.$strTable.'.id='.$intId.'" has been created', $strTable.' toggleVisibility()', TL_GENERAL);
-	}
-	
-	
+	}	
 }
- 

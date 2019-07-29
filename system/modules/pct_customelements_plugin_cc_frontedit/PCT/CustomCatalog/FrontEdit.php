@@ -211,7 +211,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		{
 			$saveDataAs = $objDC->objAttribute->get('saveDataAs') ?: 'data';
 			$arr = \PCT\CustomElements\Core\Hooks::callstatic( 'storeValueHook',array($objDC->objAttribute->get('id'),array($saveDataAs=>$varValue)) );
-			if($arr[$saveDataAs] != $value)
+			if($arr[$saveDataAs] != $varValue)
 			{
 				$varValue = $arr[$saveDataAs];
 			}

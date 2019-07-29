@@ -278,9 +278,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				$objDC->value = \FilesModel::findByPath($objDC->value)->uuid;
 			}
-			
-			
-			
 		}
 		
 		// trigger load callback
@@ -367,7 +364,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						$strBuffer = str_replace($search,$replace, $strBuffer);
 					}
 				}
-				// !IMAGE attributes
+				// TODO: !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
 					if(!$blnSubmitted && \Validator::isBinaryUuid($_POST[$objDC->field]))
@@ -411,7 +408,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 					}
 				}
-				// !FILE(s), GALLERY attributes
+				// TODO: !FILE(s), GALLERY attributes
 				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
 				{
 					if(!$this->multiple)
@@ -666,7 +663,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 
-//! -- sortable
+// TODO: ! -- sortable
 
 		// make it sortable
 		if($this->sortable && strlen(strpos($strBuffer, 'ctrl_'.$strOrderField)) < 1)
@@ -802,7 +799,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// decode entities
 		$strBuffer = \StringUtil::decodeEntities($strBuffer);
 
-//! -- rewrite the javascript calls to the Backend class
+// TODO: ! -- rewrite the javascript calls to the Backend class
 	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
@@ -832,19 +829,26 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// these methods require an active backend login
 					if(in_array($method, $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['methodsRequireBackendLogin']))
 					{
-						$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/contao/file.php');
+						$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/file.php');
 						if($method == 'openModalBrowser')
 						{
-							$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/contao/page.php');
+							$href = $objFunctions->addToUrl($arrUrl['query'], $arrUrl['base'] . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/page.php');
 						}
-						$href = $objFunctions->addToUrl('&field='.$objDC->field.'&act=show',$href);
-						
+
 						// add values
 						$href = \Environment::get('base') . $href;
 						
 						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
+
 						if($objAttribute->get('type') == 'textarea')
 						{
+							if( version_compare(VERSION,'4.4','>=') ) 
+							{
+								$href = \Environment::get('base') . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/main.php';
+								$href = $objFunctions->addToUrl('context=file&rt='.REQUEST_TOKEN.'&picker='.$objDC->field.'&popup=1&do=files&fieldType=radio&filesOnly=1',$href);
+							}
+							$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
+							
 							$strBuffer = str_replace($func, "CC_FrontEdit.openModalInTextarea(field_name,".$data .");", $strBuffer);
 						}
 						else
@@ -1091,6 +1095,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
 		
 		// inject a little javascript ajax helper
+		//! -- ajax
 		if($blnIsAjax && $this->isAjaxField)
 		{
 			// preserve scripts

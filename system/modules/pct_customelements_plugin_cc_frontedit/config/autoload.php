@@ -56,6 +56,7 @@ ClassLoader::addClasses(array
 	'PCT\Contao\Picker\PickerBuilder'										=> $path.'/PCT/Contao/Picker/PickerBuilder.php',
 	'PCT\Contao\Picker\PagePickerProvider'									=> $path.'/PCT/Contao/Picker/PagePickerProvider.php',
 	'PCT\Contao\Picker\FilePickerProvider'									=> $path.'/PCT/Contao/Picker/FilePickerProvider.php',
+	'PCT\Contao\User'														=> $path.'/PCT/Contao/User.php',
 ));
 
 /**
