@@ -797,11 +797,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// decode entities
-		if( (boolean)$GLOBALS['TL_DCA'][$objDC->table]['fields'][$objDC->field]['eval']['decodeEntities'] === true )
+		if( $arrFieldDef['eval']['decodeEntities'] )
 		{
 			$strBuffer = \StringUtil::decodeEntities($strBuffer);
 		}
-		
+
 // TODO: ! -- rewrite the javascript calls to the Backend class
 	
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
