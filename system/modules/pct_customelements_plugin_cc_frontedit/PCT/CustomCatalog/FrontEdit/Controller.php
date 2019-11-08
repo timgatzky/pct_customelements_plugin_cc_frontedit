@@ -284,9 +284,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objModule = $objConfig->module;
 		$arrDefaultDCA = $objDcaHelper->getDefaultDataContainerArray();
 		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
-		
-		$arrChilds = deserialize($objCC->get('cTables'));
-		$hasChilds = count($arrChilds) > 0 ? true : false;
+		$arrChilds = deserialize( $objCC->get('cTables') );
+		if( !is_array($arrChilds) )
+		{
+			$arrChilds = explode(',',$arrChilds);
+		}
 		
 		if(count($arrChilds) > 0)
 		{
@@ -297,7 +299,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				{
 					unset($arrChilds[$i]);
 				}
-				
 				else if(!$objChildCC->get('active'))
 				{
 					unset($arrChilds[$i]);
