@@ -21,7 +21,7 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 /**
  * Imports
  */
-use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory
+use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory;
 
 /**
  * Class file
