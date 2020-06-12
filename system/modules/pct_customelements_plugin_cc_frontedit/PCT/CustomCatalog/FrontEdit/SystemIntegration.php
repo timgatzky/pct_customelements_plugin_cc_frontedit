@@ -42,66 +42,42 @@ class SystemIntegration extends \Contao\System
 		$strFile = 'config'.($strEnvironment ? '_'.$strEnvironment : '').'.yml';
 		
 		// fetch the file
-		$objFile = new \File('app/config/'.$strFile,true);
-		
-		$strContent = '';
-		if($objFile->exists())
-		{
-			$strContent = $objFile->getContent();
-		}
-		
-		// content parts
-		$arrParts = array();
-		$arrParts['contao.picker.builder::customcatalog_frontedit'] = "
-# contao.picker.builder::customcatalog_frontedit
-services:
-   contao.picker.builder:
-      class: PCT\Contao\Picker\PickerBuilder
-      arguments:
-            - '@knp_menu.factory'
-            - '@router'
-            - '@request_stack'
-";
+		$objFile = new \Contao\File('app/config/'.$strFile,true);
 
-$arrParts['contao.picker.page_provider::customcatalog_frontedit'] = "
-# contao.picker.page_provider::customcatalog_frontedit
-services:
-   contao.picker.page_provider:
-      class: PCT\Contao\Picker\PagePickerProvider
-";
-
-$arrParts['contao.picker.file_provider::customcatalog_frontedit'] = "
-# contao.picker.file_provider::customcatalog_frontedit
-services:
-   contao.picker.file_provider:
-      class: PCT\Contao\Picker\FilePickerProvider
-";
-
-		$blnWrite = false;
-		foreach($arrParts as $ident => $strPart)
+		// parse current config.yml to array
+		$arrYaml = \Symfony\Component\Yaml\Yaml::parseFile('../app/config/'.$strFile);
+		if( \array_key_exists('services',$arrYaml) === false )
 		{
-			// part already exists
-			if(strlen(strpos($strContent,$ident)) > 0)
-			{
-				continue;
-			}
-			
-			$strContent .= $strPart;
-			$blnWrite = true;
+			$arrYaml['services'] = array();
 		}
+
+		// yaml created
+		if( empty($arrYaml['services']['contao.picker.builder']) === false )
+		{
+			return;
+		}
+
+		// append services
+		$arrYaml['services']['contao.picker.builder'] = array
+		(
+			'class' => 'PCT\Contao\Picker\PickerBuilder',
+			//'arguments' => array(['@knp_menu.factory'], ['@router'], ['@request_stack'])
+			'arguments' => array('@knp_menu.factory', '@router', '@request_stack')
+		);
 		
-		// write the config_...yml file
-		if($blnWrite)
-		{
-			$objFile->write($strContent);
-			$objFile->close();
+		$arrYaml['services']['contao.picker.page_provider'] = array('class' => 'PCT\Contao\Picker\PagePickerProvider');
+		$arrYaml['services']['contao.picker.file_provider'] = array('class' => 'PCT\Contao\Picker\FilePickerProvider');
+
+		$objDumper = new \Symfony\Component\Yaml\Dumper();
+		
+		$objFile->write( $objDumper->dump($arrYaml) );
+		$objFile->close();
 			
-			// log
-			\System::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
-			
-			// reload the page to make changes take effect
-			\Controller::reload();
-		}
+		// log
+		\System::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
+		
+		// reload the page to make changes take effect
+		\Controller::reload();
 	}
 	
 	
