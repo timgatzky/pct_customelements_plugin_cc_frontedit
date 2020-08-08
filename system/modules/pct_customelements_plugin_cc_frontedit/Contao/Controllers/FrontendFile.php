@@ -66,7 +66,7 @@ class FrontendFile extends \Contao\BackendFile
 			$root = array_merge($root,$objFiles->fetchEach('path'));
 		}
 		
-		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
+		$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array_unique($root);
 	}
 	
 	public function run()
