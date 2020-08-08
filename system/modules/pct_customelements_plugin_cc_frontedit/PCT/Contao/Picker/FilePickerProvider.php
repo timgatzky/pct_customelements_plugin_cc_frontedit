@@ -99,7 +99,7 @@ class FilePickerProvider extends \Contao\CoreBundle\Picker\FilePickerProvider
 				$root = array_merge($root,$objFiles->fetchEach('path'));
 			}
 			
-			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = $root;
+			$GLOBALS['TL_DCA']['tl_files']['list']['sorting']['root'] = array_unique($root);
 		}
 		
 		return $this->User;	   
