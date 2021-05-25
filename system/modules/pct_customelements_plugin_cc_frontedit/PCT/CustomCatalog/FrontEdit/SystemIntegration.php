@@ -29,7 +29,7 @@ class SystemIntegration extends \Contao\System
 	 */
 	public function createConfigYml()
 	{
-		if(version_compare(VERSION, '4.4','<'))
+		if(version_compare(VERSION, '4.4','<') || version_compare(VERSION, '4.9','>='))
 		{
 			return;
 		}
