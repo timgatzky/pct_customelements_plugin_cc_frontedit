@@ -1,5 +1,7 @@
 ### 1.4.7
 Fixed: (temporary hotfix): Avoid config.yml under Contao 4.9 (#82)
+Fixed: Decode entities when set by DCA (#78)
+Fixed: Missing semicolon in ModuleReader.php (#89)
 Update: PHP 8 compatibility (#88)
 Update: Apply date format from Contao system config in datefields
 Update: Minor code updates
