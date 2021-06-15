@@ -782,7 +782,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
-				$arr[] = in_array('pct_autogrid',\Config::getActiveModules()) ? '<div class="'.implode(' ', $class).' autogrid one_half">'.$strChild.'</div>' : '<div class="'.implode(' ', $class).' w50">'.$strChild.'</div>';
+				$arr[] = in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? '<div class="'.implode(' ', $class).' autogrid one_half">'.$strChild.'</div>' : '<div class="'.implode(' ', $class).' w50">'.$strChild.'</div>';
 			}
  			
  			$strBuffer .= implode('', $arr);
@@ -1077,7 +1077,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		if($objAttribute->get('eval_tl_class_w50'))
 		{
-			$arrWidgetClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
+			$arrWidgetClasses[] = (in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
 			
 		$this->widget = $this;
