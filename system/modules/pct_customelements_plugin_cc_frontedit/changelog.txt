@@ -1,5 +1,8 @@
 ### 1.4.7
 Fixed: (temporary hotfix): Avoid config.yml under Contao 4.9 (#82)
+Update: PHP 8 compatibility (#88)
+Update: Apply date format from Contao system config in datefields
+Update: Minor code updates
 
 ### 1.4.6
 Fixed: Support file picking from inside TinyMCE under Contao 4.4
