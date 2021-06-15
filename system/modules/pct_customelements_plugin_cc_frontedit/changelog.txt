@@ -4,7 +4,7 @@ Fixed: Decode entities when set by DCA (#78)
 Fixed: Missing semicolon in ModuleReader.php (#89)
 Update: PHP 8 compatibility (#88)
 Update: Apply date format from Contao system config in datefields
-Update: Support object orientated mod_customcatalog templates (since CustomCatalog 4.3.8)
+Update: Support object orientated mod_customcatalog templates (>= CustomCatalog 4.3.8)
 Update: Minor code updates
 
 ### 1.4.6
