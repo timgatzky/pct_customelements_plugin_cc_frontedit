@@ -1,6 +1,9 @@
+### 1.4.7
+Fixed: (temporary hotfix): Avoid config.yml under Contao 4.9 (#82)
+
 ### 1.4.6
 Fixed: Support file picking from inside TinyMCE under Contao 4.4
-Fixed: A token restriction issue when entering edit mode under Contao 4.4 due to user token restrictions in pickers (75)
+Fixed: A token restriction issue when entering edit mode under Contao 4.4 due to user token restrictions in pickers (#75)
 Update: PHP 7.2 compatibility (#60)
 
 ### 1.4.5
