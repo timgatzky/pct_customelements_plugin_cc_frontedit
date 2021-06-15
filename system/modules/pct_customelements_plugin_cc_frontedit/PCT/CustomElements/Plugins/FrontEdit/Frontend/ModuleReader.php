@@ -19,6 +19,11 @@
 namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 
 /**
+ * Imports
+ */
+use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory;
+
+/**
  * Class file
  * ModuleReader
  */
@@ -49,8 +54,8 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			\System::log('CustomCatalog Frontedit plugin not activated as CustomElement plugin yet' ,__METHOD__,TL_ERROR);
 			return sprintf($GLOBALS['TL_LANG']['XPT']['cc_edit_plugin_not_active'],$this->id);
 		}
-		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByTableName($this->customcatalog);
+
+		$objCC = CustomCatalogFactory::findByModule($this->objModel);
 		if(!$objCC)
 		{
 			return parent::generate();

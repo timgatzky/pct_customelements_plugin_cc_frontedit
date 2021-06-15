@@ -308,7 +308,6 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$arrAttributes = $strClass::getAttributesFromDca($arrFieldDef,$objDC->field,$objDC->value,$objDC->field,$objDC->table,$objDC);
 			
 			$objWidget = new $strClass($arrAttributes);
-			$objWidget->__set('activeRecord',$objActiveRecord);
 			$objWidget->label = $strLabel;
 			
 			// set a custom template
@@ -326,7 +325,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				\Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
-			else if($blnIsAjax === false)
+			else if($objDC->isAjax === false)
 			{
 				\Input::setPost($objDC->field,$objDC->value);
 			}
@@ -338,10 +337,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', deserialize($objAttribute->get('options'))) )
 				{
 					$rgxp = $arrFieldDef['eval']['rgxp'];
-					if(!$format)
-					{
-						$format = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
-					}
+					$format = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
 					
 					if(!$blnSubmitted)
 					{
@@ -782,7 +778,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
-				$arr[] = in_array('pct_autogrid',\Config::getActiveModules()) ? '<div class="'.implode(' ', $class).' autogrid one_half">'.$strChild.'</div>' : '<div class="'.implode(' ', $class).' w50">'.$strChild.'</div>';
+				$arr[] = in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? '<div class="'.implode(' ', $class).' autogrid one_half">'.$strChild.'</div>' : '<div class="'.implode(' ', $class).' w50">'.$strChild.'</div>';
 			}
  			
  			$strBuffer .= implode('', $arr);
@@ -797,7 +793,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// decode entities
-		$strBuffer = \StringUtil::decodeEntities($strBuffer);
+		if( $arrFieldDef['eval']['decodeEntities'] )
+		{
+			$strBuffer = \StringUtil::decodeEntities($strBuffer);
+		}
 
 // TODO: ! -- rewrite the javascript calls to the Backend class
 	
@@ -1074,7 +1073,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		if($objAttribute->get('eval_tl_class_w50'))
 		{
-			$arrWidgetClasses[] = (in_array('pct_autogrid',\Config::getActiveModules()) ? 'autogrid one_half' : 'w50');
+			$arrWidgetClasses[] = (in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
 			
 		$this->widget = $this;
