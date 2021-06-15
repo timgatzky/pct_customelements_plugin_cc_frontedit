@@ -39,7 +39,7 @@
 		<div class="paste_first"><?php echo $this->pasteFirst; ?></div>
 		<?php endif; ?>
 		
-		<?php echo $this->customcatalog; ?>
+		<?= ($this->CustomCatalog !== null ? $this->CustomCatalog->render() : $this->customcatalog); ?>
 		
 		<?php if($this->selectMode || $this->editMode): ?>
 		<ul class="global_edit_submits tl_submits tl_buttons">
