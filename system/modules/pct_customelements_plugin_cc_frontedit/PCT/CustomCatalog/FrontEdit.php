@@ -24,7 +24,7 @@ namespace PCT\CustomCatalog;
  */
 use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory as CustomCatalogFactory;
 use PCT\CustomCatalog\FrontEdit\Controller as Helper;
-
+use Contao\Database;
 
 /**
  * Class file
@@ -171,7 +171,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 			return false;
 		}
 		
-		$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+		$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
 		
 		// check user rights
 		if( (boolean)$objUser->get('customcatalog_edit_active') === false || (boolean)$objUser->get('customcatalog_edit_disable') === true )
@@ -198,8 +198,8 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		$objAttribute = $objDC->objAttribute;
 		$strField = $objDC->field;
 		
-		if(!\Database::getInstance()->tableExists($strTable)) {return;}
-		if(!\Database::getInstance()->fieldExists($strField,$strTable)) {return;}
+		if(! Database::getInstance()->tableExists($strTable)) {return;}
+		if(! Database::getInstance()->fieldExists($strField,$strTable)) {return;}
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]))
 		{
@@ -265,13 +265,13 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	{
 		if(strlen($strTable) > 0)
 		{
-			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$arrSession = \Contao\Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 			unset($arrSession[$strTable]);
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			\Contao\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 		}
 		else
 		{
-			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			\Contao\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 	}
 }
