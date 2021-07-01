@@ -378,36 +378,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						Input::setPost($objDC->field,null);
 					}
-
-					$objContainer = \Contao\System::getContainer();
-					$objFactory = $objContainer->get('contao.picker.builder');
-					
-					
-					$objMenuFactory = $objContainer->get('knp_menu.factory');
-					$objRouter = $objContainer->get('router');
-					$objRequest = $objContainer->get('request_stack');
-					#$objTranslator = $objContainer->get('translator');
-					#$objSecurity = $objContainer->get('security.helper');
 					
 					$objWidget->currentRecord = $objDC->id;
 					
-					#$objPickerBuilder = new PickerPickerBuilder($objMenuFactory,$objRouter,$objRouter->getCurrentRequest());
-					#\Debug::log($objPickerBuilder);
-					#$arrFieldDef['eval']['dcaPicker'] = array('context'=>'newtype');
-					$arrFieldDef['inputType'] = 'text';
-					#$arrFieldDef['eval']['dcaPicker']['providers'] = array('filePicker2');
-					
-					$extras = array
-					(
-						'context'	=>	'file',
-						'providers' => array('myFilePicker'),
-					);
-
-					#$extras, $table, $field, $inputName
-					#$objWidget = new \Contao\FileTree( $arrFieldDef );
-					#$t = \Contao\Backend::getDcaPickerWizard($extras, $objDC->table, $objDC->field, $objDC->id);
-					#\Debug::log($t);
-				
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// remove invalid spans from image title

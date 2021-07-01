@@ -20,11 +20,15 @@ namespace PCT\Contao\Picker;
 
 use Contao\CoreBundle\Picker\Picker as CorePicker;
 use Knp\Menu\FactoryInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use Contao\Input;
 use Contao\Config;
+use Contao\CoreBundle\Picker\FilePickerProvider;
+use Contao\CoreBundle\Picker\PagePickerProvider;
+use Contao\CoreBundle\Picker\PickerConfig;
+use Contao\StringUtil;
 use Contao\System;
+use Contao\Validator;
 
 /**
  * Class file
@@ -35,30 +39,28 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 	/**
 	 * {@inheritdoc}
 	 */
-	public function __construct(FactoryInterface $menuFactory, RouterInterface $router, RequestStack $requestStack)
+	public function __construct(FactoryInterface $menuFactory, RouterInterface $router)
 	{
-		if(TL_MODE == 'BE')
-		{
-			return parent::__construct($menuFactory,$router,$requestStack);
-		}
-		
 		$this->menuFactory = $menuFactory;
 		$this->router = $router;
-		$this->requestStack = $requestStack;
+		$this->translator = System::getContainer()->get('translator');
+		$this->security = System::getContainer()->get('security.helper');
+		$this->tokenStorage = $this->security->getToken();
+		$this->framework = System::getContainer()->get('contao.framework');
+
+		if(TL_MODE == 'BE')
+		{
+			return parent::__construct($menuFactory,$router);
+		}
 		
-		$objUser = new \PCT\Contao\User;
-		#$this->tokenStorage = new ContaoToken($objUser);
+		#$this->requestStack = $requestStack;
 		
-		
-		$objSecurity = System::getContainer()->get('security.helper');
-		$objToken = $objSecurity->getToken();
+		#$objToken = $this->security->getToken();
 		#$user = $this->get('security.helper')->getUser();
 		#$origToken = $objSecurity->getToken()->getOriginalToken();
 		#$origUser = $origToken->getUser();
 		
-		$this->tokenStorage = $objSecurity->getToken();
-
-		parent::__construct($menuFactory,$router,$requestStack);
+		parent::__construct($menuFactory,$router);
 	}
 
 	/**
@@ -66,35 +68,49 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 	 */
 	public function supportsContext($context, array $allowed = null): bool
 	{
-		if(TL_MODE == 'BE')
-		{
-			return parent::supportsContext($context,$allowed);
-		}
-
-		$objTranslator = System::getContainer()->get('translator');
-		$objSecurity = System::getContainer()->get('security.helper');
-		
-
 		$objPicker = null;
 
-		// create new filepicker	
-		if($context == 'file')
+		if(TL_MODE == 'BE')
 		{
-			$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$objTranslator,$objSecurity,Config::get('uploadPath') ?: 'files');
+			// create new filepicker	
+			if($context == 'file')
+			{
+				$objPicker = new FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
+			}
+			// create new pagepicker	
+			else if($context == 'page' || $context == 'link')
+			{
+				$objPicker = new PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
+			}
+			
+			if( $objPicker === null )
+			{
+				return false;
+			}
+
+			$this->addProvider($objPicker);
+			return parent::supportsContext($context,$allowed);
 		}
-		// create new pagepicker	
-		else if($context == 'page')
+		else
 		{
-			// create new filepicker
-			$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router);
+			// create new filepicker	
+			if($context == 'file')
+			{
+				$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
+			}
+			// create new pagepicker	
+			else if($context == 'page')
+			{
+				// create new filepicker
+				$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
+			}
+			
+			$this->addProvider($objPicker);
+			
+			return $objPicker->supportsContext($context, $allowed);
 		}
-		
-		if($objPicker === null)
-		{
-			return false;
-		}
-		
-		return $objPicker->supportsContext($context, $allowed);
+
+		return parent::supportsContext($context,$allowed);
 	}
 
 
@@ -120,7 +136,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			$arrParams['do'] = 'files';
 		}
-		else if($context == 'page')
+		else if($context == 'page' || $context == 'link')
 		{
 			$arrParams['do'] = 'page';
 		}
@@ -129,7 +145,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			$arrParams = array_merge($arrParams,$extras);
 		}
-	
+
 		#$t = "http://dev.contao4:8888/_contao/picker?context=file&extras%5BfieldType%5D=radio&extras%5BfilesOnly%5D=1&extras%5Bpath%5D=files/uploads&extras%5Bextensions%5D=png&value=";
 		$strUrl = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/main.php?'.http_build_query($arrParams);
 		$strUrl = str_replace('%2F', '/',$strUrl);
@@ -155,7 +171,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		// create new filepicker	
 		if($strContext == 'file')
 		{
-			$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,\Config::get('uploadPath') ?: 'files');
+			$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
 		}
 		// create new pagepicker	
 		else if($strContext == 'page')
@@ -185,9 +201,22 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		// get the value from the url GET parameter
 		$varValue = Input::get('value');
 		
+		if( Validator::isBinaryUuid($varValue) )
+		{
+			$varValue = StringUtil::binToUuid( $varValue );
+		}
+
 		// contao expects value parameter to be a string
 		if(is_array($varValue))
 		{
+			foreach($varValue as $i => $v)
+			{
+				if( Validator::isBinaryUuid($v) )
+				{
+					$varValue[$i] = StringUtil::binToUuid($v);
+				}
+			}
+
 			$varValue = implode(',', array_filter($varValue));
 		}
 		
@@ -195,5 +224,53 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		$objConfig = new \Contao\CoreBundle\Picker\PickerConfig($strContext,array_filter($arrExtras),$varValue,$strCurrent);
 		
 		return $this->create($objConfig);;
+	}
+
+
+	public function create(PickerConfig $config): ?CorePicker
+	{
+		$context = $config->getContext();
+
+		$objPicker = null;
+
+		if(TL_MODE == 'BE')
+		{	
+			// create new filepicker	
+			if($context == 'file')
+			{
+				$objPicker = new FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
+				$objPicker->setFramework( $this->framework );
+			}
+			// create new pagepicker	
+			else if($context == 'page' || $context == 'link')
+			{
+				$objPicker = new PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
+			}
+
+			if( $objPicker === null )
+			{
+				return false;
+			}
+			
+			$this->addProvider($objPicker);
+		}
+		else
+		{
+			// create new filepicker	
+			if($context == 'file')
+			{
+				$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
+			}
+			// create new pagepicker	
+			else if($context == 'page')
+			{
+				// create new filepicker
+				$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
+			}
+			
+			$this->addProvider($objPicker);
+		}
+
+		return parent::create($config);
 	}
 }
