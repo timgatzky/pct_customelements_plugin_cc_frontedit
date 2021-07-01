@@ -18,17 +18,21 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
-use Contao\CoreBundle\Picker\FilePickerProvider;
-use Contao\CoreBundle\Picker\PickerBuilder;
-use Contao\CoreBundle\Picker\PickerConfig;
+use Contao\Combiner;
+use Contao\Config;
+use Contao\Controller;
 use Contao\Input;
 use Contao\Session;
 use Contao\System;
 use Contao\FilesModel;
 use Contao\Date;
+use Contao\Dbafs;
 use Contao\StringUtil;
 use Contao\Validator;
-use PCT\Contao\Picker\PickerBuilder as PickerPickerBuilder;
+use Contao\Database;
+use Contao\Environment;
+use Contao\File;
+use Contao\Folder;
 
 /**
  * Class file
@@ -125,8 +129,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// store potential child widgets
 		$this->childWidgets = array();
 		
-		$objSession = Session::getInstance();
-		
+		#$objSession = Session::getInstance();
+		$objSession = System::getContainer()->get('session');
+
+
 		/* @var contao ModelModule */
 		$objModule = $objAttribute->get('objCustomCatalog')->getModule();
 		
@@ -149,7 +155,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC->formSubmit = $objDC->table.'_'.Input::post('mod');
 		$objDC->isAjax = false;
 		
-		$arrSession = $objSession->getData();
+		$arrSession = $objSession->get('contao_frontend');
 		$arrIds = $arrSession['CURRENT']['IDS'];
 		
 		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']) ?: array();
@@ -203,7 +209,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$this->isAjaxField = true;
 		}
-				
+
 		$blnSubmitted = false;
 		if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
 		{
@@ -231,7 +237,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// !ajax IMAGE
 			if($objAttribute->get('type') == 'image' && Input::post('value')) 
 			{
-				$objFile = \Dbafs::addResource(Input::post('value'));
+				$objFile = Dbafs::addResource(Input::post('value'));
 				if($objFile)
 	   			{
 	   				$objDC->value = $objFile->uuid;
@@ -248,7 +254,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   
 				   foreach($objDC->value as $v)
 				   {
-				      $objFile = \Dbafs::addResource($v);
+				      $objFile = Dbafs::addResource($v);
 				      if($objFile)
 				      {
 					      $values[] = StringUtil::binToUuid($objFile->uuid);
@@ -275,7 +281,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// reload the page to avoid wrong javascript
 			if(!$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 			{
-				\Controller::reload();
+				Controller::reload();
 			}
 		}
 		
@@ -458,7 +464,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 								   continue;
 							   }
 							   
-							   $objFile = new \File(TL_ROOT.'/'.$v,true);
+							   $objFile = new File(TL_ROOT.'/'.$v,true);
 							   if($objFile !== null)
 							   {
 								   $values[] = StringUtil::binToUuid($objFile->uuid);
@@ -524,7 +530,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				else if($objAttribute->get('type') == 'tags')
 				{
 					// load js
-					$objCombiner = new \Combiner();
+					$objCombiner = new Combiner();
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
 					$GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 					
@@ -788,7 +794,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// little javascript helper to place an inserttag value back in the input field
 				if(strlen(strpos($dc->value, '{{')) > 0 && !Input::post('FORM_SUBMIT'))
 				{
-					$data = json_encode(array('field'=>$field,'currValue'=>\Controller::replaceInsertTags($dc->value),'newValue'=>$dc->value));
+					$data = json_encode(array('field'=>$field,'currValue'=>Controller::replaceInsertTags($dc->value),'newValue'=>$dc->value));
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
@@ -817,7 +823,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
 			$objFunctions = \PCT\CustomElements\Helper\Functions::getInstance();	
-			$arrUrl = parse_url(\Environment::get('request'));
+			$arrUrl = parse_url(Environment::get('request'));
 			
 			$errors = array
 			(
@@ -849,7 +855,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 
 						// add values
-						$href = \Environment::get('base') . $href;
+						$href = Environment::get('base') . $href;
 						
 						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
 
@@ -857,7 +863,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						{
 							if( version_compare(VERSION,'4.4','>=') ) 
 							{
-								$href = \Environment::get('base') . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/main.php';
+								$href = Environment::get('base') . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/main.php';
 								$href = $objFunctions->addToUrl('context=file&rt='.REQUEST_TOKEN.'&picker='.$objDC->field.'&popup=1&do=files&fieldType=radio&filesOnly=1',$href);
 							}
 							$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
@@ -927,21 +933,21 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$value = $objDC->value;
 			
 			#// convert values
-			#if(!empty($value))
-			#{
-			#	if($this->multiple && is_array($value))
-			#	{
-			#		// convert binary to uuid
-			#		if( in_array($objAttribute->get('type'), array('files','gallery')) )
-			#		{
-			#			$value = array_map('StringUtil::binToUuid',array_filter($value));
-			#		}
-			#	}
-			#	else if(Validator::isBinaryUuid($value))
-			#	{
-			#		$value = StringUtil::binToUuid($value);
-			#	}
-			#}
+			if(!empty($value))
+			{
+				if($this->multiple && is_array($value))
+				{
+					// convert binary to uuid
+					if( in_array($objAttribute->get('type'), array('files','gallery')) )
+					{
+						$value = array_map('StringUtil::binToUuid',array_filter($value));
+					}
+				}
+				else if(Validator::isBinaryUuid($value))
+				{
+					$value = StringUtil::binToUuid($value);
+				}
+			}
 			
 			if(is_array($value))
 			{
@@ -969,7 +975,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/tabletree.php',$strBuffer);
 		}
-		
+
 		// !FORM_SUBMIT add to save list
 		if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && (Input::post('save') || Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
@@ -1012,8 +1018,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			{
 				$objDC->value = StringUtil::decodeEntities($objDC->value);
 			}
-			
-							
+					
 			// custom order
 			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
 			{
@@ -1050,7 +1055,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// autosubmit member id to protection attribute when submitted empty
 			if($objAttribute->get('type') == 'protection' && FE_USER_LOGGED_IN && $objAttribute->get('isDownload') && empty($objDC->value))
 			{
-				$objUser = \FrontendUser::getInstance();
+				$objUser = \Contao\FrontendUser::getInstance();
 				$objDC->value = $objUser->id;
 				unset($objUser);
 			}
@@ -1077,7 +1082,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		// observe ajax on the field
 		$blnIsAjax = false;
-		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && Input::post('name') == $objDC->field && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if(!$blnSubmitted && Environment::get('isAjaxRequest') && Input::post('name') == $objDC->field && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 		{
 			$blnIsAjax = true;
 		}
@@ -1087,7 +1092,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		if($objAttribute->get('eval_tl_class_w50'))
 		{
-			$arrWidgetClasses[] = (in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
+			$arrWidgetClasses[] = (in_array('pct_autogrid', Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
 			
 		$this->widget = $this;
@@ -1112,7 +1117,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if($blnIsAjax && $this->isAjaxField)
 		{
 			// preserve scripts
-			$orig_allowedTags = \Config::get('allowedTags');
+			$orig_allowedTags = Config::get('allowedTags');
 			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
 			$buffer = $strBuffer;
 			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
@@ -1126,9 +1131,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			// reset to standard
-			\Config::set('allowedTags', $orig_allowedTags);
+			Config::set('allowedTags', $orig_allowedTags);
 			
-			$js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
+			$js_helper = new \Contao\FrontendTemplate('js_cc_frontedit_ajaxhelper');
 			$js_helper->widget = $this->widget;
 			$js_helper->dataContainer = $objDC;
 			$js_helper->field = $objDC->field;
@@ -1139,7 +1144,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// remove helper sessions
-		if($blnSubmitted && !\Environment::get('isAjaxRequest'))
+		if($blnSubmitted && ! Environment::get('isAjaxRequest'))
 		{
 			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
@@ -1208,7 +1213,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['invalid_upload_folder'],$strUploadFolder);
 		}
 		
-		$objFolder = new \Folder($strUploadFolder);
+		$objFolder = new Folder($strUploadFolder);
 		$intUploadFolder = $objFolder->getModel()->uuid;
 				
 		$objWidget = new $GLOBALS['TL_FFL']['upload'];
@@ -1218,7 +1223,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objWidget->slabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_upload'] ?: 'Upload';
 		$objWidget->storeFile = true;
 		$objWidget->uploadFolder = $intUploadFolder;
-		$objWidget->extensions = \Config::get('uploadTypes');
+		$objWidget->extensions = Config::get('uploadTypes');
 		
 		// apply settings to widget
 		if(count($arrSettings) > 0)
@@ -1272,13 +1277,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// add the file to the file system
 					if(file_exists(TL_ROOT.'/'.$strUploadFolder.'/'.$v['name']))
 					{
-						$setSetValue[$k][] = \Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
+						$setSetValue[$k][] = Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
 					}
 				}
 				
 				$setSetValue = array_filter($setSetValue);
 				
-				$objDatabase = \Database::getInstance();
+				$objDatabase = Database::getInstance();
 				if(!empty($setSetValue[$objWidget->name]) && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
 				{
 					$setValue = $setSetValue[ $objWidget->name ];
@@ -1292,7 +1297,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// flush post data and reload page to see changes
 					if((boolean)$arrSettings['autoReload'] !== false || !isset($arrSettings['autoReload']))
 					{
-						\Controller::reload();
+						Controller::reload();
 					}
 				}
 			}

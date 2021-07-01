@@ -52,14 +52,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 		{
 			return parent::__construct($menuFactory,$router);
 		}
-		
-		#$this->requestStack = $requestStack;
-		
-		#$objToken = $this->security->getToken();
-		#$user = $this->get('security.helper')->getUser();
-		#$origToken = $objSecurity->getToken()->getOriginalToken();
-		#$origUser = $origToken->getUser();
-		
+			
 		parent::__construct($menuFactory,$router);
 	}
 
@@ -70,7 +63,8 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 	{
 		$objPicker = null;
 
-		if(TL_MODE == 'BE')
+		// use core picker providers in backend
+		if( TL_MODE == 'BE')
 		{
 			// create new filepicker	
 			if($context == 'file')
@@ -91,7 +85,7 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 			$this->addProvider($objPicker);
 			return parent::supportsContext($context,$allowed);
 		}
-		else
+		else if( TL_MODE == 'FE' )
 		{
 			// create new filepicker	
 			if($context == 'file')
@@ -216,7 +210,6 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 					$varValue[$i] = StringUtil::binToUuid($v);
 				}
 			}
-
 			$varValue = implode(',', array_filter($varValue));
 		}
 		
@@ -227,6 +220,9 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 	}
 
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function create(PickerConfig $config): ?CorePicker
 	{
 		$context = $config->getContext();
@@ -254,22 +250,22 @@ class PickerBuilder extends \Contao\CoreBundle\Picker\PickerBuilder
 			
 			$this->addProvider($objPicker);
 		}
-		else
-		{
-			// create new filepicker	
-			if($context == 'file')
-			{
-				$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
-			}
-			// create new pagepicker	
-			else if($context == 'page')
-			{
-				// create new filepicker
-				$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
-			}
-			
-			$this->addProvider($objPicker);
-		}
+		#else
+		#{
+		#	// create new filepicker	
+		#	if($context == 'file')
+		#	{
+		#		$objPicker = new \PCT\Contao\Picker\FilePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security,Config::get('uploadPath') ?: 'files');
+		#	}
+		#	// create new pagepicker	
+		#	else if($context == 'page')
+		#	{
+		#		// create new filepicker
+		#		$objPicker = new \PCT\Contao\Picker\PagePickerProvider($this->menuFactory,$this->router,$this->translator,$this->security);
+		#	}
+		#	
+		#	$this->addProvider($objPicker);
+		#}
 
 		return parent::create($config);
 	}
