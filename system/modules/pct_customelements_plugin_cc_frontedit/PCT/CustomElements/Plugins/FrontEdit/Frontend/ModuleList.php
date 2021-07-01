@@ -25,6 +25,8 @@ use Contao\Database;
 use Contao\Environment;
 use Contao\FormSubmit;
 use Contao\PageModel;
+use Contao\StringUtil;
+use PCT\CustomCatalog\FrontEdit;
 
 /**
  * Class file
@@ -80,8 +82,8 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		// check groups
 		else if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
-			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
-			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+			$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+			if(!$objUser->hasGroupAccess(StringUtil::deserialize($this->reg_groups)))
 			{
 				$this->hasAccess = false;
 			}
@@ -91,7 +93,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		if($this->hasAccess)
 		{
 			// add backend assets
-			\PCT\CustomCatalog\FrontEditController::addAssets();
+			\PCT\CustomCatalog\FrontEdit\Controller::addAssets();
 		}
 		
 		// set the module ID as internal GET parameter
@@ -124,13 +126,13 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		}
 		
 		// apply operations
-		\PCT\CustomCatalog\FrontEditController::applyOperationsOnGeneratePage($objPage);
+		\PCT\CustomCatalog\FrontEdit\Controller::applyOperationsOnGeneratePage($objPage);
 		
 		// load language file
 		System::loadLanguageFile('default');
 		
 		$objCC = $this->CustomCatalog;
-		$objSession = \Session::getInstance();
+		$objSession = FrontEdit::getSession();
 		
 		$objOrigTemplate = $this->Template;
 		$this->Template = new \PCT\CustomCatalog\FrontEdit\FrontendTemplate($this->strTemplate);
@@ -147,7 +149,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
         $this->Template->isEnabled = true;
 		$this->Template->showHeaderButtons = true;
        
-        $arrListOperations = deserialize($objCC->get('list_operations'));
+        $arrListOperations = StringUtil::deserialize($objCC->get('list_operations'));
         
         // check if clipboard is active
 		$arrClipboard = $objSession->get('CLIPBOARD') ?: array();
@@ -317,7 +319,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 		$this->Template->selectAll .= '<input data-module="'.$this->id.'" id="select_trigger_'.$this->id.'" class="tl_select_trigger checkbox" type="checkbox" onclick="CC_FrontEdit.toggleCheckboxes(this)">';
 		
 		//-- paste first button
-		$this->Template->pasteFirst = '<a href="'.\PCT\CustomElements\Helper\Functions::addToUrl('act='.$arrClipboard[$objCC->getTable()]['mode'].'&mode=2&pid=0', Environment::get('request')).'">'.\Image::getHtml('pasteinto.gif','').'</a>';
+		$this->Template->pasteFirst = '<a href="'.\PCT\CustomElements\Helper\Functions::addToUrl('act='.$arrClipboard[$objCC->getTable()]['mode'].'&mode=2&pid=0', Environment::get('request')).'">'.Image::getHtml('pasteinto.gif','').'</a>';
 		// these modes suppot paste first
 		if(!in_array(Input::get('act'),array('paste')) && !in_array(Input::get('mode'),array('copyAll','cutAll')))
 		{

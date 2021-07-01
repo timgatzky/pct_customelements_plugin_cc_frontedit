@@ -18,6 +18,14 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
+use Contao\Environment;
+use Contao\FormCheckBox;
+use Contao\Image;
+use Contao\Input;
+use Contao\PageModel;
+use Contao\System;
+use PCT\CustomCatalog\FrontEdit;
+
 /**
  * Class file
  * CustomCatalog
@@ -29,7 +37,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	 */
 	public function __construct($strTemplate='')
 	{
-		\System::loadLanguageFile('default');
+		System::loadLanguageFile('default');
 		
 		return parent::__construct($strTemplate);
 	}
@@ -43,14 +51,21 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		global $objPage;
 		$objCC = $this->getCustomCatalog();
 		$objModule = $objCC->getOrigin();
-		
+		$objSession = FrontEdit::getSession();
+
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		
-		$image = \Image::getHtml('new.gif',$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0]);
+		$image = Image::getHtml('new.gif',$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0]);
 		
+		$strJumpTo = '';
+		if( $objModule->customcatalog_jumpTo )
+		{
+			$strJumpTo = PageModel::findByPk($objModule->customcatalog_jumpTo)->getFrontendUrl();
+		}
+
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable,$strJumpTo);
 		
 		// add the edit jump to page id to the url
@@ -83,16 +98,16 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$class = 'header_new';
 		
 		// set the switchToEdit helper session
-		$arrClipboard = \Session::getInstance()->get('CLIPBOARD_HELPER');
+		$arrClipboard = $objSession->get('CLIPBOARD_HELPER');
 	
 		$arrClipboard[$strTable] = array
 		(
 			'mode' 		=> 'create',
-			'ref'		=> \Environment::get('request'),
+			'ref'		=> Environment::get('request'),
 		);
 
 		// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
-		\Session::getInstance()->set('CLIPBOARD_HELPER',$arrClipboard);
+		$objSession->set('CLIPBOARD_HELPER',$arrClipboard);
 		
 		return sprintf('<a href="%s", class="%s" title="%s">%s</a>',$href,$class,$title,$linkText);
 	}
@@ -111,8 +126,8 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		
-		$image = \Image::getHtml('preview.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
+		$image = Image::getHtml('preview.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',PageModel::findByPk($objPage->id)->getFrontendUrl());
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -141,8 +156,8 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		
-		$image = \Image::getHtml('all.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&act=select',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
+		$image = Image::getHtml('all.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&act=select',PageModel::findByPk($objPage->id)->getFrontendUrl());
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -171,22 +186,22 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		
-		$arrSession = \Session::getInstance()->get('CLIPBOARD_HELPER');
+		$arrSession = FrontEdit::getSession()->get('CLIPBOARD_HELPER');
 		
 		// generate back button
-		if( in_array(\Input::get('act'),array('select','fe_editAll','fe_overrideAll')) )
+		if( in_array(Input::get('act'),array('select','fe_editAll','fe_overrideAll')) )
 		{
 			return $this->backButton();
 		}
 		// coming from create event
-		else if(\Input::get('act') == 'edit' && $arrSession[$strTable]['mode'] == 'oncreate')
+		else if(Input::get('act') == 'edit' && $arrSession[$strTable]['mode'] == 'oncreate')
 		{
 			return $this->backButton(true,true);
 		}
 		
 		
-		$image = \Image::getHtml('clipboard.gif',$GLOBALS['TL_LANG']['MSC']['clearClipboard']);
-		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',\Controller::generateFrontendUrl($objPage->row(),'',null,true));
+		$image = Image::getHtml('clipboard.gif',$GLOBALS['TL_LANG']['MSC']['clearClipboard']);
+		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',PageModel::findByPk($objPage->id)->getFrontendUrl());
 		
 		// add the request token
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
@@ -208,12 +223,11 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	 */
 	public function selectAllCheckbox()
 	{
-		$objCheckbox = new \FormCheckbox();
+		$objCheckbox = new FormCheckBox();
 		$objCheckbox->label = $GLOBALS['TL_LANG']['MSC']['selectAll'];
 		$objCheckbox->name = 'tl_select_trigger';
 		$objCheckbox->id = 'tl_select_trigger';
-		$objCheckbox->class = tl_tree_checkbox;
-		$objCheckbox->attribute = 'asdf';
+		$objCheckbox->class = 'tl_tree_checkbox';
 		return $objCheckbox->generate();
 	}
 	
@@ -226,11 +240,11 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	public function backButton($blnGoToReferer=false,$blnClearClipboard=false)
 	{
 		global $objPage;
-		$image = \Image::getHtml('back.gif',$GLOBALS['TL_LANG']['MSC']['goBack']);
+		$image = Image::getHtml('back.gif',$GLOBALS['TL_LANG']['MSC']['goBack']);
 		$title = $GLOBALS['TL_LANG']['MSC']['back'];
 		$linkText = $image.$GLOBALS['TL_LANG']['MSC']['goBack'];
 		$class = 'header_back';
-		$href = ( $blnGoToReferer ? \Controller::getReferer() : \Controller::generateFrontendUrl($objPage->row(),'',null,true) );
+		$href = ( $blnGoToReferer ? \Contao\Controller::getReferer() : PageModel::findByPk($objPage->id)->getFrontendUrl() );
 		
 		if($blnClearClipboard)
 		{

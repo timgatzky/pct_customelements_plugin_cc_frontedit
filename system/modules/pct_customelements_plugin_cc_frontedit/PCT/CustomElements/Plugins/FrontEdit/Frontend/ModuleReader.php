@@ -23,9 +23,11 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
  */
 
 use Contao\Controller;
+use Contao\Database;
 use Contao\Environment;
 use Contao\FormSubmit;
 use Contao\Input;
+use Contao\StringUtil;
 use Contao\System;
 use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory;
 
@@ -91,7 +93,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			}
 			
 			$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
-			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+			if(!$objUser->hasGroupAccess(StringUtil::deserialize($this->reg_groups)))
 			{
 				$this->hasAccess = false;
 			}
@@ -294,7 +296,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 							$set['pid'] = Input::get('pid') ?: Input::post('pid');
 						}
 						
-						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
+						$objUpdate = Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
 					}
 					
 					// empty set list
@@ -303,16 +305,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 					// go back to regular list view
 					if(isset($_POST[$this->saveNcloseSubmitName]))
 					{
-						$url = \Controller::getReferer();
+						$url = \Contao\Controller::getReferer();
 						foreach(array('act','jumpto','mode','table','do','rt','switchToEdit') as $v)
 						{
 							$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 						}
-						\Controller::redirect($url);
+						\Contao\Controller::redirect($url);
 					}
 					
 					// reload the page so changes take effect immediately
-					\Controller::reload();
+					\Contao\Controller::reload();
 				}
 			}
 		}

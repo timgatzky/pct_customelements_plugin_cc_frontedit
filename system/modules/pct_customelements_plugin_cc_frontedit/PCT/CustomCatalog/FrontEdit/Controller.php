@@ -58,7 +58,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	/**
 	 * Add back end assets to the front end
 	 */
-	public function addAssets()
+	public static function addAssets()
 	{
 		global $objPage;
 
@@ -366,7 +366,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'] ?: array();
-		$arrListOperations = deserialize($objCC->get('list_operations'));
+		$arrListOperations = StringUtil::deserialize($objCC->get('list_operations'));
 		
 		// include the toggle button
 		if(strlen($objCC->getPublishedField()) > 0 && in_array('toggle', $arrListOperations))

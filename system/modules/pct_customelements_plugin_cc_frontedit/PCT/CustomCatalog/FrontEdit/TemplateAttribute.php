@@ -23,6 +23,7 @@ use Contao\Config;
 use Contao\Controller;
 use Contao\Input;
 use Contao\Session;
+use Contao\Image;
 use Contao\System;
 use Contao\FilesModel;
 use Contao\Date;
@@ -250,7 +251,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			   	
 			   	if($this->multiple)
 			   	{
-				   $objDC->value = trimsplit('\t',Input::post('value',true));
+				   $objDC->value = StringUtil::trimsplit('\t',Input::post('value',true));
 				   
 				   foreach($objDC->value as $v)
 				   {
@@ -268,7 +269,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		   	{
 			   	if($this->multiple)
 			   	{
-				   	 $objDC->value = implode(',',trimsplit('\t',Input::post('value',true)));
+				   	 $objDC->value = implode(',',StringUtil::trimsplit('\t',Input::post('value',true)));
 			   	}
 		   	}
 		   
@@ -417,7 +418,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						
 						if($objFile && $newValue != $currValue && strlen($currValue) > 0)
 						{
-							$newSRC = \Contao\Image::get(FilesModel::findByUuid($newValue)->path,'80','60','crop');
+							$newSRC = Image::get(FilesModel::findByUuid($newValue)->path,'80','60','crop');
 							$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
 							$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
 						}
