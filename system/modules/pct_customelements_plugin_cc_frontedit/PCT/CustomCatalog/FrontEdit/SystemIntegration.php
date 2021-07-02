@@ -74,10 +74,10 @@ class SystemIntegration extends \Contao\System
 		$objFile->close();
 			
 		// log
-		\System::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
+		static::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
 		
 		// reload the page to make changes take effect
-		\Controller::reload();
+		\Contao\Controller::reload();
 	}
 	
 	

@@ -31,6 +31,7 @@ use Contao\Image;
 use Contao\File;
 use Contao\FilesModel;
 use Contao\FormSubmit;
+use Contao\FrontendTemplate;
 use Contao\Input;
 use Contao\ModuleModel;
 use Contao\PageModel;
@@ -254,10 +255,12 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	
 	/**
 	 * Generates the operations buttons list by an active record data (database result) or an array
+	 * @param object			FrontendTemplate
 	 * @param object||array		DatabaseResult || Array
+	 * @param object			CustomCatalog
 	 * @return string			Html output
 	 */
-	public function addButtonsToTemplateByRow($objTemplate, $varRow, $objConfig=null)
+	public function addButtonsToTemplateByRow($objTemplate, $varRow, $objCustomCatalog): FrontendTemplate
 	{
 		global $objPage;
 		
@@ -280,19 +283,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objRow = $varRow;
 		}
 		
-		// apply a config object
-		if($objConfig !== null)
-		{
-			$this->setConfig($objConfig);
-		}
-		
-		$objConfig = $this->getConfig();
-	
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
 		$objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getInstance();
-		$objCC = $objConfig->customcatalog;
-		$objModule = $objConfig->module;
+		$objCC = $objCustomCatalog;
+		$objModule = $objCustomCatalog->getModule();
 		$arrDefaultDCA = $objDcaHelper->getDefaultDataContainerArray();
 		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
 		$arrChilds = StringUtil::deserialize( $objCC->get('cTables') );
@@ -323,7 +318,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
-		$strJumpTo = PageModel::findByPk($objPage->id)->getFrontendUrl('');
+		$strJumpTo = PageModel::findByPk($objPage->id)->getFrontendUrl();
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
 		{
@@ -622,7 +617,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		$objTemplate->empty = (count($arrButtons) < 1 ? true : false);
 		$objTemplate->module = $objModule;
-		$objTemplate->config = $objConfig;
 		$objTemplate->customcatalog = $objCC;
 		$objTemplate->activeRecord = $objRow;
 		$objTemplate->buttons = $arrButtons;
@@ -692,7 +686,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
-			\Contao\Controller::redirect($redirect);
+			ContaoController::redirect($redirect);
 		}
 		
 		// !switchToEdit on COPY
@@ -713,7 +707,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Contao\Controller::getReferer();
+			$arrSession[$strTable]['ref'] = ContaoController::getReferer();
 			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
@@ -721,7 +715,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
-			\Contao\Controller::redirect($redirect);
+			ContaoController::redirect($redirect);
 		}
 	}
 	
@@ -795,6 +789,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
 			}
 		}
+
+		$objSession = static::getSession();
 		
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable])
@@ -859,7 +855,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		{
 			$objDC->cut(true);
 			
-			\Contao\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !CUT ALL
 		else if(Input::get('act') == 'cutAll')
@@ -876,16 +872,16 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			\Contao\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !COPY
 		else if(Input::get('act') == 'copy')
 		{
 			$intNew = $objDC->copy(true);
 			
-			// set the tstamp column to 0
+			// set the tstamp column to 0 when switchToEdit is in use
 			$objNew = Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
-			if($objNew->tstamp > 0)
+			if($objNew->tstamp > 0 && Input::get('switchToEdit') != '')
 			{
 				Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>0))->execute($intNew);
 			}
@@ -899,16 +895,16 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				);
 
 				// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
-				static::getSession()->set('CLIPBOARD_HELPER',$arrClipboard);
+				$objSession->set('CLIPBOARD_HELPER',$arrClipboard);
 				
 				// reload the page to make the session take effect
 				if($blnDoNotSwitchToEdit)
 				{
-					\Contao\Controller::reload();
+					ContaoController::reload();
 				}
 			}
 			
-			\Contao\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !COPY ALL
 		else if(Input::get('act') == 'copyAll')
@@ -927,7 +923,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				}
 			}
 						
-			\Contao\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !EDIT ALL, OVERRIDE ALL
 		else if(Input::get('act') == 'editAll')
@@ -939,7 +935,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(Input::get('act') == 'paste')
 		{
 			$reload = false;
-			$objSession = static::getSession();
 			$arrClipboard = $objSession->get('CLIPBOARD');
 			
 			if(count($arrClipboard[$strTable]) < 1)
@@ -968,14 +963,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			if($reload)
 			{
-				\Contao\Controller::reload();
+				ContaoController::reload();
 			}
 		}
 		
 		// TODO: !CLIPBOARD clear
 		if(strlen($strTable) > 0 && Input::get('clear_clipboard'))
 		{
-			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			
 			$arrSession[$strTable] = array();
@@ -985,7 +979,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set('CURRENT',array());
 			
 			
-			\Contao\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 	}
 	
@@ -1237,7 +1231,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if (Input::get('tid'))
 		{
 			$this->toggleVisibility(Input::get('tid'), (Input::get('state') == 1));
-			\Contao\Controller::redirect( \Contao\Controller::getReferer() );
+			ContaoController::redirect( ContaoController::getReferer() );
 		}
 		
 		

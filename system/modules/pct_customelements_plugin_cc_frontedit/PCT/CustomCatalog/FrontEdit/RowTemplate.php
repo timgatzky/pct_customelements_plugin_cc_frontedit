@@ -18,6 +18,8 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
+use Contao\StringUtil;
+
 /**
  * Class file
  * RowTemplate
@@ -58,7 +60,6 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	public function editable()
 	{
 		$objModule = $this->getCustomCatalog()->getOrigin();
-		$objActiveRecord = $this->get('objActiveRecord'); 
 		
 		// check plugin excludes
 		if(in_array($this->getCustomCatalog()->get('pid'),$GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit']['excludes']))
@@ -80,8 +81,8 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 		// user level
 		if(FE_USER_LOGGED_IN && !$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'])
 		{
-			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() );
-			if(!$objUser->hasGroupAccess( deserialize($objModule->reg_groups) ))
+			$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() );
+			if(!$objUser->hasGroupAccess( StringUtil::deserialize($objModule->reg_groups) ))
 			{
 				return false;
 			}
@@ -99,14 +100,7 @@ class RowTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\RowTemp
 	public function buttons($strTemplate='buttons')
 	{
 		$objFrontEdit = new \PCT\CustomCatalog\FrontEdit();
-		
-		// config object
-		$objConfig = new \StdClass;
-		$objConfig->customcatalog = $this->getCustomCatalog();
-		$objConfig->activeRecord = $this->get('objActiveRecord');
-		
-		$objTemplate = $objFrontEdit->addButtonsToTemplateByRow(new \FrontendTemplate($strTemplate), $this->get('objActiveRecord'), $objConfig);
-		
+		$objTemplate = $objFrontEdit->addButtonsToTemplateByRow(new \Contao\FrontendTemplate($strTemplate), $this->get('objActiveRecord'), $this->getCustomCatalog());
 		return $objTemplate->parse();
 	}
 }

@@ -19,6 +19,7 @@
 namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 
 use Contao\System;
+use Contao\Image;
 use Contao\Input;
 use Contao\Controller;
 use Contao\Database;

@@ -22,8 +22,6 @@ namespace PCT\CustomCatalog;
 /**
  * Imports
  */
-use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory as CustomCatalogFactory;
-use PCT\CustomCatalog\FrontEdit\Controller as Helper;
 use Contao\Database;
 use Contao\System;
 
