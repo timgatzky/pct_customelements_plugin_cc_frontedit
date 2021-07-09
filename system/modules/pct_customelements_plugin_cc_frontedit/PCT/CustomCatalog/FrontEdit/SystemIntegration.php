@@ -18,6 +18,7 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
+
 /**
  * Imports
  */
@@ -106,7 +107,7 @@ class SystemIntegration extends System
 		$objFile->close();
 			
 		// log
-		static::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
+		static::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,\TL_CRON);
 		
 		// reload the page to make changes take effect
 		Controller::reload();
@@ -126,7 +127,7 @@ class SystemIntegration extends System
 		$strFile = 'service'.($strEnvironment ? '_'.$strEnvironment : '').'.yaml';
 		
 		// fetch the file
-		$objFile = new \Contao\File('app/config/'.$strFile,true);
+		$objFile = new File('app/config/'.$strFile,true);
 		
 		$arrYaml = array();
 		
