@@ -76,7 +76,7 @@ class SystemIntegration extends System
 		// parse current yaml to array
 		if( $objFile->exists() === true )
 		{
-			$arrYaml = \Symfony\Component\Yaml\Yaml::parseFile('../app/config/'.$strFile);
+			$arrYaml = \Symfony\Component\Yaml\Yaml::parse( $objFile->getContent() );
 		}
 
 		if( \array_key_exists('services',$arrYaml) === false )
@@ -134,7 +134,7 @@ class SystemIntegration extends System
 		// parse current yaml to array
 		if( $objFile->exists() === true )
 		{
-			$arrYaml = \Symfony\Component\Yaml\Yaml::parseFile('../app/config/'.$strFile);
+			$arrYaml = \Symfony\Component\Yaml\Yaml::parse( $objFile->getContent() );
 		}
 
 		if( \array_key_exists('services',$arrYaml) === false )
