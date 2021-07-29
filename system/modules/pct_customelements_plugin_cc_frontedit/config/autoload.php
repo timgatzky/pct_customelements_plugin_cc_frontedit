@@ -69,4 +69,5 @@ TemplateLoader::addFiles(array
 	'buttons'							=> $path.'/templates/frontedit',
 	'cc_edit_nopermission'				=> $path.'/templates/pages',
 	'js_cc_frontedit_ajaxhelper'		=> $path.'/templates/js',
+	'moo_cc_frontedit_picker_helper'	=> $path.'/templates/js',
 ));

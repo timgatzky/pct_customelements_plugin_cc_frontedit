@@ -230,7 +230,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		#{
 		#	$objDC->value = null;
 		#}
-		
+
 		// ajax requests, store value in the session and reload page
 		if(strlen(Input::post('action')) > 0 && (Input::post('name') == $objDC->field || Input::post('field') == $objDC->field) )
 		{
@@ -238,7 +238,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// !ajax IMAGE
 			if($objAttribute->get('type') == 'image' && Input::post('value')) 
 			{
-				$objFile = Dbafs::addResource(Input::post('value'));
+				$objFile = Dbafs::addResource( \urldecode(Input::post('value')) );
 				if($objFile)
 	   			{
 	   				$objDC->value = $objFile->uuid;
@@ -255,7 +255,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				   
 				   foreach($objDC->value as $v)
 				   {
-				      $objFile = Dbafs::addResource($v);
+				      $objFile = Dbafs::addResource( \urldecode($v) );
 				      if($objFile)
 				      {
 					      $values[] = StringUtil::binToUuid($objFile->uuid);
@@ -273,11 +273,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			   	}
 		   	}
 		   
-		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
-			
+		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;		
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
+			$objDC->ajaxValue = $objDC->value;
+			$this->ajaxValue = $objDC->value;
 
 			// reload the page to avoid wrong javascript
 			if(!$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
@@ -385,7 +386,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					{
 						Input::setPost($objDC->field,null);
 					}
-					
+
 					$objWidget->currentRecord = $objDC->id;
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
@@ -405,24 +406,21 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					// rewrite the preview images in file selections
-					if( isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]) )
-					{
-						$newValue = StringUtil::binToUuid($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
-						$currValue = '';
-						if($objDC->value)
-						{
-							$currValue = StringUtil::binToUuid($objDC->value);
-						}
-						
-						$objFile = FilesModel::findByUuid($newValue)->path;
-						
-						if($objFile && $newValue != $currValue && strlen($currValue) > 0)
-						{
-							$newSRC = Image::get(FilesModel::findByUuid($newValue)->path,'80','60','crop');
-							$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
-							$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
-						}
-					}
+					#if( isset($objDC->ajaxValue) && $objDC->value =! $objDC->ajaxValue )
+					#{
+					#	$newValue = StringUtil::binToUuid($objDC->ajaxValue);
+					#	$currValue = StringUtil::binToUuid($objDC->value);
+					#	
+					#	$strFile = FilesModel::findByUuid($newValue)->path;
+#					#	if($strFile && $newValue != $currValue && strlen($currValue) > 0)
+					#	if($strFile)
+					#	{
+					#		$newSRC = Image::get($strFile,'80','60','crop');
+					#		$this->ajaxReplaceImage = Image::getHtml($strFile,'80','60','crop');
+					#		$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
+					#	#	$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
+					#	}
+					#}
 				}
 				// !FILE(s), GALLERY attributes
 				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
@@ -1109,38 +1107,56 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$arrClasses[] = 'hasTiny';
 		}
-		
+
+		if( $objDC->isAjax )
+		{
+			$arrClasses[] = 'ajax';
+		}
+
 		// wrap the widget in a unique div
-		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
+		$strWrapperStart = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">';
+		$strWrapperStop = '</div>';
+		$strBuffer = $strWrapperStart.$strBuffer.$strWrapperStop;
 		
 		// inject a little javascript ajax helper
 		//! -- ajax
-		if($blnIsAjax && $this->isAjaxField)
+		if($this->isAjaxField)
 		{
 			// preserve scripts
-			$orig_allowedTags = Config::get('allowedTags');
+			#$orig_allowedTags = Config::get('allowedTags');
 			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
-			$buffer = $strBuffer;
+			#$buffer = $strBuffer;
+			#$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
+			#$buffer = StringUtil::decodeEntities(StringUtil::substrHtml($buffer,strlen($buffer)));
+			#$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+			#$strAjaxBuffer = $buffer;
+			
+			$moo_helper = new \Contao\FrontendTemplate('moo_cc_frontedit_picker_helper');
+			$moo_helper->field = $objDC->field;
+			$moo_helper->value = $objDC->value;
+			$buffer = $moo_helper->parse();
 			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
 			$buffer = StringUtil::decodeEntities(StringUtil::substrHtml($buffer,strlen($buffer)));
 			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
-			
-			$strAjaxBuffer = $buffer;
-			
-			// store buffer in the session
-			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
-			
+			$moo = $buffer;
 			// reset to standard
-			Config::set('allowedTags', $orig_allowedTags);
+			#Config::set('allowedTags', $orig_allowedTags);
 			
+			if( $objDC->isAjax )
+			{
+				$GLOBALS['TL_HEAD'][] = '<script>var isAjax=true;</script>';
+			}
+
 			$js_helper = new \Contao\FrontendTemplate('js_cc_frontedit_ajaxhelper');
 			$js_helper->widget = $this->widget;
 			$js_helper->dataContainer = $objDC;
 			$js_helper->field = $objDC->field;
-			#$js_helper->session = $arrFeSession[$objDC->table];
+			$js_helper->value = $objDC->value;
+			$js_helper->wrapperStart = $strWrapperStart;
+			$js_helper->wrapperStop = $strWrapperStop;
 			$js_helper->isAjax = $objDC->isAjax;
-			$js_helper->buffer = $strAjaxBuffer;
+			$js_helper->script = $moo;
+			
 			$strBuffer .= $js_helper->parse();
 		}
 		
