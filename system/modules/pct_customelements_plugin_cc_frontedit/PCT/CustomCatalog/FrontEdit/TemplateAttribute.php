@@ -441,7 +441,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					else
 					{
 						// coming from ajax, convert paths to binary
-						if($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field])
+						if($objDC->ajaxValue)
 						{
 						   if(!is_array($objDC->value))
 						   {
