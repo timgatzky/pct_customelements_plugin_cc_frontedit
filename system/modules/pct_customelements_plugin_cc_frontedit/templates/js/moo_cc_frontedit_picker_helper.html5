@@ -1,6 +1,6 @@
 
 <?php 
-$title = strtoupper($this->field);
+$title = ucfirst($this->field);
 ?>
 $$("#ft_<?= $this->field; ?>")[0].addEvent("click", function(e) 
 {
