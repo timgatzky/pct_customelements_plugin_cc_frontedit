@@ -47,7 +47,7 @@ class SystemIntegration extends System
 		}
 		else if( \version_compare(\VERSION, '4.9','==')  )
 		{
-			$this->createServiceYml();
+			$this->createServicesYml();
 		}
 		else 
 		{
@@ -62,6 +62,12 @@ class SystemIntegration extends System
 	 */
 	protected function createConfigYml()
 	{
+		// picker class already changed
+		if( \get_class( System::getContainer()->get('contao.picker.builder') ) == 'PCT\Contao\Picker\PickerBuilder' )
+		{
+			return;
+		}
+
 		$strEnvironment = '';
 		
 		// current symphony environment
@@ -117,14 +123,20 @@ class SystemIntegration extends System
 	/**
 	 * Create/append service.yaml (Contao 4.9)
 	 */
-	protected function createServiceYml()
+	protected function createServicesYml()
 	{
+		// picker class already changed
+		if( \get_class( System::getContainer()->get('contao.picker.builder') ) == 'PCT\Contao\Picker\PickerBuilder' )
+		{
+			return;
+		}
+
 		$strEnvironment = '';
 		
 		// current symphony environment
 		#$strEnvironment = \System::getContainer('kernel')->getParameter('kernel.environment');
 		
-		$strFile = 'service'.($strEnvironment ? '_'.$strEnvironment : '').'.yaml';
+		$strFile = 'services'.($strEnvironment ? '_'.$strEnvironment : '').'.yml';
 		
 		// fetch the file
 		$objFile = new File('app/config/'.$strFile,true);
@@ -142,15 +154,15 @@ class SystemIntegration extends System
 			$arrYaml['services'] = array();
 		}
 
-		// yaml created
-		if( empty($arrYaml['services']['contao.picker.builder']) === false )
+		// yaml created and modifies
+		if( empty($arrYaml['services']['contao.picker.builder']) === false  )
 		{
 			return;
 		}
 
-		$arrYaml['services']['_default']['autowire'] = true;
-		$arrYaml['services']['_default']['autoconfigure'] = true;
-		$arrYaml['services']['_default']['public'] = true;
+		#$arrYaml['services']['_default']['autowire'] = true;
+		#$arrYaml['services']['_default']['autoconfigure'] = true;
+		#$arrYaml['services']['_default']['public'] = true;
 
 		// append services
 		$arrYaml['services']['contao.picker.builder'] = array
@@ -165,7 +177,6 @@ class SystemIntegration extends System
 		$arrYaml['services']['contao.picker.file_provider'] = array('class' => 'PCT\Contao\Picker\FilePickerProvider','public'=>true);
 
 		$objDumper = new \Symfony\Component\Yaml\Dumper();
-		
 		$objFile->write( $objDumper->dump($arrYaml) );
 		$objFile->close();
 			
