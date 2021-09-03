@@ -239,33 +239,38 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			if($objAttribute->get('type') == 'image' && Input::post('value')) 
 			{
 				$objFile = Dbafs::addResource( \urldecode(Input::post('value')) );
-				if($objFile)
-	   			{
-	   				$objDC->value = $objFile->uuid;
-	   			}
-		   	}
-		   	// !ajax FILE(s), GALLERY
-		   	else if(in_array($objAttribute->get('type'),array('files','gallery')) && Input::post('value'))
-		   	{
-			   	$objDC->value = Input::post('value');
-			   	
-			   	if($this->multiple)
-			   	{
-				   $objDC->value = StringUtil::trimsplit('\t',Input::post('value',true));
-				   
-				   foreach($objDC->value as $v)
-				   {
-				      $objFile = Dbafs::addResource( \urldecode($v) );
-				      if($objFile)
-				      {
-					      $values[] = StringUtil::binToUuid($objFile->uuid);
-				   	  }
-				   }
-				   $objDC->value = implode(',',$values);
+				if ($objFile) 
+				{
+					$objDC->value = $objFile->uuid;
+				}
+			}
+			// !ajax FILE(s), GALLERY
+			else if (in_array($objAttribute->get('type'), array('files', 'gallery')) && Input::post('value')) {
+				$objDC->value = Input::post('value');
+
+				if ($this->multiple) {
+					$objDC->value = StringUtil::trimsplit('\t', Input::post('value', true));
+
+					foreach ($objDC->value as $v) 
+					{
+						$v = \urldecode($v);
+						
+						if ( Validator::isUuid($v) || Validator::isStringUuid($v) )
+						{
+							$v = FilesModel::findByUuid( $v )->path;
+						}
+
+						$objFile = Dbafs::addResource($v);
+						if ($objFile) 
+						{
+							$values[] = StringUtil::binToUuid($objFile->uuid);
+						}
+					}
+					$objDC->value = implode(',', $values);
 				}
 			}
 			// !ajax TAGS, PAGETREE
-			else if(in_array($objAttribute->get('type'),array('tags','pagetree')) && Input::post('value'))
+			else if (in_array($objAttribute->get('type'),array('tags','pagetree')) && Input::post('value'))
 		   	{
 			   	if($this->multiple)
 			   	{
@@ -482,8 +487,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 							{
 								$arrValues = explode(',',$arrValues); 
 							}
-							$objDC->value = array_map('StringUtil::binToUuid',array_filter($arrValues));
-							Input::setPost($objDC->field,implode(',',$objDC->value));
+							$_value = array_map('StringUtil::binToUuid',array_filter($arrValues));
+							Input::setPost($objDC->field,implode(',',$_value));
+							unset($_value);
 						}
 					}
 					
