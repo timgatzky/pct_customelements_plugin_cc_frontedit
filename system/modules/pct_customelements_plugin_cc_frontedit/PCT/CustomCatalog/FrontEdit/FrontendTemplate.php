@@ -237,7 +237,7 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 	 * @param boolean	Go back to referer or reload
 	 * @return string
 	 */
-	public function backButton($blnGoToReferer=false,$blnClearClipboard=false)
+	public static function backButton($blnGoToReferer=false,$blnClearClipboard=false)
 	{
 		global $objPage;
 		$image = Image::getHtml('back.gif',$GLOBALS['TL_LANG']['MSC']['goBack']);
