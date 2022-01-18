@@ -367,7 +367,7 @@ class ModuleList extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Modu
 			$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 			$objDC->User = $objUser;
 				
-			$arrSession = $objSession->getData();
+			$arrSession = $objSession->all();
 			
 			$arrIds = $arrSession['CURRENT']['IDS'];
 			
