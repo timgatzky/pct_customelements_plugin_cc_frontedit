@@ -639,7 +639,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 
 		$arrSession = $objSession->get('CLIPBOARD_HELPER');
 		$arrOrigSession = $objSession->get('CLIPBOARD') ?: array();
-		$new_records = $objSession->get('new_records') ?: array();
+		$objSessionBag = $objSession->getBag('contao_backend');
+		$new_records = $objSessionBag->get('new_records') ?: array();
 		
 		if(!empty($new_records[$strTable]) && isset($arrOrigSession[$strTable]))
 		{
@@ -837,6 +838,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		
 		$blnDoNotSwitchToEdit = true;
 		$strCleanUrl = PageModel::findByPk($objPage->id)->getFrontendUrl();
+		$objSession = static::getSession();
+		$objSessionBag = $objSession->getBag('contao_backend');
 		
 		// TODO: !CREATE
 		if(Input::get('act') == 'create')
@@ -860,7 +863,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// TODO: !CUT ALL
 		else if(Input::get('act') == 'cutAll')
 		{
-			$arrClipboard = static::getSession()->get('CLIPBOARD');
+			$arrClipboard = $objSession->get('CLIPBOARD');
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
 				foreach($arrClipboard[$strTable]['id'] as $id)
@@ -910,7 +913,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		else if(Input::get('act') == 'copyAll')
 		{
 			#$objDC->copyAll();
-			$arrClipboard = static::getSession()->get('CLIPBOARD');
+			$arrClipboard = $objSession->get('CLIPBOARD');
 
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
@@ -977,8 +980,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set('CLIPBOARD',$arrSession);
 			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			$objSession->set('CURRENT',array());
-			
-			
+				
 			ContaoController::redirect( $strCleanUrl );
 		}
 	}
