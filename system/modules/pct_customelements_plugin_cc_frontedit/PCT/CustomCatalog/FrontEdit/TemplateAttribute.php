@@ -49,12 +49,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	 */
 	public function __override($arrEntries)
 	{
-		if(count($arrEntries) < 1 || !is_array($arrEntries))
+		if( empty($arrEntries) || !is_array($arrEntries))
 		{
 			return $arrEntries;
 		}
 		$arrReturn = array();
 		$arrProcessed = array();
+		$arrFields = array();
 		foreach($arrEntries as $i => $objRowTemplate)
 		{
 			if(!empty($objRowTemplate->get('fields')))
@@ -70,33 +71,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			       $arrFields[$field] = $_this;
 		        }
 			    $objRowTemplate->set('fields',$arrFields);
-			    
 			    $arrProcessed[] = $field;
+				
+			}
+
+			// set the field array
+			if( !empty($arrFields) )
+			{
+				$objRowTemplate->set('field', $arrFields);
 			}
 			
-			// process the field array
-			if(!empty($objRowTemplate->get('field')))
-			{
-				$arrFields = $objRowTemplate->get('field');
-		    	foreach($arrFields as $field => $objAttributeTemplate)
-		        {
-			       if(in_array($field, $arrProcessed))
-			       {
-				       continue;
-			       }
-			       
-			       $_this = new self();
-				   foreach($objAttributeTemplate as $key => $val)
-				   {
-					   $_this->{$key} = $val;
-				   }
-			       $arrFields[$field] = $_this;
-		        }
-		        
-		        $objRowTemplate->set('field',array_merge($arrFields, $objRowTemplate->get('fields')) );
-			}
-			    
-	        $arrReturn[$i] = $objRowTemplate;
+			$arrReturn[$i] = $objRowTemplate;
 		}
 		return $arrReturn;
 	}
