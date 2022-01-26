@@ -776,6 +776,12 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		{
 			return;
 		}
+
+		// append the rest token
+		if( Input::get('rt') == '' )
+		{
+			Input::setGet('rt',\REQUEST_TOKEN);
+		}
 		
 		// check request token 
 		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && Input::get('rt') != REQUEST_TOKEN)
