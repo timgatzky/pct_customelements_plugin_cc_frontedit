@@ -849,16 +849,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						
 						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
 
-						if($objAttribute->get('type') == 'textarea')
+						if($objAttribute->get('type') == 'textarea' )
 						{
-							if( version_compare(VERSION,'4.4','>=') ) 
-							{
-								$href = Environment::get('base') . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/main.php';
-								$href = $objFunctions->addToUrl('context=file&rt='.REQUEST_TOKEN.'&picker='.$objDC->field.'&popup=1&do=files&fieldType=radio&filesOnly=1',$href);
-							}
-							$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
-							
-							$strBuffer = str_replace($func, "CC_FrontEdit.openModalInTextarea(field_name,".$data .");", $strBuffer);
 						}
 						else
 						{
