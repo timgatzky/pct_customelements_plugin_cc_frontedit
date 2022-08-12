@@ -326,7 +326,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'] ?: array();
-		$arrListOperations = StringUtil::deserialize($objCC->get('list_operations'));
+		$arrListOperations = StringUtil::deserialize($objCC->get('list_operations')) ?: array();
 		
 		// include the toggle button
 		if(strlen($objCC->getPublishedField()) > 0 && in_array('toggle', $arrListOperations))

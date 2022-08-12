@@ -18,6 +18,10 @@
  */
 namespace PCT\Contao;
 
+use Contao\BackendUser;
+use Contao\MemberGroupModel;
+use Contao\StringUtil;
+
 /**
  * Class file
  * FrontendUser
@@ -107,15 +111,15 @@ class _FrontendUser
 		}
 		
 		// merge with member groups
-		$objMemberGroup = \MemberGroupModel::findMultipleByIds($this->groups,$arrOptions);
+		$objMemberGroup = MemberGroupModel::findMultipleByIds($this->groups,$arrOptions);
 		if($objMemberGroup !== null)
 		{
-			$value =  deserialize($this->{$strKey});
+			$value =  StringUtil::deserialize($this->{$strKey});
 			while($objMemberGroup->next())
 			{
 				if($objMemberGroup->{$strKey})
 				{
-					$var = deserialize($objMemberGroup->{$strKey});
+					$var = StringUtil::deserialize($objMemberGroup->{$strKey});
 					// merge arrays
 					if( is_array($var) && is_array($value) )
 					{
@@ -139,7 +143,7 @@ class _FrontendUser
 	 */
 	public function hasGroupAccess($arrGroups)
 	{
-		if(count($arrGroups) < 1 || empty($arrGroups) || !$this->groups)
+		if(empty($arrGroups) || !$this->groups)
 		{
 			return false;
 		}
@@ -149,7 +153,7 @@ class _FrontendUser
 			$arrGroups = explode(',', $arrGroups);
 		}
 				
-		if( empty( array_intersect( $arrGroups, deserialize($this->groups) )))
+		if( empty( array_intersect( $arrGroups, StringUtil::deserialize($this->groups) )))
 		{
 			return false;
 		}
@@ -163,7 +167,7 @@ class _FrontendUser
 	 */
 	public function hasAccess($strField,$arr)
 	{
-		$objTester = \BackendUser::getInstance();
+		$objTester = BackendUser::getInstance();
 		
 		// allow all
 		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
@@ -189,7 +193,7 @@ class _FrontendUser
 	 */
 	public function navigation()
 	{
-		$objTester = \BackendUser::getInstance();
+		$objTester = BackendUser::getInstance();
 		$objTester->isAdmin = 0;
 		
 		// pass variables
