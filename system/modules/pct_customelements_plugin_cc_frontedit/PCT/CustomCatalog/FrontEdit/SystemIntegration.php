@@ -45,7 +45,7 @@ class SystemIntegration extends System
 		{
 			$this->createConfigYml();
 		}
-		else if( \version_compare(\VERSION, '4.9','==')  )
+		else if( \version_compare(\VERSION, '4.9','==') || \version_compare(\VERSION, '4.13','==') )
 		{
 			$this->createServicesYml();
 		}
