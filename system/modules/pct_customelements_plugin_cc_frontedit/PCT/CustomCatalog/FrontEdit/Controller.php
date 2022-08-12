@@ -376,7 +376,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$jumpTo = $strJumpTo; 
 			
 			// overwrite the jumpTo page when editing should be done on a different page
-			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
+			if($key == 'edit' && $objModule->type == 'customcataloglist' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
 				$jumpTo = PageModel::findByPk($objModule->customcatalog_jumpTo)->getFrontendUrl();
 			}
