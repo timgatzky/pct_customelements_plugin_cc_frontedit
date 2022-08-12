@@ -772,7 +772,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$strChild = $objChildWidget->generateLabel() . $objChildWidget->generateWithError();
 				
 				// handle wizards in child attributes
-				if(count($objChildWidget->fieldDef['wizard']) > 0)
+				if( !empty($objChildWidget->fieldDef['wizard']) && \is_array($objChildWidget->fieldDef['wizard']) )
 				{
 					$class[] = 'wizard';
 					foreach($objChildWidget->fieldDef['wizard'] as $callback)
