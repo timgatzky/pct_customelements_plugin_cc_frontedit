@@ -87,12 +87,6 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 			$href = $objFunction->addToUrl('&act=create',$href);
 		}
 		
-		// add the request token
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-		{
-			$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-		}
-		
 		$title = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][1];
 		$linkText = $image.$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['new'][0];
 		$class = 'header_new';

@@ -400,11 +400,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $jumpTo);
 			// add the items parameter to the url
 			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 && strlen($objRow->{$strAliasField}) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-			{
-				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-			}
 			// simulate a switchToEdit
 			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] )
 			{
@@ -502,12 +497,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				// add the items parameter to the url
 				$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			
-				// add the request token
-				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-				{
-					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-				}
-								
 				if($objChildCC)
 				{
 					if($objChildCC->get('icon'))
@@ -634,12 +623,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				{
 					$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.Input::get('id'),$redirect);
 				}
-				
-				// add the request token
-				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && Input::get('rt') == '')
-				{
-					$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
-				}
 			}
 				
 			// remove CLIPBOARD_HELPER session
@@ -664,12 +647,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',PageModel::findByPk(Input::get('jumpto'))->getFrontendUrl() );
 			// add/rewrite the items parameter to the url
 			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
-			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck']  && Input::get('rt') == '')
-			{
-				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
-			}
 			
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
@@ -1021,12 +998,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
 			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && Input::get('rt') == '')
-			{
-				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
-			}
-			
 			// multilanguage, add the langpid
 			if($objCC->get('multilanguage'))
 			{
@@ -1095,12 +1066,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			if($objModule->customcatalog_jumpTo > 0 && ($GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] || $objModule->customcatalog_edit_switchToEdit) )
 			{
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
-			}
-			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && Input::get('rt') == '')
-			{
-				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
 			}
 			
 			// multilanguage, add the langpid
