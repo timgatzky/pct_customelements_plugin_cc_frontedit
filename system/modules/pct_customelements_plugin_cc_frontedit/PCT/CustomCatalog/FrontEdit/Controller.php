@@ -719,18 +719,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			return;
 		}
 
-		// append the rest token
-		if( Input::get('rt') == '' )
-		{
-			Input::setGet('rt',\REQUEST_TOKEN);
-		}
-		
-		// check request token 
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && Input::get('rt') != REQUEST_TOKEN)
-		{
-			throw new \Contao\CoreBundle\Exception\InvalidRequestTokenException('Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
-		}
-
 		$objSession = static::getSession();
 		
 		// load the data container to the frontend

@@ -123,12 +123,6 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		$image = Image::getHtml('preview.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&frontedit=1',PageModel::findByPk($objPage->id)->getFrontendUrl());
 		
-		// add the request token
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-		{
-			$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-		}
-		
 		$title = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][1];
 		$linkText = $image.$GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['enable'][0];
 		$class = 'header_enable';
@@ -152,12 +146,6 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		
 		$image = Image::getHtml('all.gif',$GLOBALS['TL_LANG']['MSC']['all'][0]);
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&act=select',PageModel::findByPk($objPage->id)->getFrontendUrl());
-		
-		// add the request token
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-		{
-			$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-		}
 		
 		$title = $GLOBALS['TL_LANG']['MSC']['all'][1];
 		$linkText = $image.$GLOBALS['TL_LANG']['MSC']['all'][0];
@@ -196,12 +184,6 @@ class FrontendTemplate extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Fr
 		
 		$image = Image::getHtml('clipboard.gif',$GLOBALS['TL_LANG']['MSC']['clearClipboard']);
 		$href = $objFunction->addToUrl('do='.$strAlias.'&table='.$strTable.'&clear_clipboard=1',PageModel::findByPk($objPage->id)->getFrontendUrl());
-		
-		// add the request token
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-		{
-			$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-		}
 		
 		$title = $GLOBALS['TL_LANG']['MSC']['clearClipboard'];
 		$linkText = $image.$GLOBALS['TL_LANG']['MSC']['clearClipboard'];
