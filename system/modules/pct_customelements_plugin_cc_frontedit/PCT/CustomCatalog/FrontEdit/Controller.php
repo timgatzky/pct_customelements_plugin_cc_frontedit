@@ -298,30 +298,20 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if(!$GLOBALS['TL_DCA'][$strTable])
 		{
 			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
-			
-			// fallback CC <= 1.4.14
-			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
-			{
-				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
-				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
-				
-				$objSystem->loadCustomCatalog($strTable,true);
-				
-				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
-			}
-			else
-			{
-				$objSystem->loadDCA($strTable);
-			}
+			$objSystem->loadDCA($strTable);
 		}
-		
+
 		// override the switchToEdit option
-		if(!$objModule->customcatalog_edit_switchToEdit && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'])
+		if($objModule->customcatalog_edit_switchToEdit)
 		{
-			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
+			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = true;
+			
+			if( $objModule->type == 'customcatalogreader' )
+			{
+				$objModule->customcatalog_jumpTo = $objPage->id;
+			}
 		}
-		
-				
+
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
