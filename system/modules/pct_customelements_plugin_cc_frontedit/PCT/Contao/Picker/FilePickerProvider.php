@@ -57,15 +57,7 @@ class FilePickerProvider extends CoreFilePickerProvider
     
 	public function _getUser()
 	{
-		$objFrontendUser = null;
-		if(FE_USER_LOGGED_IN)
-		{
-			$objFrontendUser = FrontendUser::getInstance();
-			if($objFrontendUser->id === null)
-			{
-				$objFrontendUser->authenticate();
-			}
-		}
+		$objFrontendUser = FrontendUser::getInstance();
 		
 		// @var object \PCT\Contao\_FrontendUser
 		$this->User = new \PCT\Contao\_FrontendUser($objFrontendUser,array('customcatalog_edit_active' => 1));

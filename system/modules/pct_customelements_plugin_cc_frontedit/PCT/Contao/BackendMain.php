@@ -18,6 +18,8 @@
  */
 namespace PCT\Contao;
 
+use Contao\System;
+
 /**
  * Class file
  * Override Contaos BackendMain class
@@ -41,14 +43,8 @@ class BackendMain extends \Contao\BackendMain
 			$objUser = \Contao\FrontendUser::getInstance();
 			
 			// import the fe user as cached User class for further use
-			$this->import('\FrontendUser', 'User');
+			$this->import('\Contao\FrontendUser', 'User');
 			
-			// authenticate user
-			if($this->User->id < 1)
-			{
-				$this->User->authenticate();
-			}
-		
 			$this->User = new \PCT\Contao\_FrontendUser($objUser);
 			// trick Contaos access level and simulate an admin here
 			$this->User->admin = 1;
