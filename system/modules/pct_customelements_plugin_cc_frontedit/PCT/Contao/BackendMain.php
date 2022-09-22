@@ -18,7 +18,6 @@
  */
 namespace PCT\Contao;
 
-use Contao\System;
 
 /**
  * Class file
@@ -48,6 +47,13 @@ class BackendMain extends \Contao\BackendMain
 			$this->User = new \PCT\Contao\_FrontendUser($objUser);
 			// trick Contaos access level and simulate an admin here
 			$this->User->admin = 1;
+
+			// disable permission checks, already done
+			$GLOBALS['BE_MOD']['content']['article']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['content']['calendar']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['content']['news']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['design']['page']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['system']['files']['disablePermissionChecks'] = true;
 		}
 	}
 	
