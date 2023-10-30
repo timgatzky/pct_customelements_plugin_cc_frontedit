@@ -36,11 +36,6 @@ class FrontendFile extends \Contao\BackendFile
 		$this->import('Session');
 		
 		// authenticate user
-		if($this->User->id === null)
-		{
-			$this->User->authenticate();
-		}
-		
 		$this->User = new \PCT\Contao\_FrontendUser($this->User, array('customcatalog_edit_active' => 1));
 		
 		// set filemounts

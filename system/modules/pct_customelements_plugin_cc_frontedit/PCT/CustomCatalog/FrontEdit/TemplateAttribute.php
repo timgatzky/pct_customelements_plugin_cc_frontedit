@@ -942,7 +942,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				'_id'		=> Input::get('id'),
 				'_field'	=> Input::get('field'),
 				#'act'	=> 'show',
-				'rt'		=> REQUEST_TOKEN,
+				#'rt'		=> REQUEST_TOKEN,
 				'picker' 	=> $objDC->field,
 				'value' 	=> $value,
 			);

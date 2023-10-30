@@ -36,11 +36,6 @@ class FrontendPctTableTree extends \Contao\BackendPctTableTree
 		$this->import('Session');
 		
 		// authenticate user
-		if($this->User->id === null)
-		{
-			$this->User->authenticate();
-		}
-		
 		$this->User = new \PCT\Contao\_FrontendUser($this->User, array('customcatalog_edit_active' => 1));
 		
 		// remove all preActions callbacks except the one from the pct_tabletree_widget to avoid unwanted calls to the backend that might cause Contao to force a backend login

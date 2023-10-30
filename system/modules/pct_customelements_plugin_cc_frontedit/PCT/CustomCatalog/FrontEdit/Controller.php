@@ -305,7 +305,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		if($objModule->customcatalog_edit_switchToEdit)
 		{
 			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = true;
-			
+			// set jump to page to current reader page for customcatalog readers
 			if( $objModule->type == 'customcatalogreader' )
 			{
 				$objModule->customcatalog_jumpTo = $objPage->id;
@@ -592,7 +592,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 			
 		// !switchToEdit on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && Input::get('jumpto') > 0 && Input::get('act') == 'edit')
+		if( isset($arrSession[$strTable]['mode']) && $arrSession[$strTable]['mode'] == 'create' && Input::get('jumpto') > 0 && Input::get('act') == 'edit')
 		{
 			// redirect to lister page
 			if(Input::get('switchToEdit') < 1)
@@ -629,7 +629,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 		
 		// !switchToEdit on COPY
-		else if($arrSession[$strTable]['mode'] == 'copy' && Input::get('jumpto') > 0 && Input::get('act') == 'copy')
+		else if( isset($arrSession[$strTable]['mode']) && $arrSession[$strTable]['mode'] == 'copy' && Input::get('jumpto') > 0 && Input::get('act') == 'copy')
 		{
 			$intNew = $arrSession[$strTable]['id'];
 			$objFunction = new \PCT\CustomElements\Helper\Functions;
