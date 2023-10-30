@@ -1,3 +1,19 @@
+### 1.5.0
+Fixed: Generate jump to page only for custom catalog lists (#103)
+Fixed: TinyMCE did not initialize in Contao higher than 4.9 (#102)
+Fixed: Deprecated getData() methode in Session bag class (#96)
+Fixed: Ajax reload in pickers (#93)
+Update: Request token GET parameter not nessessary in urls anymore (#104)
+Update: Localization for Contao 4.9 (#101)
+Update: Make field(...)->widget() methode easier accessible (#99)
+Update: Reenabled switchToEdit feature (#98)
+Update: General PHP8 updates
+Update: Support service.yaml under Contao 4.9, 4.13 (#92)
+Update: General Contao 4.9 updates (#91)
+Update: Contao 4.9 pickers support (#87)
+Update: General code updates (no specific issue)
+Removed: Localization for Contao 3.5 (#101)
+
 ### 1.4.7
 Fixed: (temporary hotfix): Avoid config.yml under Contao 4.9 (#82)
 Fixed: Decode entities when set by DCA (#78)
