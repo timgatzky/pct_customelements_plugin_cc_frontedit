@@ -68,13 +68,11 @@ $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
  * Check if plugin is active
  */
 $blnInitialize = true;
-if( count(\Contao\Session::getInstance()->getData()) > 0 )
+if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()) )
 {
-	if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()) && !in_array(\Input::get('do'), array('repository_manager','composer')) )
-	{
-		$blnInitialize = false;
-	}
+	$blnInitialize = false;
 }
+
 
 if($blnInitialize)
 {
