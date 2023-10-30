@@ -1,3 +1,7 @@
+### 1.5.1
+Fixed: Deprecated getData() method in config.php (#110)
+Update: General PHP8 updates (#111)
+
 ### 1.5.0
 Fixed: Generate jump to page only for custom catalog lists (#103)
 Fixed: TinyMCE did not initialize in Contao higher than 4.9 (#102)
