@@ -18,6 +18,10 @@
  */
 namespace PCT\Contao\Picker;
 
+use Contao\BackendUser;
+use Contao\FrontendUser;
+use Contao\PageModel;
+use Contao\StringUtil;
 use Knp\Menu\FactoryInterface;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -44,7 +48,7 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 	/**
      * {@inheritdoc}
      */
-    public function supportsContext($context)
+    public function supportsContext($context):bool
     {
        return in_array($context, ['page', 'link'], true) && $this->getUser()->hasAccess('page', array('page','modules'));
     }
@@ -53,23 +57,15 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
     /**
      * {@inheritdoc}
      */
-    public function getUser()
+    public function getUser(): BackendUser
     {
 	   	if(TL_MODE == 'BE')
 		{
 			return parent::getUser();
 		}
 		
-		$objFrontendUser = null;
-		if(FE_USER_LOGGED_IN)
-		{
-			$objFrontendUser = \FrontendUser::getInstance();
-			if($objFrontendUser->id === null)
-			{
-				$objFrontendUser->authenticate();
-			}
-		}
-		
+		$objFrontendUser = FrontendUser::getInstance();
+			
 		// @var object \PCT\Contao\_FrontendUser
 		$this->User = new \PCT\Contao\_FrontendUser($objFrontendUser,array('customcatalog_edit_active' => 1));
 		
@@ -77,7 +73,7 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 		if((boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
 		{
 			$this->User->admin = 1;
-			$objRoots = \PageModel::findBy(array('type=?','published=1'), array('root'));
+			$objRoots = PageModel::findBy(array('type=?','published=1'), array('root'));
 			if($objRoots !== null)
 			{
 				$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = $objRoots->fetchEach('id');
@@ -88,11 +84,11 @@ class PagePickerProvider extends \Contao\CoreBundle\Picker\PagePickerProvider
 		if(FE_USER_LOGGED_IN && (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === false)
 		{
 			// set pagemounts
-			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = \PageModel::findPublishedRootPages()->fetchEach('id');
+			$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = PageModel::findPublishedRootPages()->fetchEach('id');
 			$GLOBALS['loadDataContainer']['tl_page'] = true;
 			if($this->User->pagemounts)
 			{
-				$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = deserialize($this->User->pagemounts);
+				$GLOBALS['TL_DCA']['tl_page']['list']['sorting']['root'] = StringUtil::deserialize($this->User->pagemounts);
 			}
 		}	
 		

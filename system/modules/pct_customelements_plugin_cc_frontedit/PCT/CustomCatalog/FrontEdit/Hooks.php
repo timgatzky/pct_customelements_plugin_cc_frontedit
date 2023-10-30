@@ -49,7 +49,7 @@ class Hooks extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Hooks
 		{
 			foreach($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['storeDatabase'] as $callback)
 			{
-				$arrSet = \System::importStatic($callback[0])->{$callback[1]}($arrSet,$strTable,$objModule);
+				$arrSet = \Contao\System::importStatic($callback[0])->{$callback[1]}($arrSet,$strTable,$objModule);
 			}
 		}
 

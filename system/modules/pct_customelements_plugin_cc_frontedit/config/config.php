@@ -17,7 +17,7 @@
  * Constants
  */ 
 define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH','system/modules/pct_customelements_plugin_cc_frontedit');
-define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.4.7');
+define('PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_VERSION','1.5.0');
 
 /**
  * Globals
@@ -68,7 +68,7 @@ $GLOBALS['PCT_CUSTOMELEMENTS']['PLUGINS']['cc_frontedit'] = array
  * Check if plugin is active
  */
 $blnInitialize = true;
-if( count(\Session::getInstance()->getData()) > 0 )
+if( count(\Contao\Session::getInstance()->getData()) > 0 )
 {
 	if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()) && !in_array(\Input::get('do'), array('repository_manager','composer')) )
 	{
@@ -92,8 +92,8 @@ if($blnInitialize === true)
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['prepareCatalog'][] 	= array('PCT\CustomCatalog\FrontEdit\Callbacks','bypassPublishedSettings');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['prepareCatalog'][] 	= array('PCT\CustomCatalog\FrontEdit\Callbacks','showSelectedEntriesOnly');
 	$GLOBALS['CUSTOMCATALOG_HOOKS']['prepareCatalog'][] 	= array('PCT\CustomCatalog\FrontEdit\Callbacks','showCurrentEditEntryOnly');
-	#$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Controller','applyOperationsOnGeneratePage');
+	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Controller','applyOperationsOnGeneratePage');
 	$GLOBALS['TL_HOOKS']['generatePage'][] 					= array('PCT\CustomCatalog\FrontEdit\Callbacks','ajaxListener');
-	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit\SystemIntegration','createConfigYml');		
+	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit\SystemIntegration','createYaml');		
 	$GLOBALS['TL_HOOKS']['initializeSystem'][] 				= array('PCT\CustomCatalog\FrontEdit\Controller','simulateSwitchToEdit');
 }

@@ -18,6 +18,22 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
+use Contao\Combiner;
+use Contao\Config;
+use Contao\Controller;
+use Contao\Input;
+use Contao\Session;
+use Contao\Image;
+use Contao\System;
+use Contao\FilesModel;
+use Contao\Date;
+use Contao\Dbafs;
+use Contao\StringUtil;
+use Contao\Validator;
+use Contao\Database;
+use Contao\Environment;
+use Contao\File;
+use Contao\Folder;
 
 /**
  * Class file
@@ -33,12 +49,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 	 */
 	public function __override($arrEntries)
 	{
-		if(count($arrEntries) < 1 || !is_array($arrEntries))
+		if( empty($arrEntries) || !is_array($arrEntries))
 		{
 			return $arrEntries;
 		}
 		$arrReturn = array();
 		$arrProcessed = array();
+		$arrFields = array();
 		foreach($arrEntries as $i => $objRowTemplate)
 		{
 			if(!empty($objRowTemplate->get('fields')))
@@ -54,33 +71,17 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			       $arrFields[$field] = $_this;
 		        }
 			    $objRowTemplate->set('fields',$arrFields);
-			    
 			    $arrProcessed[] = $field;
+				
+			}
+
+			// set the field array
+			if( !empty($arrFields) )
+			{
+				$objRowTemplate->set('field', $arrFields);
 			}
 			
-			// process the field array
-			if(!empty($objRowTemplate->get('field')))
-			{
-				$arrFields = $objRowTemplate->get('field');
-		    	foreach($arrFields as $field => $objAttributeTemplate)
-		        {
-			       if(in_array($field, $arrProcessed))
-			       {
-				       continue;
-			       }
-			       
-			       $_this = new self();
-				   foreach($objAttributeTemplate as $key => $val)
-				   {
-					   $_this->{$key} = $val;
-				   }
-			       $arrFields[$field] = $_this;
-		        }
-		        
-		        $objRowTemplate->set('field',array_merge($arrFields, $objRowTemplate->get('fields')) );
-			}
-			    
-	        $arrReturn[$i] = $objRowTemplate;
+			$arrReturn[$i] = $objRowTemplate;
 		}
 		return $arrReturn;
 	}
@@ -114,8 +115,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// store potential child widgets
 		$this->childWidgets = array();
 		
-		$objSession = \Session::getInstance();
-		
+		#$objSession = Session::getInstance();
+		$objSession = System::getContainer()->get('session');
+
+
 		/* @var contao ModelModule */
 		$objModule = $objAttribute->get('objCustomCatalog')->getModule();
 		
@@ -135,22 +138,22 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 		}
 		$objDC->objAttribute = $objAttribute;
-		$objDC->formSubmit = $objDC->table.'_'.\Input::post('mod');
+		$objDC->formSubmit = $objDC->table.'_'.Input::post('mod');
 		$objDC->isAjax = false;
 		
-		$arrSession = $objSession->getData();
+		$arrSession = $objSession->get('contao_frontend');
 		$arrIds = $arrSession['CURRENT']['IDS'];
 		
 		$arrFeSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']) ?: array();
 
 		// return when edit mode is not active
-		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(\Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModule->customcatalog_edit_active) )
+		if($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['showWidgetsOnlyInEditModes'] && ( !in_array(Input::get('act'), array('edit','editAll','overrideAll','fe_editAll','fe_overrideAll')) || !$objModule->customcatalog_edit_active) )
 		{
 			return '';
 		}
-		
+
 		// check if is has been selected
-		if(in_array(\Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']) && !in_array($objDC->id, $arrIds))
+		if(in_array(Input::get('act'), $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['multipleOperations']) && !in_array($objDC->id, $arrIds))
 		{
 			return '';
 		}
@@ -192,79 +195,85 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$this->isAjaxField = true;
 		}
-				
+
 		$blnSubmitted = false;
-		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
+		if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$objDC->field]))
 		{
-			$objDC->value = \Input::post($objDC->field);
+			$objDC->value = Input::post($objDC->field);
 			$blnSubmitted = true;
 		}
 		
 		// multiple modes
-		else if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && \Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
+		else if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && Input::get('act') == 'fe_editAll' && isset($_POST[$objDC->field.'_'.$objDC->activeRecord->id]) )
 		{
-			$objDC->value = \Input::post($objDC->field.'_'.$objDC->activeRecord->id);
+			$objDC->value = Input::post($objDC->field.'_'.$objDC->activeRecord->id);
 			$blnSubmitted = true;
 		}
 		
 		// reset current values in overrideAll mode to start from zero
-		#if(\Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
+		#if(Input::get('act') == 'fe_overrideAll' && !isset($_POST[$objDC->field]))
 		#{
 		#	$objDC->value = null;
 		#}
-		
+
 		// ajax requests, store value in the session and reload page
-		if(strlen(\Input::post('action')) > 0 && (\Input::post('name') == $objDC->field || \Input::post('field') == $objDC->field) )
+		if(strlen(Input::post('action')) > 0 && (Input::post('name') == $objDC->field || Input::post('field') == $objDC->field) )
 		{
-			$objDC->value = \Input::post('value');
+			$objDC->value = Input::post('value');
 			// !ajax IMAGE
-			if($objAttribute->get('type') == 'image' && \Input::post('value')) 
+			if($objAttribute->get('type') == 'image' && Input::post('value')) 
 			{
-				$objFile = \Dbafs::addResource(\Input::post('value'));
-				if($objFile)
-	   			{
-	   				$objDC->value = $objFile->uuid;
-	   			}
-		   	}
-		   	// !ajax FILE(s), GALLERY
-		   	else if(in_array($objAttribute->get('type'),array('files','gallery')) && \Input::post('value'))
-		   	{
-			   	$objDC->value = \Input::post('value');
-			   	
-			   	if($this->multiple)
-			   	{
-				   $objDC->value = trimsplit('\t',\Input::post('value',true));
-				   
-				   foreach($objDC->value as $v)
-				   {
-				      $objFile = \Dbafs::addResource($v);
-				      if($objFile)
-				      {
-					      $values[] = \StringUtil::binToUuid($objFile->uuid);
-				   	  }
-				   }
-				   $objDC->value = implode(',',$values);
+				$objFile = Dbafs::addResource( \urldecode(Input::post('value')) );
+				if ($objFile) 
+				{
+					$objDC->value = $objFile->uuid;
+				}
+			}
+			// !ajax FILE(s), GALLERY
+			else if (in_array($objAttribute->get('type'), array('files', 'gallery')) && Input::post('value')) {
+				$objDC->value = Input::post('value');
+
+				if ($this->multiple) {
+					$objDC->value = StringUtil::trimsplit('\t', Input::post('value', true));
+
+					foreach ($objDC->value as $v) 
+					{
+						$v = \urldecode($v);
+						
+						if ( Validator::isUuid($v) || Validator::isStringUuid($v) )
+						{
+							$v = FilesModel::findByUuid( $v )->path;
+						}
+
+						$objFile = Dbafs::addResource($v);
+						if ($objFile) 
+						{
+							$values[] = StringUtil::binToUuid($objFile->uuid);
+						}
+					}
+					$objDC->value = implode(',', $values);
 				}
 			}
 			// !ajax TAGS, PAGETREE
-			else if(in_array($objAttribute->get('type'),array('tags','pagetree')) && \Input::post('value'))
+			else if (in_array($objAttribute->get('type'),array('tags','pagetree')) && Input::post('value'))
 		   	{
 			   	if($this->multiple)
 			   	{
-				   	 $objDC->value = implode(',',trimsplit('\t',\Input::post('value',true)));
+				   	 $objDC->value = implode(',',StringUtil::trimsplit('\t',Input::post('value',true)));
 			   	}
 		   	}
 		   
-		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;
-			
+		   	$arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field] = $objDC->value;		
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
 			
 			$objDC->isAjax = true;
+			$objDC->ajaxValue = $objDC->value;
+			$this->ajaxValue = $objDC->value;
 
 			// reload the page to avoid wrong javascript
 			if(!$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 			{
-				\Controller::reload();
+				Controller::reload();
 			}
 		}
 		
@@ -276,12 +285,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// convert paths to uuid when not done before
 			if( in_array($objAttribute->get('type'), array('files','gallery')) && !$this->multiple && !empty($objDC->value))
 			{
-				$objDC->value = \FilesModel::findByPath($objDC->value)->uuid;
+				$objDC->value = FilesModel::findByPath($objDC->value)->uuid;
 			}
 		}
 		
 		// trigger load callback
-		if(!\Input::post('FORM_SUBMIT'))
+		if(!Input::post('FORM_SUBMIT'))
 		{
 			if(is_array($arrFieldDef['load_callback']))
 			{
@@ -290,7 +299,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					if (is_array($callback))
 					{
-					   $objDC->value = \System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
+					   $objDC->value = System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
 					}
 					else if(is_callable($callback))
 					{
@@ -317,32 +326,32 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			}
 				
 			// any validator need the current field value in the psydo post data
-			$objDC->value = deserialize($objDC->value);
+			$objDC->value = StringUtil::deserialize($objDC->value);
 			
 			// append record id to widget name in multiple modes
-			if(\Input::get('act') == 'fe_editAll')
+			if(Input::get('act') == 'fe_editAll')
 			{
-				\Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
+				Input::setPost($objDC->field.'_'.$objDC->activeRecord->id,$objDC->value);
 				$objWidget->__set('name',$objWidget->__get('name').'_'.$objDC->activeRecord->id);
 			}
 			else if($objDC->isAjax === false)
 			{
-				\Input::setPost($objDC->field,$objDC->value);
+				Input::setPost($objDC->field,$objDC->value);
 			}
 			
 			// trigger the attributes parseWidgetCallback
-			if(method_exists($objAttribute,'parseWidgetCallback'))
+			if( \method_exists($objAttribute,'parseWidgetCallback') )
 			{
 				// !TIMESTAMP attributes
-				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', deserialize($objAttribute->get('options'))) )
+				if($objAttribute->get('type') == 'timestamp' && in_array('datepicker', StringUtil::deserialize($objAttribute->get('options'))) )
 				{
 					$rgxp = $arrFieldDef['eval']['rgxp'];
 					$format = $GLOBALS['TL_CONFIG'][$rgxp.'Format'];
 					
 					if(!$blnSubmitted)
 					{
-						$objDC->value = \System::parseDate($format,$objDC->value);
-						\Input::setPost($objDC->field,$objDC->value);
+						$objDC->value = Date::parse($format,$objDC->value);
+						Input::setPost($objDC->field,$objDC->value);
 					}
 					$objWidget->__set('value', $objDC->value);
 					
@@ -360,23 +369,25 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						$strBuffer = str_replace($search,$replace, $strBuffer);
 					}
 				}
-				// TODO: !IMAGE attributes
+				// !IMAGE attributes
 				else if($objAttribute->get('type') == 'image')
 				{
-					if(!$blnSubmitted && \Validator::isBinaryUuid($_POST[$objDC->field]))
+					if( !$blnSubmitted && Validator::isBinaryUuid(Input::postRaw($objDC->field)) )
 					{
-						unset($_POST[$objDC->field]);
+						Input::setPost($objDC->field,null);
 					}
+
+					$objWidget->currentRecord = $objDC->id;
 					
 					$strBuffer = $objAttribute->parseWidgetCallback($objWidget,$objDC->field,$arrFieldDef,$objDC,$objDC->value);
 					
 					// remove invalid spans from image title
-					$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',\StringUtil::decodeEntities($strBuffer));
+					$strBuffer = str_replace(array('<span class="tl_gray">','</span>'),'',StringUtil::decodeEntities($strBuffer));
 					
 					// value for database must be binary
-					if($blnSubmitted && \Validator::isStringUuid($objDC->value))
+					if($blnSubmitted && Validator::isStringUuid($objDC->value))
 					{
-						$objDC->value = \StringUtil::uuidToBin($objDC->value);
+						$objDC->value = StringUtil::uuidToBin($objDC->value);
 					}
 					// value must be null
 					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
@@ -385,45 +396,42 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					}
 					
 					// rewrite the preview images in file selections
-					if( isset($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]) )
-					{
-						$newValue = \StringUtil::binToUuid($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field]);
-						$currValue = '';
-						if($objDC->value)
-						{
-							$currValue = \StringUtil::binToUuid($objDC->value);
-						}
-						
-						$objFile = \FilesModel::findByUuid($newValue)->path;
-						
-						if($objFile && $newValue != $currValue && strlen($currValue) > 0)
-						{
-							$newSRC = \Image::get(\FilesModel::findByUuid($newValue)->path,'80','60','crop');
-							$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
-							$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
-						}
-					}
+					#if( isset($objDC->ajaxValue) && $objDC->value =! $objDC->ajaxValue )
+					#{
+					#	$newValue = StringUtil::binToUuid($objDC->ajaxValue);
+					#	$currValue = StringUtil::binToUuid($objDC->value);
+					#	
+					#	$strFile = FilesModel::findByUuid($newValue)->path;
+#					#	if($strFile && $newValue != $currValue && strlen($currValue) > 0)
+					#	if($strFile)
+					#	{
+					#		$newSRC = Image::get($strFile,'80','60','crop');
+					#		$this->ajaxReplaceImage = Image::getHtml($strFile,'80','60','crop');
+					#		$data = json_encode(array('field'=>$objDC->field,'currValue'=>$currValue,'newValue'=>$newValue,'newSRC'=>$newSRC));
+					#	#	$GLOBALS['TL_JQUERY'][] = '<script type="text/javascript">CC_FrontEdit.replaceSelectorImage('.$data.');</script>';
+					#	}
+					#}
 				}
-				// TODO: !FILE(s), GALLERY attributes
+				// !FILE(s), GALLERY attributes
 				else if( in_array($objAttribute->get('type'),array('files','gallery')) )
 				{
 					if(!$this->multiple)
 					{
-						if(\Validator::isBinaryUuid($objDC->value))
+						if(Validator::isBinaryUuid($objDC->value))
 						{
-							$objDC->value = \StringUtil::binToUuid($objDC->value);
-							\Input::setPost($objDC->field,$objDC->value);
+							$objDC->value = StringUtil::binToUuid($objDC->value);
+							Input::setPost($objDC->field,$objDC->value);
 						}
-						else if(\FilesModel::findByPath($objDC->value) !== null)
+						else if(FilesModel::findByPath($objDC->value) !== null)
 						{
-							$objDC->value = \StringUtil::binToUuid( \FilesModel::findByPath($objDC->value)->uuid );
-							\Input::setPost($objDC->field,$objDC->value);
+							$objDC->value = StringUtil::binToUuid( FilesModel::findByPath($objDC->value)->uuid );
+							Input::setPost($objDC->field,$objDC->value);
 						}
 					}
 					else
 					{
 						// coming from ajax, convert paths to binary
-						if($arrFeSession[$objDC->table]['CURRENT']['VALUES'][$objDC->field])
+						if($objDC->ajaxValue)
 						{
 						   if(!is_array($objDC->value))
 						   {
@@ -432,40 +440,41 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						   $values = array();
 						   foreach($objDC->value as $v)
 						   {
-							   if(\Validator::isStringUuid($v))
+							   if(Validator::isStringUuid($v))
 							   {
 								   $values[] = $v;
 								   continue;
 							   }
 							   
-							   $objFile = \FilesModel::findByPath($v);
+							   $objFile = FilesModel::findByPath($v);
 							   if($objFile)
 							   {
-								   $values[] = \StringUtil::binToUuid($objFile->uuid);
+								   $values[] = StringUtil::binToUuid($objFile->uuid);
 								   continue;
 							   }
 							   
-							   $objFile = new \File(TL_ROOT.'/'.$v,true);
+							   $objFile = new File(TL_ROOT.'/'.$v,true);
 							   if($objFile !== null)
 							   {
-								   $values[] = \StringUtil::binToUuid($objFile->uuid);
+								   $values[] = StringUtil::binToUuid($objFile->uuid);
 								   continue;
 							   }
 							}
 							$objDC->value = implode(',',$values);
-							\Input::setPost($objDC->field,$objDC->value);
+							Input::setPost($objDC->field,$objDC->value);
 							unset($values);
 						}
 						else if(!$blnSubmitted)
 						{
 							// regular selected via backend, convert binary to uuid
-							$arrValues = deserialize($objDC->value);
+							$arrValues = StringUtil::deserialize($objDC->value);
 							if(!is_array($arrValues))
 							{
 								$arrValues = explode(',',$arrValues); 
 							}
-							$objDC->value = array_map('\StringUtil::binToUuid',array_filter($arrValues));
-							\Input::setPost($objDC->field,implode(',',$objDC->value));
+							$_value = array_map('StringUtil::binToUuid',array_filter($arrValues));
+							Input::setPost($objDC->field,implode(',',$_value));
+							unset($_value);
 						}
 					}
 					
@@ -474,8 +483,8 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// reorder
 					if($blnSubmitted && $this->sortable && isset($_POST[$strOrderField.'_'.$objDC->field]) && $_POST[$strOrderField.'_'.$objDC->field] != $_POST[$objDC->field])
 					{
-						$newOrder = \Input::post($strOrderField.'_'.$objDC->field);
-						$objDC->value = \Input::post($strOrderField.'_'.$objDC->field);
+						$newOrder = Input::post($strOrderField.'_'.$objDC->field);
+						$objDC->value = Input::post($strOrderField.'_'.$objDC->field);
 					}
 						
 					// values for database must be binary
@@ -485,11 +494,11 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						{
 							$objDC->value = explode(',', $objDC->value);
 						}
-						$objDC->value = array_map('\StringUtil::uuidToBin',array_filter($objDC->value));
+						$objDC->value = array_map('StringUtil::uuidToBin',array_filter($objDC->value));
 					}
-					else if($blnSubmitted && \Validator::isStringUuid($objDC->value))
+					else if($blnSubmitted && Validator::isStringUuid($objDC->value))
 					{
-						$objDC->value = \StringUtil::uuidToBin($objDC->value);
+						$objDC->value = StringUtil::uuidToBin($objDC->value);
 					}
 					// value must be null
 					else if($blnSubmitted && is_string($objDC->value) && strlen($objDC->value) < 1)
@@ -511,7 +520,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				else if($objAttribute->get('type') == 'tags')
 				{
 					// load js
-					$objCombiner = new \Combiner();
+					$objCombiner = new Combiner();
 					$objCombiner->add(PCT_TABLETREE_PATH.'/assets/js/tabletree.js');
 					$GLOBALS['TL_HEAD'][] = '<script src="'.$objCombiner->getCombinedFile().'"></script>';
 					
@@ -521,12 +530,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
  					if(is_array($objDC->value) && $this->multiple)
 					{
 						$objDC->value = implode(',', $objDC->value);
-						\Input::setPost($objDC->field,$objDC->value);
+						Input::setPost($objDC->field,$objDC->value);
 					}
 					
 					if($this->sortable && !$blnSubmitted)
 					{
-						\Input::setPost($strOrderField.'_'.$objDC->field,deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
+						Input::setPost($strOrderField.'_'.$objDC->field,StringUtil::deserialize($objDC->activeRecord->{$strOrderField.'_'.$objDC->field}));
 					}
 					
 					// merge dca attributes with field definition
@@ -584,15 +593,15 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					if(!$blnSubmitted && isset($_POST[$objDC->field]))
 					{
 						unset($_POST[$dc->field]);
-						\Input::setPost($dc->field,null);
+						Input::setPost($dc->field,null);
 						$dc->activeRecord->tstamp = 0;
 					}
 					
 					// form submitted
 					$formSubmitted = false;
-					if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit)
+					if(Input::post('FORM_SUBMIT') == $objDC->formSubmit)
 					{
-						\Input::setPost('FORM_SUBMIT',$objDC->table);
+						Input::setPost('FORM_SUBMIT',$objDC->table);
 						$formSubmitted = true;
 					}
 					
@@ -601,7 +610,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					
 					if($formSubmitted)
 					{
-						\Input::setPost('FORM_SUBMIT',$objDC->formSubmit);
+						Input::setPost('FORM_SUBMIT',$objDC->formSubmit);
 					}
 				}
 				// !render	
@@ -641,6 +650,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = $objAttribute->generateFrontendWidget($objDC);
 		}
+
 		
 		// make mootools jquery compatible
 		if(version_compare(VERSION, '4.4','>='))
@@ -655,7 +665,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			foreach($arrFieldDef['wizard'] as $callback)
 			{
-				$strBuffer .= \System::importStatic($callback[0])->{$callback[1]}($objDC);
+				$strBuffer .= System::importStatic($callback[0])->{$callback[1]}($objDC);
 			}
 		}
 
@@ -675,7 +685,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			#	// convert binary values to uuid
 			#	if(in_array($objAttribute->get('type'), array('files','gallery')))
 			#	{
-			#		$value = implode(',', array_map('\StringUtil::binToUuid',array_filter($value)));
+			#		$value = implode(',', array_map('StringUtil::binToUuid',array_filter($value)));
 			#	}
 			#}
 			
@@ -740,13 +750,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				
 				$objChildWidget->__set('value',$value);
 				
-				if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
+				if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && isset($_POST[$dc->field]) && $_POST[$dc->field] != $value)
 				{
 					$value = $_POST[$dc->field];
 					
 					if(!$blnSubmitted)
 					{
-						\Input::setPost($dc->field,$value);
+						Input::setPost($dc->field,$value);
 					}
 					
 					$objChildWidget->validate();
@@ -762,19 +772,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				$strChild = $objChildWidget->generateLabel() . $objChildWidget->generateWithError();
 				
 				// handle wizards in child attributes
-				if(count($objChildWidget->fieldDef['wizard']) > 0)
+				if( !empty($objChildWidget->fieldDef['wizard']) && \is_array($objChildWidget->fieldDef['wizard']) )
 				{
 					$class[] = 'wizard';
 					foreach($objChildWidget->fieldDef['wizard'] as $callback)
 					{
-						$strChild .= \System::importStatic($callback[0])->{$callback[1]}($dc);
+						$strChild .= System::importStatic($callback[0])->{$callback[1]}($dc);
 					}
 				}
 				
 				// little javascript helper to place an inserttag value back in the input field
-				if(strlen(strpos($dc->value, '{{')) > 0 && !\Input::post('FORM_SUBMIT'))
+				if(strlen(strpos($dc->value, '{{')) > 0 && !Input::post('FORM_SUBMIT'))
 				{
-					$data = json_encode(array('field'=>$field,'currValue'=>\Controller::replaceInsertTags($dc->value),'newValue'=>$dc->value));
+					$data = json_encode(array('field'=>$field,'currValue'=>Controller::replaceInsertTags($dc->value),'newValue'=>$dc->value));
 					$GLOBALS['TL_JQUERY'][] = '<script>CC_FrontEdit.rereplaceInsertTags('.$data.');</script>';
 				}
 				
@@ -795,7 +805,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		// decode entities
 		if( $arrFieldDef['eval']['decodeEntities'] )
 		{
-			$strBuffer = \StringUtil::decodeEntities($strBuffer);
+			$strBuffer = StringUtil::decodeEntities($strBuffer);
 		}
 
 // TODO: ! -- rewrite the javascript calls to the Backend class
@@ -803,7 +813,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		if(strlen(strpos($strBuffer, 'Backend.')) > 0)
 		{
 			$objFunctions = \PCT\CustomElements\Helper\Functions::getInstance();	
-			$arrUrl = parse_url(\Environment::get('request'));
+			$arrUrl = parse_url(Environment::get('request'));
 			
 			$errors = array
 			(
@@ -835,20 +845,12 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 						}
 
 						// add values
-						$href = \Environment::get('base') . $href;
+						$href = Environment::get('base') . $href;
 						
 						$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
 
-						if($objAttribute->get('type') == 'textarea')
+						if($objAttribute->get('type') == 'textarea' )
 						{
-							if( version_compare(VERSION,'4.4','>=') ) 
-							{
-								$href = \Environment::get('base') . PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH . '/assets/html/main.php';
-								$href = $objFunctions->addToUrl('context=file&rt='.REQUEST_TOKEN.'&picker='.$objDC->field.'&popup=1&do=files&fieldType=radio&filesOnly=1',$href);
-							}
-							$data = str_replace('"',"'",json_encode(array('method'=>$method,'func'=>$func,'field'=>'ctrl_'.$objDC->field,'url'=>$href,'errors'=>$errors)));
-							
-							$strBuffer = str_replace($func, "CC_FrontEdit.openModalInTextarea(field_name,".$data .");", $strBuffer);
 						}
 						else
 						{
@@ -913,21 +915,21 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			$value = $objDC->value;
 			
 			#// convert values
-			#if(!empty($value))
-			#{
-			#	if($this->multiple && is_array($value))
-			#	{
-			#		// convert binary to uuid
-			#		if( in_array($objAttribute->get('type'), array('files','gallery')) )
-			#		{
-			#			$value = array_map('\StringUtil::binToUuid',array_filter($value));
-			#		}
-			#	}
-			#	else if(\Validator::isBinaryUuid($value))
-			#	{
-			#		$value = \StringUtil::binToUuid($value);
-			#	}
-			#}
+			if(!empty($value))
+			{
+				if($this->multiple && is_array($value))
+				{
+					// convert binary to uuid
+					if( in_array($objAttribute->get('type'), array('files','gallery')) )
+					{
+						$value = array_map('StringUtil::binToUuid',array_filter($value));
+					}
+				}
+				else if(Validator::isBinaryUuid($value))
+				{
+					$value = StringUtil::binToUuid($value);
+				}
+			}
 			
 			if(is_array($value))
 			{
@@ -936,9 +938,9 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			
 			$params = array
 			(
-				'_table' 	=> \Input::get('table'),
-				'_id'		=> \Input::get('id'),
-				'_field'	=> \Input::get('field'),
+				'_table' 	=> Input::get('table'),
+				'_id'		=> Input::get('id'),
+				'_field'	=> Input::get('field'),
 				#'act'	=> 'show',
 				'rt'		=> REQUEST_TOKEN,
 				'picker' 	=> $objDC->field,
@@ -955,16 +957,10 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$strBuffer = str_replace('system/modules/pct_tabletree_widget/assets/html/PageTableTree.php', PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/tabletree.php',$strBuffer);
 		}
-		
+
 		// !FORM_SUBMIT add to save list
-		if(\Input::post('FORM_SUBMIT') == $objDC->formSubmit && (\Input::post('save') || \Input::post('saveNclose')) && !$objWidget->hasErrors())
+		if(Input::post('FORM_SUBMIT') == $objDC->formSubmit && (Input::post('save') || Input::post('saveNclose')) && !$objWidget->hasErrors())
 		{
-			// convert to binary when not done before
-			if( in_array($objAttribute->get('type'), array('files','gallery')) && \Validator::isBinaryUuid($objDC->value) === false )
-			{
-				$objDC->value = \StringUtil::uuidToBin($objDC->value);
-			}
-			
 			// trigger save callback
 			if(is_array($arrFieldDef['save_callback']))
 			{
@@ -973,7 +969,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				{
 					if (is_array($callback))
 					{
-					   $objDC->value = \System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
+					   $objDC->value = System::importStatic($callback[0])->{$callback[1]}($objDC->value,$objDC,$this);	
 					}
 					else if(is_callable($callback))
 					{
@@ -996,14 +992,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			// decode entities
 			if($arrFieldDef['eval']['decodeEntities'] || $arrFieldDef['inputType'] == 'textarea' || strlen($arrFieldDef['eval']['rte']) > 0)
 			{
-				$objDC->value = \StringUtil::decodeEntities($objDC->value);
+				$objDC->value = StringUtil::decodeEntities($objDC->value);
 			}
-			
-							
+					
 			// custom order
 			if($blnSubmitted && isset($_POST[$strOrderField.'_'.$objDC->field]) && !empty($_POST[$strOrderField.'_'.$objDC->field]))
 			{
-				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? \Input::post($strOrderField.'_'.$objDC->field) : explode(',',\Input::post($strOrderField.'_'.$objDC->field));
+				$newOrder = is_array($_POST[$strOrderField.'_'.$objDC->field]) ? Input::post($strOrderField.'_'.$objDC->field) : explode(',',Input::post($strOrderField.'_'.$objDC->field));
 				
 				// save the order field
 				$dc = clone($objDC);
@@ -1014,7 +1009,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// convert new order to binary
 				if( in_array($objAttribute->get('type'), array('files','gallery')) && $objAttribute->get('eval_multiple') )
 				{
-					$objDC->value = array_map('\StringUtil::uuidToBin',$newOrder);
+					$objDC->value = array_map('StringUtil::uuidToBin',$newOrder);
 				}
 			}
 			
@@ -1029,19 +1024,19 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 				// convert to binary
 				if( in_array($objAttribute->get('type'), array('files','gallery')) )
 				{
-					$objDC->value = array_map('\StringUtil::uuidToBin',$objDC->value);
+					$objDC->value = array_map('StringUtil::uuidToBin',$objDC->value);
 				}
 			}
 			
 			// autosubmit member id to protection attribute when submitted empty
 			if($objAttribute->get('type') == 'protection' && FE_USER_LOGGED_IN && $objAttribute->get('isDownload') && empty($objDC->value))
 			{
-				$objUser = \FrontendUser::getInstance();
+				$objUser = \Contao\FrontendUser::getInstance();
 				$objDC->value = $objUser->id;
 				unset($objUser);
 			}
 				
-			if(\Input::get('act') == 'fe_overrideAll')
+			if(Input::get('act') == 'fe_overrideAll')
 			{
 				if(count($arrSession['CURRENT']['IDS']) > 0 && is_array($arrSession['CURRENT']['IDS']))
 				{
@@ -1063,7 +1058,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		// observe ajax on the field
 		$blnIsAjax = false;
-		if(!$blnSubmitted && \Environment::get('isAjaxRequest') && \Input::post('name') == $objDC->field && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
+		if(!$blnSubmitted && Environment::get('isAjaxRequest') && Input::post('name') == $objDC->field && $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads'])
 		{
 			$blnIsAjax = true;
 		}
@@ -1073,7 +1068,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		
 		if($objAttribute->get('eval_tl_class_w50'))
 		{
-			$arrWidgetClasses[] = (in_array('pct_autogrid', \Contao\Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
+			$arrWidgetClasses[] = (in_array('pct_autogrid', Config::getInstance()->getActiveModules()) ? 'autogrid one_half' : 'w50');
 		}
 			
 		$this->widget = $this;
@@ -1089,43 +1084,61 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		{
 			$arrClasses[] = 'hasTiny';
 		}
-		
+
+		if( $objDC->isAjax )
+		{
+			$arrClasses[] = 'ajax';
+		}
+
 		// wrap the widget in a unique div
-		$strBuffer = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">'.$strBuffer.'</div>';
+		$strWrapperStart = '<div id="'.$objWidget->__get('name').'_widget_container" class="widget_container '.implode(' ', $arrClasses).'">';
+		$strWrapperStop = '</div>';
+		$strBuffer = $strWrapperStart.$strBuffer.$strWrapperStop;
 		
 		// inject a little javascript ajax helper
 		//! -- ajax
-		if($blnIsAjax && $this->isAjaxField)
+		if($this->isAjaxField)
 		{
 			// preserve scripts
-			$orig_allowedTags = \Config::get('allowedTags');
+			#$orig_allowedTags = Config::get('allowedTags');
 			#\Config::set('allowedTags', \Config::get('allowedTags').'<script>');
-			$buffer = $strBuffer;
+			#$buffer = $strBuffer;
+			#$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
+			#$buffer = StringUtil::decodeEntities(StringUtil::substrHtml($buffer,strlen($buffer)));
+			#$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
+			#$strAjaxBuffer = $buffer;
+			
+			$moo_helper = new \Contao\FrontendTemplate('moo_cc_frontedit_picker_helper');
+			$moo_helper->field = $objDC->field;
+			$moo_helper->value = $objDC->value;
+			$buffer = $moo_helper->parse();
 			$buffer = str_replace(array('<script>','</script>'),array("###SCRIPT_START###","###SCRIPT_STOP###"),$buffer);
-			$buffer = \StringUtil::decodeEntities(\StringUtil::substrHtml($buffer,strlen($buffer)));
+			$buffer = StringUtil::decodeEntities(StringUtil::substrHtml($buffer,strlen($buffer)));
 			$buffer = str_replace("'","###PLACEHOLDER###",$buffer);
-			
-			$strAjaxBuffer = $buffer;
-			
-			// store buffer in the session
-			#$arrFeSession[$objDC->table]['BUFFER'][$objDC->field] = $buffer;
-			#$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrFeSession);
-			
+			$moo = $buffer;
 			// reset to standard
-			\Config::set('allowedTags', $orig_allowedTags);
+			#Config::set('allowedTags', $orig_allowedTags);
 			
-			$js_helper = new \FrontendTemplate('js_cc_frontedit_ajaxhelper');
+			if( $objDC->isAjax )
+			{
+				$GLOBALS['TL_HEAD'][] = '<script>var isAjax=true;</script>';
+			}
+
+			$js_helper = new \Contao\FrontendTemplate('js_cc_frontedit_ajaxhelper');
 			$js_helper->widget = $this->widget;
 			$js_helper->dataContainer = $objDC;
 			$js_helper->field = $objDC->field;
-			#$js_helper->session = $arrFeSession[$objDC->table];
+			$js_helper->value = $objDC->value;
+			$js_helper->wrapperStart = $strWrapperStart;
+			$js_helper->wrapperStop = $strWrapperStop;
 			$js_helper->isAjax = $objDC->isAjax;
-			$js_helper->buffer = $strAjaxBuffer;
+			$js_helper->script = $moo;
+			
 			$strBuffer .= $js_helper->parse();
 		}
 		
 		// remove helper sessions
-		if($blnSubmitted && !\Environment::get('isAjaxRequest'))
+		if($blnSubmitted && ! Environment::get('isAjaxRequest'))
 		{
 			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
@@ -1172,7 +1185,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper;
 		$objDC->value = $objAttribute->getValue();
 		$objDC->table = $objAttribute->get('objCustomCatalog')->getTable();
-		$objDC->id = \Input::get('id');
+		$objDC->id = Input::get('id');
 		$objDC->field = $objAttribute->get('alias');
 		$strUploadFolder = $GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['defaultUploadFolder'] ?: 'files/uploads';
 		
@@ -1194,7 +1207,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 			return sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['ERR']['invalid_upload_folder'],$strUploadFolder);
 		}
 		
-		$objFolder = new \Folder($strUploadFolder);
+		$objFolder = new Folder($strUploadFolder);
 		$intUploadFolder = $objFolder->getModel()->uuid;
 				
 		$objWidget = new $GLOBALS['TL_FFL']['upload'];
@@ -1204,7 +1217,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		$objWidget->slabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_upload'] ?: 'Upload';
 		$objWidget->storeFile = true;
 		$objWidget->uploadFolder = $intUploadFolder;
-		$objWidget->extensions = \Config::get('uploadTypes');
+		$objWidget->extensions = Config::get('uploadTypes');
 		
 		// apply settings to widget
 		if(count($arrSettings) > 0)
@@ -1231,7 +1244,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 		}
 		
 		// validate on submit
-		if(\Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
+		if(Input::post('FORM_SUBMIT') == $objDC->table.'_'.$objModule->id)
 		{
 			$arrFiles = array();
 			
@@ -1258,13 +1271,13 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// add the file to the file system
 					if(file_exists(TL_ROOT.'/'.$strUploadFolder.'/'.$v['name']))
 					{
-						$setSetValue[$k][] = \Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
+						$setSetValue[$k][] = Dbafs::addResource($strUploadFolder.'/'.$v['name'])->uuid;
 					}
 				}
 				
 				$setSetValue = array_filter($setSetValue);
 				
-				$objDatabase = \Database::getInstance();
+				$objDatabase = Database::getInstance();
 				if(!empty($setSetValue[$objWidget->name]) && $objDatabase->tableExists($objDC->table) && $objDatabase->fieldExists($objDC->field,$objDC->table) && (int)$objDC->id > 0)
 				{
 					$setValue = $setSetValue[ $objWidget->name ];
@@ -1278,7 +1291,7 @@ class TemplateAttribute extends \PCT\CustomElements\Core\TemplateAttribute
 					// flush post data and reload page to see changes
 					if((boolean)$arrSettings['autoReload'] !== false || !isset($arrSettings['autoReload']))
 					{
-						\Controller::reload();
+						Controller::reload();
 					}
 				}
 			}

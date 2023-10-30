@@ -22,9 +22,8 @@ namespace PCT\CustomCatalog;
 /**
  * Imports
  */
-use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory as CustomCatalogFactory;
-use PCT\CustomCatalog\FrontEdit\Controller as Helper;
-
+use Contao\Database;
+use Contao\System;
 
 /**
  * Class file
@@ -171,7 +170,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 			return false;
 		}
 		
-		$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+		$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
 		
 		// check user rights
 		if( (boolean)$objUser->get('customcatalog_edit_active') === false || (boolean)$objUser->get('customcatalog_edit_disable') === true )
@@ -198,8 +197,8 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		$objAttribute = $objDC->objAttribute;
 		$strField = $objDC->field;
 		
-		if(!\Database::getInstance()->tableExists($strTable)) {return;}
-		if(!\Database::getInstance()->fieldExists($strField,$strTable)) {return;}
+		if( !Database::getInstance()->tableExists($strTable)) {return;}
+		if( !Database::getInstance()->fieldExists($strField,$strTable)) {return;}
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['DB_SET_LIST'][$strTable]))
 		{
@@ -222,7 +221,7 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 		{
 			foreach($GLOBALS['TL_DCA'][$strTable][$strField]['save_callback'] as $callback)
 			{
-				$varValue = \System::importStatic($callback[0])->{$callback[1]}($varValue,$objDC);
+				$varValue = System::importStatic($callback[0])->{$callback[1]}($varValue,$objDC);
 			}
 		}
 		
@@ -263,15 +262,17 @@ class FrontEdit extends \PCT\CustomCatalog\FrontEdit\Controller
 	 */
 	public function clearSession($strTable='')
 	{
+		#$objSession = System::getContainer()->get('session');
+		$objSession = System::getContainer()->get('session');
 		if(strlen($strTable) > 0)
 		{
-			$arrSession = \Session::getInstance()->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$arrSession = $objSession->get($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 			unset($arrSession[$strTable]);
-			\Session::getInstance()->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
+			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 		}
 		else
 		{
-			\Session::getInstance()->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
+			$objSession->remove($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName']);
 		}
 	}
 }

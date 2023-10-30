@@ -18,6 +18,7 @@
  */
 namespace PCT\Contao;
 
+
 /**
  * Class file
  * Override Contaos BackendMain class
@@ -34,24 +35,25 @@ class BackendMain extends \Contao\BackendMain
 			return parent::__construct();
 		}
 		
-		\System::loadLanguageFile('default');
+		\Contao\System::loadLanguageFile('default');
 		
 		if(FE_USER_LOGGED_IN || (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
 		{
-			$objUser = \FrontendUser::getInstance();
+			$objUser = \Contao\FrontendUser::getInstance();
 			
 			// import the fe user as cached User class for further use
-			$this->import('\FrontendUser', 'User');
+			$this->import('\Contao\FrontendUser', 'User');
 			
-			// authenticate user
-			if($this->User->id < 1)
-			{
-				$this->User->authenticate();
-			}
-		
 			$this->User = new \PCT\Contao\_FrontendUser($objUser);
 			// trick Contaos access level and simulate an admin here
 			$this->User->admin = 1;
+
+			// disable permission checks, already done
+			$GLOBALS['BE_MOD']['content']['article']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['content']['calendar']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['content']['news']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['design']['page']['disablePermissionChecks'] = true;
+			$GLOBALS['BE_MOD']['system']['files']['disablePermissionChecks'] = true;
 		}
 	}
 	
@@ -78,7 +80,7 @@ class BackendMain extends \Contao\BackendMain
 		// form action must point to full path
 		$strBuffer = str_replace('main.php?',PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/main.php?',$strBuffer);
 		// set header
-		header('Content-Type: text/html; charset=' . \Config::get('characterSet'));
+		header('Content-Type: text/html; charset=' . \Contao\Config::get('characterSet'));
 		// print it and exit script
 		echo $strBuffer;
 		

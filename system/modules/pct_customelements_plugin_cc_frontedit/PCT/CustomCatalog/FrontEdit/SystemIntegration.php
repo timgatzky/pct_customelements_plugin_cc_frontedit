@@ -18,22 +18,56 @@
  */
 namespace PCT\CustomCatalog\FrontEdit;
 
+
+/**
+ * Imports
+ */
+use Contao\System;
+use Contao\File;
+use Contao\Controller;
+
+
 /**
  * Class file
  * SystemIntegration
  */
-class SystemIntegration extends \Contao\System
+class SystemIntegration extends System
 {
 	/**
-	 * Create a config xml file for a Contao 4 environment to override system classes
+	 * Create the yaml files (or append them) depending on the current Contao version
+	 * @return void 
+	 * 
+	 * called from initializeSystem Hook
 	 */
-	public function createConfigYml()
+	public function createYaml()
 	{
-		if(version_compare(VERSION, '4.4','<') || version_compare(VERSION, '4.9','>='))
+		if( \version_compare(\VERSION, '4.4','<=') )
+		{
+			$this->createConfigYml();
+		}
+		else if( \version_compare(\VERSION, '4.9','==') || \version_compare(\VERSION, '4.13','==') )
+		{
+			$this->createServicesYml();
+		}
+		else 
+		{
+			static::log('CC Frontedit: This Contao Version is not supported',__METHOD__,\TL_CRON);
+			return;
+		}	
+	}
+	
+	
+	/**
+	 * Create/append config.yaml (Contao 4.4)
+	 */
+	protected function createConfigYml()
+	{
+		// picker class already changed
+		if( \get_class( System::getContainer()->get('contao.picker.builder') ) == 'PCT\Contao\Picker\PickerBuilder' )
 		{
 			return;
 		}
-				
+
 		$strEnvironment = '';
 		
 		// current symphony environment
@@ -42,10 +76,15 @@ class SystemIntegration extends \Contao\System
 		$strFile = 'config'.($strEnvironment ? '_'.$strEnvironment : '').'.yml';
 		
 		// fetch the file
-		$objFile = new \Contao\File('app/config/'.$strFile,true);
+		$objFile = new File('app/config/'.$strFile,true);
 
-		// parse current config.yml to array
-		$arrYaml = \Symfony\Component\Yaml\Yaml::parseFile('../app/config/'.$strFile);
+		$arrYaml = array();
+		// parse current yaml to array
+		if( $objFile->exists() === true )
+		{
+			$arrYaml = \Symfony\Component\Yaml\Yaml::parse( $objFile->getContent() );
+		}
+
 		if( \array_key_exists('services',$arrYaml) === false )
 		{
 			$arrYaml['services'] = array();
@@ -74,10 +113,78 @@ class SystemIntegration extends \Contao\System
 		$objFile->close();
 			
 		// log
-		\System::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,TL_CRON);
+		static::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,\TL_CRON);
 		
 		// reload the page to make changes take effect
-		\Controller::reload();
+		Controller::reload();
+	}
+
+
+	/**
+	 * Create/append service.yaml (Contao 4.9)
+	 */
+	protected function createServicesYml()
+	{
+		// picker class already changed
+		if( \get_class( System::getContainer()->get('contao.picker.builder') ) == 'PCT\Contao\Picker\PickerBuilder' )
+		{
+			return;
+		}
+
+		$strEnvironment = '';
+		
+		// current symphony environment
+		#$strEnvironment = \System::getContainer('kernel')->getParameter('kernel.environment');
+		
+		$strFile = 'services'.($strEnvironment ? '_'.$strEnvironment : '').'.yml';
+		
+		// fetch the file
+		$objFile = new File('app/config/'.$strFile,true);
+		
+		$arrYaml = array();
+		
+		// parse current yaml to array
+		if( $objFile->exists() === true )
+		{
+			$arrYaml = \Symfony\Component\Yaml\Yaml::parse( $objFile->getContent() );
+		}
+
+		if( \array_key_exists('services',$arrYaml) === false )
+		{
+			$arrYaml['services'] = array();
+		}
+
+		// yaml created and modifies
+		if( empty($arrYaml['services']['contao.picker.builder']) === false  )
+		{
+			return;
+		}
+
+		#$arrYaml['services']['_default']['autowire'] = true;
+		#$arrYaml['services']['_default']['autoconfigure'] = true;
+		#$arrYaml['services']['_default']['public'] = true;
+
+		// append services
+		$arrYaml['services']['contao.picker.builder'] = array
+		(
+			'class' => 'PCT\Contao\Picker\PickerBuilder',
+			//'arguments' => array(['@knp_menu.factory'], ['@router'], ['@request_stack'])
+			'arguments' => array('@knp_menu.factory', '@router'),
+			'public' => true
+		);
+		
+		$arrYaml['services']['contao.picker.page_provider'] = array('class' => 'PCT\Contao\Picker\PagePickerProvider','public'=>true);
+		$arrYaml['services']['contao.picker.file_provider'] = array('class' => 'PCT\Contao\Picker\FilePickerProvider','public'=>true);
+
+		$objDumper = new \Symfony\Component\Yaml\Dumper();
+		$objFile->write( $objDumper->dump($arrYaml) );
+		$objFile->close();
+			
+		// log
+		static::log('CC Frontedit: /app/config/'.$strFile.' created or updated successfully',__METHOD__,\TL_CRON);
+		
+		// reload the page to make changes take effect
+		Controller::reload();
 	}
 	
 	
