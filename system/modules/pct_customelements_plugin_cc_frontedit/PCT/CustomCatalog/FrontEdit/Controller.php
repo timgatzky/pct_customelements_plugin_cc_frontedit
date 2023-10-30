@@ -592,7 +592,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 			
 		// !switchToEdit on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && Input::get('jumpto') > 0 && Input::get('act') == 'edit')
+		if( isset($arrSession[$strTable]['mode']) && $arrSession[$strTable]['mode'] == 'create' && Input::get('jumpto') > 0 && Input::get('act') == 'edit')
 		{
 			// redirect to lister page
 			if(Input::get('switchToEdit') < 1)
@@ -629,7 +629,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 		
 		// !switchToEdit on COPY
-		else if($arrSession[$strTable]['mode'] == 'copy' && Input::get('jumpto') > 0 && Input::get('act') == 'copy')
+		else if( isset($arrSession[$strTable]['mode']) && $arrSession[$strTable]['mode'] == 'copy' && Input::get('jumpto') > 0 && Input::get('act') == 'copy')
 		{
 			$intNew = $arrSession[$strTable]['id'];
 			$objFunction = new \PCT\CustomElements\Helper\Functions;
