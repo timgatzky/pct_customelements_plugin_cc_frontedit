@@ -1,20 +1,26 @@
 
 <script type='text/javascript'>
-/* <![CDATA[ */
-
 jQuery(document).ready(function() 
 {
-	var container = jQuery('#'+"<?php echo $this->field; ?>"+'_widget_container');
-	
 	// I know it's ugly to mix jquery and mootools but it works fine
-	window.addEvent('ajax_change', function() 
+	window.addEvent('ajax_change', function(e) 
 	{
-		var html = '<?php echo $this->buffer; ?>'.replace(/###PLACEHOLDER###/g,"'");
-		html = html.replace(/###SCRIPT_START###/g,"<script>");
-		html = html.replace(/###SCRIPT_STOP###/g,"<\/script>");
-		container.html(html);
+		<?php if(!$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['simulateAjaxReloads']): ?>
+		window.location.reload();
+		<?php endif;?>
+		if( jQuery('#<?= $this->field; ?>_widget_container.ajax').length > 0 )
+		{
+			var script = '<?php echo $this->script; ?>'.replace(/###PLACEHOLDER###/g,"'");
+			script = script.replace(/###SCRIPT_START###/g,"<script>");
+			script = script.replace(/###SCRIPT_STOP###/g,"<\/script>");
+			script += 'console.log("<?= $this->field; ?>");';
+			
+			var replace = jQuery('#<?= $this->field; ?>_widget_container.ajax').html() + '<script>'+script+'<\/script>';
+			replace = '<?= $this->wrapperStart; ?>'+replace+'<?= $this->wrapperStop; ?>';
+			
+			jQuery('#<?= $this->field; ?>_widget_container').replaceWith( replace );
+			jQuery('#<?= $this->field; ?>_widget_container').removeClass('ajax');
+		}	
 	});
 });
-
-/* ]]> */
 </script>

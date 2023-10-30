@@ -29,7 +29,7 @@ class User extends \Contao\User
 	{
 		if(FE_USER_LOGGED_IN || (boolean)$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['SETTINGS']['allowAll'] === true)
 		{
-			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() );
+			$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() );
 			// trick Contaos access level and simulate an admin here
 			$objUser->admin = 1;
 

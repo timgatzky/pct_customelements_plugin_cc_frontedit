@@ -21,6 +21,22 @@ namespace PCT\CustomCatalog\FrontEdit;
 /**
  * Import
  */
+
+use Contao\Backend;
+use Contao\Combiner;
+use Contao\Controller as ContaoController;
+use Contao\Database;
+use Contao\Environment;
+use Contao\Image;
+use Contao\File;
+use Contao\FilesModel;
+use Contao\FormSubmit;
+use Contao\FrontendTemplate;
+use Contao\Input;
+use Contao\ModuleModel;
+use Contao\PageModel;
+use Contao\StringUtil;
+use Contao\System;
 use \PCT\CustomElements\Helper\Functions as Functions;
 use \PCT\CustomElements\Helper\ControllerHelper as ControllerHelper;
 
@@ -36,38 +52,38 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public static function getSession()
 	{
-		$objReturn = \Session::getInstance();
-		if(version_compare(VERSION, '4.4','>='))
-		{
-			$objReturn = \System::getContainer()->get('session');
-		}
-		return $objReturn;
+		return System::getContainer()->get('session');
 	}
 
 
 	/**
 	 * Add back end assets to the front end
 	 */
-	public function addAssets()
+	public static function addAssets()
 	{
 		global $objPage;
 
+		$objContainer = System::getContainer();
+
 		$strContao = 'var Contao={'
-		. 'theme:"' . \Backend::getTheme() . '",'
-		. 'lang:{'
-			. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
-			. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
-			. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
-			. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
-			. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '",'
-			. 'picker:"' . $GLOBALS['TL_LANG']['MSC']['pickerNoSelection'] . '"'
-		. '},'
-		. 'script_url:"' . TL_ASSETS_URL . '",'
-		. 'path:"' . TL_PATH . '",'
-		. 'request_token:"' . REQUEST_TOKEN . '",'
-		. 'referer_id:"' . TL_REFERER_ID . '"'
+			. 'theme:"' . Backend::getTheme() . '",'
+			. 'lang:{'
+				. 'close:"' . $GLOBALS['TL_LANG']['MSC']['close'] . '",'
+				. 'cancel:"' . $GLOBALS['TL_LANG']['MSC']['cancelBT'] . '",'
+				. 'collapse:"' . $GLOBALS['TL_LANG']['MSC']['collapseNode'] . '",'
+				. 'expand:"' . $GLOBALS['TL_LANG']['MSC']['expandNode'] . '",'
+				. 'loading:"' . $GLOBALS['TL_LANG']['MSC']['loadingData'] . '",'
+				. 'apply:"' . $GLOBALS['TL_LANG']['MSC']['apply'] . '"'
+			. '},'
+			. 'script_url:"' . $objContainer->get('contao.assets.assets_context')->getStaticUrl() . '",'
+			. 'path:"' . Environment::get('path') . '",'
+			. 'routes:{'
+				. 'backend_picker:"' . $objContainer->get('router')->generate('contao_backend_picker') . '"'
+			. '},'
+			. 'request_token:"' . REQUEST_TOKEN . '",'
+			. 'referer_id:"' . $objContainer->get('request_stack')->getCurrentRequest()->attributes->get('_contao_referer_id') . '"'
 		. '};';
-		
+	
 		$strLocale = 'Locale.define("en-US","Date",{'
 		. 'months:["' . implode('","', $GLOBALS['TL_LANG']['MONTHS']) . '"],'
 		. 'days:["' . implode('","', $GLOBALS['TL_LANG']['DAYS']) . '"],'
@@ -83,160 +99,120 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		. 'week:"' . $GLOBALS['TL_LANG']['DP']['week'] . '"'
 		. '});';
 		
-		// contao 3
-		if(version_compare(VERSION, '4','<'))
-		{
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
-			
-			if(!$objPage->hasJQuery)
-			{
-				$GLOBALS['TL_JAVASCRIPT'][] = '//code.jquery.com/jquery-' . $GLOBALS['TL_ASSETS']['JQUERY'] . '.min.js';
-			}
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';			
-			#$GLOBALS['TL_HEAD'][] = '<script src="assets/contao/js/core-uncompressed.js"></script>';
-			
-			// css
-			$objCombiner = new \Combiner();
-		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/css/mooRainbow.css', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-		    $objCombiner->add('assets/mootools/chosen/chosen.css');
-		    $objCombiner->add('assets/mootools/stylect/css/stylect.css');
-		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/css/simplemodal.css', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.css', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-		    $objCombiner->add('system/themes/default/fonts.css');
-		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
-		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/styles.css');
-		    $GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
-				 
-			// javascripts
-			$objCombiner = new \Combiner();
-		    $objCombiner->add('assets/mootools/core/' . $GLOBALS['TL_ASSETS']['MOOTOOLS'] . '/mootools.js', $GLOBALS['TL_ASSETS']['MOOTOOLS']);
-		    $objCombiner->add('assets/mootools/colorpicker/'. $GLOBALS['TL_ASSETS']['COLORPICKER'] .'/js/mooRainbow.js', $GLOBALS['TL_ASSETS']['COLORPICKER']);
-		    $objCombiner->add('assets/mootools/chosen/chosen.js');
-		    $objCombiner->add('assets/mootools/stylect/js/stylect.js');
-		    $objCombiner->add('assets/mootools/simplemodal/'. $GLOBALS['TL_ASSETS']['SIMPLEMODAL'] .'/js/simplemodal.js', $GLOBALS['TL_ASSETS']['SIMPLEMODAL']);
-		    $objCombiner->add('assets/mootools/datepicker/'. $GLOBALS['TL_ASSETS']['DATEPICKER'] .'/datepicker.js', $GLOBALS['TL_ASSETS']['DATEPICKER']);
-		    $objCombiner->add('assets/mootools/mootao/Mootao.js');
-		    $objCombiner->add('assets/contao/js/core-uncompressed.js');
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strLocale.'</script>';
-		
-		}
 		// contao 4
-		else
+		if(!$objPage->hasJQuery)
 		{
-			if(!$objPage->hasJQuery)
-			{
-				$GLOBALS['TL_JAVASCRIPT'][] = TL_ASSETS_URL.'assets/jquery/js/jquery.js';
-			}
-			
-			$strTheme = 'flexible';
-			
-			// css
-			$objCombiner = new \Combiner();
-		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/fonts.css');
-		    $objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/css/mooRainbow.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'assets/chosen/css/chosen.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/css/simplemodal.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'assets/datepicker/css/datepicker.min.css');
-		    $objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
-		    #$objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
-		    $objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/main.css');
-		    #$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
-			$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
-			
-			// javascript
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
-			#$GLOBALS['TL_HEAD'][] = '
-			#<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
-			#<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
-			#<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
-			#<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
-			#<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
-			#<script>'.$strLocale.'</script>';
-			
-			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>';
-			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>';
-			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>';
-			$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>';
-			$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>';
-			$GLOBALS['TL_HEAD'][] =	'<script>'.$strLocale.'</script>';
-			
-			// rewrite contaocore.js to make it work with jquery
-			$strFile = 'assets/cc_frontedit/js/contao_core.js';
-			$objContaoCoreJs = new \File($strFile,true);
-			if(!$objContaoCoreJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
-			{
-				// grab original
-				$strOrigFile = TL_ASSETS_URL.'bundles/contaocore/core.js';
-				
-				$objFile = new \File($strOrigFile,true);
-				$strContent = ''; #$objFile->getContent();
-				
-				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
-				{
-					$strContent = file_get_contents($strOrigFile);
-				}
-				
-				if(strlen($strContent) > 0)
-				{
-					$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
-					$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)","$$('#tl_ajaxBox')[0]","$$('#tl_ajaxOverlay')[0]","$$(document.body)[0]","overlay === null || overlay == undefined","box === null || box == undefined");
-					
-					// in makeMultiSrcSortable
-					$search[] = "$$('#'+oid)";
-					$replace[] = "$$('#'+oid)[0]";
-					
-					$strContent = str_replace($search,$replace,$strContent);
-					$objTempFile = new \File($strFile);
-					$objTempFile->write($strContent);
-					$objTempFile->close();
-				}
-			}
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objContaoCoreJs->path.'"></script>'; 
-			#$objCombiner->add($objContaoCoreJs->path);
-			
-			
-			// rewrite simplemodal.js to make it work with jquery
-			$strFile = 'assets/cc_frontedit/js/simplemodal.js';
-			$objSimpleModalJs = new \File($strFile,true);
-			if(!$objSimpleModalJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
-			{
-				// grab original
-				$strOrigFile = TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js';
-				#$objFile = new \File($strOrigFile,true);
-				$strContent = ''; #$objFile->getContent();
-				if(file_exists($strOrigFile) && strlen($strContent) < 1) 
-				{
-					$strContent = file_get_contents($strOrigFile);
-				}
-				if(strlen($strContent) > 0)
-				{
-					$search = array
-					(
-						'$("simple-modal")',"$('simple-modal')",
-						'$("simple-modal-overlay")',"$('simple-modal-overlay')"
-					);
-					$replace = array
-					(
-						'$$("#simple-modal")[0]','$$("#simple-modal")[0]',
-						'$$("#simple-modal-overlay")[0]','$$("#simple-modal-overlay")[0]'
-					);
-					
-					$strContent = str_replace($search,$replace,$strContent);
-					$objTempFile = new \File($strFile);
-					$objTempFile->write($strContent);
-					$objTempFile->close();
-				}
-			}
-			$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objSimpleModalJs->path.'"></script>';
-			#$objCombiner->add($objSimpleModalJs->path);
-			#$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.js');
-			
-			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js'.'"></script>';
-			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.js'.'"></script>';
-			#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+			$GLOBALS['TL_JAVASCRIPT'][] = TL_ASSETS_URL.'assets/jquery/js/jquery.js';
 		}
+		
+		$strTheme = 'flexible';
+		
+		// css
+		$objCombiner = new Combiner();
+		$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/fonts.css');
+		$objCombiner->add(TL_ASSETS_URL.'assets/colorpicker/css/mooRainbow.min.css');
+		$objCombiner->add(TL_ASSETS_URL.'assets/chosen/css/chosen.min.css');
+		$objCombiner->add(TL_ASSETS_URL.'assets/simplemodal/css/simplemodal.min.css');
+		$objCombiner->add(TL_ASSETS_URL.'assets/datepicker/css/datepicker.min.css');
+		$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/basic.css');
+		#$objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/basic.css');
+		$objCombiner->add(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/css/contao/main.css');
+		#$objCombiner->add(TL_ASSETS_URL.'system/themes/'.$strTheme.'/main.css');
+		$GLOBALS['TL_CSS'][] = $objCombiner->getCombinedFile();
+		
+		// javascript
+		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">jQuery.noConflict();</script>';
+		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript">'.$strContao.'</script>';
+		#$GLOBALS['TL_HEAD'][] = '
+		#<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>
+		#<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>
+		#<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>
+		#<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>
+		#<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>
+		#<script>'.$strLocale.'</script>';
+		
+		$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/mootools/js/mootools.min.js"></script>';
+		$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/colorpicker/js/mooRainbow.min.js"></script>';
+		$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'assets/chosen/js/chosen.min.js"></script>';
+		$GLOBALS['TL_HEAD'][] = '<script src="'.TL_ASSETS_URL.'assets/datepicker/js/datepicker.min.js"></script>';
+		$GLOBALS['TL_HEAD'][] =	'<script src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.min.js"></script>';
+		$GLOBALS['TL_HEAD'][] =	'<script>'.$strLocale.'</script>';
+		
+		// rewrite contaocore.js to make it work with jquery
+		$strFile = 'assets/cc_frontedit/js/contao_core.js';
+		$objContaoCoreJs = new File($strFile,true);
+		if(!$objContaoCoreJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+		{
+			// grab original
+			$strOrigFile = TL_ASSETS_URL.'bundles/contaocore/core.js';
+			
+			$objFile = new File($strOrigFile,true);
+			$strContent = ''; #$objFile->getContent();
+			
+			if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+			{
+				$strContent = file_get_contents($strOrigFile);
+			}
+			
+			if(strlen($strContent) > 0)
+			{
+				$search = array("$('tl_tablewizard')","$('tl_select')","$('home')","$(id)","$(oid)","$('tl_ajaxBox')","$('tl_ajaxOverlay')","$(document.body)","overlay === null","box === null");
+				$replace = array("$$('#tl_tablewizard')[0]","$$('#tl_select')[0]","$$('#home')[0]","$$('#'+id)[0]","$$('#'+oid)","$$('#tl_ajaxBox')[0]","$$('#tl_ajaxOverlay')[0]","$$(document.body)[0]","overlay === null || overlay == undefined","box === null || box == undefined");
+				
+				// in makeMultiSrcSortable
+				$search[] = "$$('#'+oid)";
+				$replace[] = "$$('#'+oid)[0]";
+				
+				$strContent = str_replace($search,$replace,$strContent);
+				$objTempFile = new File($strFile);
+				$objTempFile->write($strContent);
+				$objTempFile->close();
+			}
+		}
+		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objContaoCoreJs->path.'"></script>'; 
+		#$objCombiner->add($objContaoCoreJs->path);
+		
+		
+		// rewrite simplemodal.js to make it work with jquery
+		$strFile = 'assets/cc_frontedit/js/simplemodal.js';
+		$objSimpleModalJs = new File($strFile,true);
+		if(!$objSimpleModalJs->exists() || $GLOBALS['PCT_CUSTOMCATALOG']['debug'] === true)
+		{
+			// grab original
+			$strOrigFile = TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js';
+			#$objFile = new \File($strOrigFile,true);
+			$strContent = ''; #$objFile->getContent();
+			if(file_exists($strOrigFile) && strlen($strContent) < 1) 
+			{
+				$strContent = file_get_contents($strOrigFile);
+			}
+			if(strlen($strContent) > 0)
+			{
+				$search = array
+				(
+					'$("simple-modal")',"$('simple-modal')",
+					'$("simple-modal-overlay")',"$('simple-modal-overlay')"
+				);
+				$replace = array
+				(
+					'$$("#simple-modal")[0]','$$("#simple-modal")[0]',
+					'$$("#simple-modal-overlay")[0]','$$("#simple-modal-overlay")[0]'
+				);
+				
+				$strContent = str_replace($search,$replace,$strContent);
+				$objTempFile = new File($strFile);
+				$objTempFile->write($strContent);
+				$objTempFile->close();
+			}
+		}
+		$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objSimpleModalJs->path.'"></script>';
+		#$objCombiner->add($objSimpleModalJs->path);
+		#$objCombiner->add(TL_ASSETS_URL.'bundles/contaocore/mootao.js');
+		
+		#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'assets/simplemodal/js/simplemodal.js'.'"></script>';
+		#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.TL_ASSETS_URL.'bundles/contaocore/mootao.js'.'"></script>';
+		#$GLOBALS['TL_HEAD'][] = '<script type="text/javascript" src="'.$objCombiner->getCombinedFile().'"></script>';
+	
 		
 	    $GLOBALS['TL_JAVASCRIPT'][] = PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/js/CC_FrontEdit.js';
 	}
@@ -244,10 +220,12 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	
 	/**
 	 * Generates the operations buttons list by an active record data (database result) or an array
+	 * @param object			FrontendTemplate
 	 * @param object||array		DatabaseResult || Array
+	 * @param object			CustomCatalog
 	 * @return string			Html output
 	 */
-	public function addButtonsToTemplateByRow($objTemplate, $varRow, $objConfig=null)
+	public function addButtonsToTemplateByRow($objTemplate, $varRow, $objCustomCatalog): FrontendTemplate
 	{
 		global $objPage;
 		
@@ -259,6 +237,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$objRow = null;
 		if(is_array($varRow))
 		{
+			$objRow = new \stdClass;
 			foreach($varRow as $k => $v)
 			{
 				$objRow->{$k} = $v;
@@ -269,22 +248,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objRow = $varRow;
 		}
 		
-		// apply a config object
-		if($objConfig !== null)
-		{
-			$this->setConfig($objConfig);
-		}
-		
-		$objConfig = $this->getConfig();
-	
 		$objFunction = \PCT\CustomElements\Helper\Functions::getInstance();
 		
 		$objDcaHelper = \PCT\CustomElements\Plugins\CustomCatalog\Helper\DcaHelper::getInstance();
-		$objCC = $objConfig->customcatalog;
-		$objModule = $objConfig->module;
+		$objCC = $objCustomCatalog;
+		$objModule = $objCustomCatalog->getModule();
 		$arrDefaultDCA = $objDcaHelper->getDefaultDataContainerArray();
 		$objMultilanguage = new \PCT\CustomElements\Plugins\CustomCatalog\Core\Multilanguage;
-		$arrChilds = deserialize( $objCC->get('cTables') );
+		$arrChilds = StringUtil::deserialize( $objCC->get('cTables') );
 		if( !is_array($arrChilds) )
 		{
 			$arrChilds = explode(',',$arrChilds);
@@ -312,50 +283,40 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$strAlias = $objCC->getCustomElement()->get('alias');
 		$strTable = $objCC->getTable();
 		$strLanguage = $objMultilanguage->getActiveFrontendLanguage();
-		$strJumpTo = \Controller::generateFrontendUrl( $objPage->row(),'',null,true );
+		$strJumpTo = PageModel::findByPk($objPage->id)->getFrontendUrl();
 		
 		if(!is_array($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys']))
 		{
 			$GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['EXCLUDE'][$strTable][$objRow->id]['keys'] = array();
 		}
 		
-		\System::loadLanguageFile('tl_pct_customcatalog');
-		\System::loadLanguageFile('tl_content');
-		\System::loadLanguageFile($strTable);
+		System::loadLanguageFile('tl_pct_customcatalog');
+		System::loadLanguageFile('tl_content');
+		System::loadLanguageFile($strTable);
 		
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable])
 		{
 			$objSystem = new \PCT\CustomElements\Plugins\CustomCatalog\Core\SystemIntegration();
-			
-			// fallback CC <= 1.4.14
-			if(version_compare(PCT_CUSTOMCATALOG_VERSION, '1.4.14','<'))
-			{
-				$c = $GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'];
-				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = true;
-				
-				$objSystem->loadCustomCatalog($strTable,true);
-				
-				$GLOBALS['PCT_CUSTOMCATALOG']['SETTINGS']['bypassCache'] = $c;
-			}
-			else
-			{
-				$objSystem->loadDCA($strTable);
-			}
+			$objSystem->loadDCA($strTable);
 		}
-		
+
 		// override the switchToEdit option
-		if(!$objModule->customcatalog_edit_switchToEdit && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'])
+		if($objModule->customcatalog_edit_switchToEdit)
 		{
-			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
+			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = true;
+			
+			if( $objModule->type == 'customcatalogreader' )
+			{
+				$objModule->customcatalog_jumpTo = $objPage->id;
+			}
 		}
-		
-				
+
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($strTable);
 		
 		$arrOperations = $arrDefaultDCA['list']['operations'] ?: array();
-		$arrListOperations = deserialize($objCC->get('list_operations'));
+		$arrListOperations = StringUtil::deserialize($objCC->get('list_operations')) ?: array();
 		
 		// include the toggle button
 		if(strlen($objCC->getPublishedField()) > 0 && in_array('toggle', $arrListOperations))
@@ -405,9 +366,9 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$jumpTo = $strJumpTo; 
 			
 			// overwrite the jumpTo page when editing should be done on a different page
-			if($key == 'edit' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
+			if($key == 'edit' && $objModule->type == 'customcataloglist' && $objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 			{
-				$jumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row(),'',null,true );
+				$jumpTo = PageModel::findByPk($objModule->customcatalog_jumpTo)->getFrontendUrl();
 			}
 			
 			$href = (isset($button['href']) ? $button['href'] : '');
@@ -429,11 +390,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$href = $objFunction->addToUrl($href.'&amp;do='.$strAlias.'&amp;table='.$strTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->pid : ''), $jumpTo);
 			// add the items parameter to the url
 			$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 && strlen($objRow->{$strAliasField}) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-			{
-				$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-			}
 			// simulate a switchToEdit
 			if($key == 'copy' && $objModule->customcatalog_jumpTo > 0 && $GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] )
 			{
@@ -452,13 +408,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$button['icon'] = 'header.gif';	
 			}
 						
-			$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+			$linkImage = Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
 			
 			// set Contao 4 svgs
 			if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
 			{
 				$button['icon'] = str_replace('gif','svg',$button['icon']);
-				$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+				$linkImage = Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
 			}
 			
 			$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
@@ -487,7 +443,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			// trigger the button callbacks
 			if(is_array($button['button_callback']))
 			{
-				$button['html'] = \System::importStatic($button['button_callback'][0])->{$button['button_callback'][1]}($objRow->row(),$href,$title,$button['icon'],$attributes,$strTable);
+				$button['html'] = System::importStatic($button['button_callback'][0])->{$button['button_callback'][1]}($objRow->row(),$href,$title,$button['icon'],$attributes,$strTable);
 			}
 			
 			$arrButtons[$key] = $button;
@@ -524,24 +480,18 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				// overwrite the jumpTo page when editing should be done on a different page
 				if($objModule->customcatalog_jumpTo > 0 && $objModule->customcatalog_jumpTo != $objPage->id)
 				{
-					$strJumpTo = \Controller::generateFrontendUrl( \PageModel::findByPk($objModule->customcatalog_jumpTo)->row(),'',null,true );
+					$strJumpTo = PageModel::findByPk($objModule->customcatalog_jumpTo)->getFrontendUrl();
 				}
 				
 				$href = $objFunction->addToUrl('&amp;do='.$strAlias.'&amp;table='.$childTable.'&amp;id='.$objRow->id.($objRow->pid > 0 ? '&amp;pid='.$objRow->id : ''), $strJumpTo);
 				// add the items parameter to the url
 				$href = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.(strlen($strAliasField) > 0 ? $objRow->{$strAliasField} : $objRow->id) ,$href);
 			
-				// add the request token
-				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'])
-				{
-					$href = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$href);
-				}
-								
 				if($objChildCC)
 				{
 					if($objChildCC->get('icon'))
 					{
-						$icon = \FilesModel::findByPk($objChildCC->get('icon'))->path;
+						$icon = FilesModel::findByPk($objChildCC->get('icon'))->path;
 						if(strlen($icon) > 0)
 						{
 							$icon = ControllerHelper::getInstance()->call('getImage',array($icon,'16','16','center_center'));
@@ -550,11 +500,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 					}
 				}
 				
-				$linkImage = \Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
+				$linkImage = Image::getHtml('system/themes/default/images/'.$button['icon'],$title);
 				if(version_compare(VERSION, '4', '>=') && strlen($button['icon']) > 0)
 				{
 					$button['icon'] = str_replace('gif','svg',$button['icon']);
-					$linkImage = \Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
+					$linkImage = Image::getHtml('system/themes/flexible/icons/'.$button['icon'],$title);
 				}
 				$linkText = (strlen($linkImage) > 0 ? $linkImage : $button['label'][0]);
 				$attributes = ' data-module="'.$objModule->id.'" data-id="'.$objRow->id.'"';
@@ -577,7 +527,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 				
 		// append the clipboard buttons
-		if(\Input::get('act') == 'paste')
+		if(Input::get('act') == 'paste')
 		{
 			array_insert($arrButtons,count($arrButtons),array('paste_after' => $this->getPasteAfterButton($objRow->row(),$strTable) ));
 			
@@ -588,7 +538,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 		
 		// append the multiple select checkbox
-		if(\Input::get('act') == 'select')
+		if(Input::get('act') == 'select')
 		{
 			$html = '<input data-module="'.$objModule->id.'" id="ids_'.$objRow->id.'" class="tl_tree_checkbox checkbox" type="checkbox" value="'.$objRow->id.'" name="IDS[]">';
 			$select = array('html'=>$html,'class'=>'select');
@@ -605,14 +555,12 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		{
 			foreach($GLOBALS['CUSTOMCATALOG_FRONTEDIT_HOOKS']['getButtons'] as $callback)
 			{
-				$this->import($callback[0]);
-				$arrButtons = $this->$callback[0]->$callback[1]($arrButtons,$this);
+				$arrButtons = System::importStatic($callback[0])->{$callback[1]}($arrButtons,$this);
 			}
 		}
 		
 		$objTemplate->empty = (count($arrButtons) < 1 ? true : false);
 		$objTemplate->module = $objModule;
-		$objTemplate->config = $objConfig;
 		$objTemplate->customcatalog = $objCC;
 		$objTemplate->activeRecord = $objRow;
 		$objTemplate->buttons = $arrButtons;
@@ -629,52 +577,47 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public function simulateSwitchToEdit()
 	{
-		$strTable = \Input::get('table');
+		$strTable = Input::get('table');
 		$objFunction = new \PCT\CustomElements\Helper\Functions;
 		$objSession = static::getSession();
 
 		$arrSession = $objSession->get('CLIPBOARD_HELPER');
 		$arrOrigSession = $objSession->get('CLIPBOARD') ?: array();
-		$new_records = $objSession->get('new_records') ?: array();
+		$objSessionBag = $objSession->getBag('contao_backend');
+		$new_records = $objSessionBag->get('new_records') ?: array();
 		
 		if(!empty($new_records[$strTable]) && isset($arrOrigSession[$strTable]))
 		{
-			$arrSession[$strTable]['mode'] = (\Input::get('act') == 'copy' ? 'copy' : 'create');
+			$arrSession[$strTable]['mode'] = (Input::get('act') == 'copy' ? 'copy' : 'create');
 		}
 			
 		// !switchToEdit on CREATE
-		if($arrSession[$strTable]['mode'] == 'create' && \Input::get('jumpto') > 0 && \Input::get('act') == 'edit')
+		if($arrSession[$strTable]['mode'] == 'create' && Input::get('jumpto') > 0 && Input::get('act') == 'edit')
 		{
 			// redirect to lister page
-			if(\Input::get('switchToEdit') < 1)
+			if(Input::get('switchToEdit') < 1)
 			{
-				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(),'',null,true );
+				$redirect = PageModel::findByPk(Input::get('jumpto'))->getFrontendUrl();
 			}
 			// redirect to details page
 			else
 			{
 				$objFunction = new \PCT\CustomElements\Helper\Functions;
-				$parse = parse_url(\Environment::get('request'));
-				$redirect = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(),'',null,true).'?'.$parse['query'];
+				$parse = parse_url(Environment::get('request'));
+				$redirect = PageModel::findByPk(Input::get('jumpto'))->getFrontendUrl().'?'.$parse['query'];
 				
-				$redirect = str_replace(array('switchToEdit=1','jumpto='.\Input::get('jumpto')), '', $redirect);
+				$redirect = str_replace(array('switchToEdit=1','jumpto='.Input::get('jumpto')), '', $redirect);
 				
 				// add the items parameter to the url
-				if(!\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
+				if(!Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']))
 				{
-					$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.\Input::get('id'),$redirect);
-				}
-				
-				// add the request token
-				if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
-				{
-					$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
+					$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.Input::get('id'),$redirect);
 				}
 			}
 				
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(), '', null, true );
+			$arrSession[$strTable]['ref'] = PageModel::findByPk(Input::get('jumpto'))->getFrontendUrl();
 			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
@@ -682,28 +625,22 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
-			\Controller::redirect($redirect);
+			ContaoController::redirect($redirect);
 		}
 		
 		// !switchToEdit on COPY
-		else if($arrSession[$strTable]['mode'] == 'copy' && \Input::get('jumpto') > 0 && \Input::get('act') == 'copy')
+		else if($arrSession[$strTable]['mode'] == 'copy' && Input::get('jumpto') > 0 && Input::get('act') == 'copy')
 		{
 			$intNew = $arrSession[$strTable]['id'];
 			$objFunction = new \PCT\CustomElements\Helper\Functions;
-			$parse = parse_url(\Environment::get('request'));
-			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',\Controller::generateFrontendUrl( \PageModel::findByPk(\Input::get('jumpto'))->row(), '', null, true ) );
+			$parse = parse_url(Environment::get('request'));
+			$redirect = $objFunction->addToUrl($parse['query'].'&id='.$intNew.'&act=edit&jumpto=&',PageModel::findByPk(Input::get('jumpto'))->getFrontendUrl() );
 			// add/rewrite the items parameter to the url
 			$redirect = $objFunction->addToUrl( $GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter'].'='.$intNew,$redirect);
 			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck']  && \Input::get('rt') == '')
-			{
-				$redirect = $objFunction->addToUrl('rt='.REQUEST_TOKEN ,$redirect);
-			}
-			
 			// remove CLIPBOARD_HELPER session
 			$arrSession[$strTable]['mode'] = 'on'.$arrSession[$strTable]['mode'];
-			$arrSession[$strTable]['ref'] = \Controller::getReferer();
+			$arrSession[$strTable]['ref'] = ContaoController::getReferer();
 			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			
 			// remove VALUE sessions
@@ -711,7 +648,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set($GLOBALS['PCT_CUSTOMCATALOG_FRONTEDIT']['sessionName'],$arrSession);
 			
 			// redirect to edit page
-			\Controller::redirect($redirect);
+			ContaoController::redirect($redirect);
 		}
 	}
 	
@@ -722,7 +659,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 * @param string	The table name
 	 * @param boolean	Write log
 	 */
-	public function simulateReviseTable($strTable,$blnLog=true)
+	public static function simulateReviseTable($strTable,$blnLog=true)
 	{
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable])
@@ -758,10 +695,10 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public static function applyOperationsOnGeneratePage($objPage)
 	{
-		$strTable = \Input::get('table') ?: \Input::get('do');
+		$strTable = Input::get('table') ?: Input::get('do');
 		
 		// return reader page when editing is not active
-		if(\Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']) && !\Input::get('act'))
+		if(Input::get($GLOBALS['PCT_CUSTOMCATALOG']['urlItemsParameter']) && !Input::get('act'))
 		{
 			return;
 		}
@@ -771,20 +708,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		{
 			return;
 		}
-		
-		// check request token 
-		if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') != REQUEST_TOKEN)
-		{
-			header('HTTP/1.1 400 Bad Request');
-			if(version_compare(VERSION, '4.4', '>='))
-			{
-				throw new \Contao\CoreBundle\Exception\InvalidRequestTokenException('Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
-			}
-			else
-			{
-				die_nicely('be_referer', 'Invalid request token. Please <a href="javascript:window.location.href=window.location.href">go back</a> and try again.');
-			}
-		}
+
+		$objSession = static::getSession();
 		
 		// load the data container to the frontend
 		if(!$GLOBALS['TL_DCA'][$strTable])
@@ -813,7 +738,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			return;
 		}
 			
-		if(!defined('CURRENT_ID')) {define('CURRENT_ID', \Input::get('id'));}
+		if(!defined('CURRENT_ID')) {define('CURRENT_ID', Input::get('id'));}
 		
 		// Set a user ID for versions
 		$objUser = new \StdClass;
@@ -822,7 +747,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		// Create a datacontainer
 		$objDC = new \PCT\CustomElements\Plugins\FrontEdit\Helper\DataContainerHelper($objCC->getTable());
 		$objDC->User = $objUser;
-		$objDC->intId = $objDC->id = \Input::get('id');
+		$objDC->intId = $objDC->id = Input::get('id');
 		// handle parent tables
 		if(!empty($GLOBALS['TL_DCA'][$strTable]['config']['ptable']))
 		{
@@ -830,57 +755,59 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		}
 		
 		$blnDoNotSwitchToEdit = true;
-		$strCleanUrl = \Controller::generateFrontendUrl($objPage->row(),'',null,true);
+		$strCleanUrl = PageModel::findByPk($objPage->id)->getFrontendUrl();
+		$objSession = static::getSession();
+		$objSessionBag = $objSession->getBag('contao_backend');
 		
 		// TODO: !CREATE
-		if(\Input::get('act') == 'create')
+		if(Input::get('act') == 'create')
 		{
 			$GLOBALS['TL_DCA'][$strTable]['config']['switchToEdit'] = false;
 			$objDC->create();
 		}
 		
 		// TODO: !DELETE
-		if(\Input::get('act') == 'delete')
+		if(Input::get('act') == 'delete')
 		{
 			$objDC->delete();
 		}
 		// !CUT
-		else if(\Input::get('act') == 'cut')
+		else if(Input::get('act') == 'cut')
 		{
 			$objDC->cut(true);
 			
-			\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !CUT ALL
-		else if(\Input::get('act') == 'cutAll')
+		else if(Input::get('act') == 'cutAll')
 		{
-			$arrClipboard = static::getSession()->get('CLIPBOARD');
+			$arrClipboard = $objSession->get('CLIPBOARD');
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
 				foreach($arrClipboard[$strTable]['id'] as $id)
 				{
 					$objDC->intId = $id;
 					$objDC->cut(true);
-					\Input::setGet('pid', $id);
-					\Input::setGet('mode', 1);
+					Input::setGet('pid', $id);
+					Input::setGet('mode', 1);
 				}
 			}
 						
-			\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !COPY
-		else if(\Input::get('act') == 'copy')
+		else if(Input::get('act') == 'copy')
 		{
 			$intNew = $objDC->copy(true);
 			
-			// set the tstamp column to 0
-			$objNew = \Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
-			if($objNew->tstamp > 0)
+			// set the tstamp column to 0 when switchToEdit is in use
+			$objNew = Database::getInstance()->prepare("SELECT id,tstamp FROM ".$objDC->table." WHERE id=?")->limit(1)->execute($intNew);
+			if($objNew->tstamp > 0 && Input::get('switchToEdit') != '')
 			{
-				\Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>0))->execute($intNew);
+				Database::getInstance()->prepare("UPDATE ".$objDC->table." %s WHERE id=?")->set(array('tstamp'=>0))->execute($intNew);
 			}
 			
-			if(\Input::get('switchToEdit') || \Input::get('jumpto') > 0)
+			if(Input::get('switchToEdit') || Input::get('jumpto') > 0)
 			{
 				$arrClipboard[$strTable] = array
 				(
@@ -889,22 +816,22 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				);
 
 				// set the clipboard helper to avoid that the DCA deletes the regular clipboard session
-				static::getSession()->set('CLIPBOARD_HELPER',$arrClipboard);
+				$objSession->set('CLIPBOARD_HELPER',$arrClipboard);
 				
 				// reload the page to make the session take effect
 				if($blnDoNotSwitchToEdit)
 				{
-					\Controller::reload();
+					ContaoController::reload();
 				}
 			}
 			
-			\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !COPY ALL
-		else if(\Input::get('act') == 'copyAll')
+		else if(Input::get('act') == 'copyAll')
 		{
 			#$objDC->copyAll();
-			$arrClipboard = static::getSession()->get('CLIPBOARD');
+			$arrClipboard = $objSession->get('CLIPBOARD');
 
 			if (is_array($arrClipboard[$strTable]['id']))
 			{
@@ -912,24 +839,23 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				{
 					$objDC->intId = $id;
 					$id = $objDC->copy(true);
-					\Input::setGet('pid', $id);
-					\Input::setGet('mode', 1);
+					Input::setGet('pid', $id);
+					Input::setGet('mode', 1);
 				}
 			}
 						
-			\Controller::redirect( $strCleanUrl );
+			ContaoController::redirect( $strCleanUrl );
 		}
 		// TODO: !EDIT ALL, OVERRIDE ALL
-		else if(\Input::get('act') == 'editAll')
+		else if(Input::get('act') == 'editAll')
 		{
 			
 		}	
 	
 		// TODO: !PASTE set the clipboard session
-		else if(\Input::get('act') == 'paste')
+		else if(Input::get('act') == 'paste')
 		{
 			$reload = false;
-			$objSession = static::getSession();
 			$arrClipboard = $objSession->get('CLIPBOARD');
 			
 			if(count($arrClipboard[$strTable]) < 1)
@@ -937,7 +863,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$reload = true;
 			}
 			
-			$ids = \Input::get('id');
+			$ids = Input::get('id');
 			
 			$arrCurrent = $objSession->get('CURRENT');
 			if(count($arrCurrent['IDS']) > 0 && is_array($arrCurrent['IDS']))
@@ -948,7 +874,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$arrClipboard[$strTable] = array
 			(
 				'id' 		=> $ids,
-				'mode' 		=> \Input::get('mode'),
+				'mode' 		=> Input::get('mode'),
 			);
 			
 			$objSession->set('CLIPBOARD',$arrClipboard);
@@ -958,14 +884,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			
 			if($reload)
 			{
-				\Controller::reload();
+				ContaoController::reload();
 			}
 		}
 		
 		// TODO: !CLIPBOARD clear
-		if(strlen($strTable) > 0 && \Input::get('clear_clipboard'))
+		if(strlen($strTable) > 0 && Input::get('clear_clipboard'))
 		{
-			$objSession = static::getSession();
 			$arrSession = $objSession->get('CLIPBOARD');
 			
 			$arrSession[$strTable] = array();
@@ -973,9 +898,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			$objSession->set('CLIPBOARD',$arrSession);
 			$objSession->set('CLIPBOARD_HELPER',$arrSession);
 			$objSession->set('CURRENT',array());
-			
-			
-			\Controller::redirect( $strCleanUrl );
+				
+			ContaoController::redirect( $strCleanUrl );
 		}
 	}
 	
@@ -999,7 +923,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 			'tableless' => true,
 		);
 		
-		return new \FormSubmit($arr);
+		return new FormSubmit($arr);
 	}
 	
 	
@@ -1011,7 +935,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public function getPasteAfterButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( ModuleModel::findByPk(Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1033,14 +957,14 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$ext = version_compare(VERSION, '4','>=') ? 'svg' : 'gif';
 		$icon = 'pasteafter.'.$ext;	
 		
-		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id']));
+		$image = Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id']));
 		#$image = \Image::getHtml('pasteinto.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $objRow->id));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
 			$icon = 'pasteafter_.'.$ext;
-			$html = $image = \Image::getHtml($icon);
+			$html = $image = Image::getHtml($icon);
 		}
 		else
 		{
@@ -1052,12 +976,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
 			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
-			{
-				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
-			}
-			
 			// multilanguage, add the langpid
 			if($objCC->get('multilanguage'))
 			{
@@ -1065,7 +983,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1088,7 +1006,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public function getPasteIntoButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( ModuleModel::findByPk(Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
@@ -1110,13 +1028,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$icon = 'pasteafter.'.$ext;	
 		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image = \Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $arrRow['id']));
+		$image = Image::getHtml($icon, sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteinto'][1], $arrRow['id']));
 		
 		$href = '';
 		if( ($arrClipboard['mode'] == 'cut' && $arrClipboard['id'] == $arrRow['id'])  || ($arrClipboard['mode'] == 'cutAll' && in_array($arrRow['id'], $arrClipboard['id'])) )
 		{
 			$icon = 'pasteinto_.'.$ext;
-			$html = $image = \Image::getHtml($icon);
+			$html = $image = Image::getHtml($icon);
 		}
 		else
 		{
@@ -1128,12 +1046,6 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$href = Functions::addToUrl('switchToEdit=1&jumpto='.$objModule->customcatalog_jumpTo, $href);
 			}
 			
-			// add the request token
-			if(!$GLOBALS['TL_CONFIG']['disableRefererCheck'] && \Input::get('rt') == '')
-			{
-				$href = Functions::addToUrl('rt='.REQUEST_TOKEN ,$href);
-			}
-			
 			// multilanguage, add the langpid
 			if($objCC->get('multilanguage'))
 			{
@@ -1141,7 +1053,7 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 				$href = Functions::addToUrl('langpid='.$langpid,$href);
 			}
 			
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1177,11 +1089,11 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$image = '';
 		if(version_compare(VERSION, '4','>='))
 		{
-			$image = \Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
+			$image = Image::getHtml('cut.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
 		}
 		else
 		{
-			$image = \Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
+			$image = Image::getHtml('cut.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id']));
 		}	
 		
 		$href = '';
@@ -1189,13 +1101,13 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		{
 			$html = '';
 			$icon = 'cut_.'.$ext;
-			$html = \Image::getHtml($icon);
+			$html = Image::getHtml($icon);
 			
 		}
 		else
 		{
 			$href = 'act=paste&amp;mode=cut';
-			$html = '<a href="'.$href.'" title="'.specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id'])).'">'.$image.'</a>';
+			$html = '<a href="'.$href.'" title="'.StringUtil::specialchars(sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['cut'][1], $arrRow['id'])).'">'.$image.'</a>';
 		}
 		
 		$arrReturn = array
@@ -1218,31 +1130,31 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	public function getToggleVisibilityButton($arrRow,$strTable,$arrClipboard=array())
 	{
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( ModuleModel::findByPk(Input::get('mod')) );
 		if(!$objCC)
 		{
 			return '';
 		}
 		
-		if (\Input::get('tid'))
+		if (Input::get('tid'))
 		{
-			$this->toggleVisibility(\Input::get('tid'), (\Input::get('state') == 1));
-			\Controller::redirect( \Controller::getReferer() );
+			$this->toggleVisibility(Input::get('tid'), (Input::get('state') == 1));
+			ContaoController::redirect( ContaoController::getReferer() );
 		}
 		
 		
 		$strPublishedField = $objCC->getPublishedField();
 		
 		#$image = \Image::getHtml('pasteafter.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['pasteafter'][1], $objRow->id));
-		$image_on = \Image::getHtml('visible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
-		$image_off =  \Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+		$image_on = Image::getHtml('visible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+		$image_off =  Image::getHtml('invisible.gif', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
 		$icon_on = 'system/themes/default/images/visible.gif';
 		$icon_off = 'system/themes/default/images/invisible.gif';
 		
 		if(version_compare(VERSION, '4', '>='))
 		{
-			$image_on = \Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
-			$image_off =  \Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+			$image_on = Image::getHtml('visible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
+			$image_off =  Image::getHtml('invisible.svg', sprintf($GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG']['MSC']['toggle'][1], $arrRow['id']));
 			$icon_on = 'system/themes/flexible/icons/visible.svg';
 			$icon_off = 'system/themes/flexible/icons/invisible.svg';
 		}
@@ -1291,9 +1203,9 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 	 */
 	protected function toggleVisibility($intId, $blnVisible)
 	{
-		$strTable = \Input::get('table');
+		$strTable = Input::get('table');
 		
-		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( \ModuleModel::findByPk(\Input::get('mod')) );
+		$objCC = \PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory::findByModule( ModuleModel::findByPk(Input::get('mod')) );
 		if(!$objCC)
 		{
 			return;
@@ -1302,9 +1214,8 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		$strField = $objCC->getPublishedField();
 		
 		// Check permissions to edit
-		$objInput = \Input::getInstance();
-		$objInput->setGet('id', $intId);
-		$objInput->setGet('act', 'toggle');
+		Input::setGet('id', $intId);
+		Input::setGet('act', 'toggle');
 		
 		// Check permissions to publish
 		#if (!$this->User->isAdmin && !$this->User->hasAccess($strTable.'::'.$strField, 'alexf'))
@@ -1322,15 +1233,15 @@ class Controller extends \PCT\CustomElements\Plugins\CustomCatalog\Core\Controll
 		   foreach ($GLOBALS['TL_DCA'][$strTable]['fields'][$strField]['save_callback'] as $callback)
 		   {
 		   		$objCaller = new $callback[0];
-		   		$blnVisible = $objCaller->$callback[1]($blnVisible, $this);
+		   		$blnVisible = $objCaller->{$callback[1]}($blnVisible, $this);
 		   }
 		}
 		
 		// Update the database
-		\Database::getInstance()->prepare("UPDATE ".$strTable." %s WHERE id=?")->set(array('tstamp'=>time(),$strField=>$blnVisible ? '':1))->execute($intId);
+		Database::getInstance()->prepare("UPDATE ".$strTable." %s WHERE id=?")->set(array('tstamp'=>time(),$strField=>$blnVisible ? '':1))->execute($intId);
 
 		#$objVersions->create();
 		
-		\System::log('A new version of record "'.$strTable.'.id='.$intId.'" has been created', $strTable.' toggleVisibility()', TL_GENERAL);
+		System::log('A new version of record "'.$strTable.'.id='.$intId.'" has been created', $strTable.' toggleVisibility()', TL_GENERAL);
 	}	
 }

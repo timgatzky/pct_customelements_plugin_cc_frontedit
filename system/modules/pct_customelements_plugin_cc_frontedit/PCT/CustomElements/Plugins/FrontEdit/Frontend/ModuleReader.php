@@ -21,6 +21,14 @@ namespace PCT\CustomElements\Plugins\FrontEdit\Frontend;
 /**
  * Imports
  */
+
+use Contao\Controller;
+use Contao\Database;
+use Contao\Environment;
+use Contao\FormSubmit;
+use Contao\Input;
+use Contao\StringUtil;
+use Contao\System;
 use PCT\CustomElements\Plugins\CustomCatalog\Core\CustomCatalogFactory;
 
 /**
@@ -49,9 +57,9 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		if(!in_array('cc_frontedit',\PCT\CustomElements\Core\PluginFactory::getActivePlugins()))
 		{
 			// load language file
-			\System::loadLanguageFile('exception');
+			System::loadLanguageFile('exception');
 			// write log
-			\System::log('CustomCatalog Frontedit plugin not activated as CustomElement plugin yet' ,__METHOD__,TL_ERROR);
+			System::log('CustomCatalog Frontedit plugin not activated as CustomElement plugin yet' ,__METHOD__,TL_ERROR);
 			return sprintf($GLOBALS['TL_LANG']['XPT']['cc_edit_plugin_not_active'],$this->id);
 		}
 
@@ -69,7 +77,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		}
 		
 		// editing is not active
-		if(!\Input::get('act') || !\Input::get('table'))
+		if(!Input::get('act') || !Input::get('table'))
 		{
 			$this->hasAccess = false;
 			return parent::generate();
@@ -77,15 +85,15 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 
 		
 		// check permissions when entry is editable
-		if( \Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable(\Input::get('table'), \Input::get('id')) )
+		if( Input::get('act') && \PCT\CustomCatalog\FrontEdit::isEditable(Input::get('table'), Input::get('id')) )
 		{
 			if( !\PCT\CustomCatalog\FrontEdit::checkPermissions() )
 			{
 				$this->hasAccess = false;
 			}
 			
-			$objUser = new \PCT\Contao\_FrontendUser( \FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
-			if(!$objUser->hasGroupAccess(deserialize($this->reg_groups)))
+			$objUser = new \PCT\Contao\_FrontendUser( \Contao\FrontendUser::getInstance() , array('customcatalog_edit_active' => 1));
+			if(!$objUser->hasGroupAccess(StringUtil::deserialize($this->reg_groups)))
 			{
 				$this->hasAccess = false;
 			}
@@ -99,7 +107,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		
 		if($this->hasAccess === false)
 		{
-			$objTemplate = new \FrontendTemplate('cc_edit_nopermission');
+			$objTemplate = new \Contao\FrontendTemplate('cc_edit_nopermission');
 			if(version_compare(VERSION, '4.4', '>='))
 			{
 				throw new \Contao\CoreBundle\Exception\AccessDeniedException( $objTemplate->parse() );
@@ -114,7 +122,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		\PCT\CustomCatalog\FrontEdit\Controller::addAssets();
 		
 		// set the module ID as internal GET parameter
-		\Input::setGet('mod',$this->id);
+		Input::setGet('mod',$this->id);
 		
 		return parent::generate();
 	}
@@ -140,7 +148,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		{
 			return '<p class="error">CustomCatalog not found</p>';
 		}
-		
+
 		// apply operations
 		\PCT\CustomCatalog\FrontEdit\Controller::applyOperationsOnGeneratePage($objPage);
 		
@@ -157,7 +165,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
         
          $this->Template->isEnabled = false;
 
-        if( in_array(\Input::get('act'), array('edit','editAll','overrideAll')) )
+        if( in_array(Input::get('act'), array('edit','editAll','overrideAll')) )
 		{
 			$this->Template->editMode = true;
 			$this->Template->clipboard = true;
@@ -177,7 +185,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			'class' => 'submit',
 			'tableless' => true,
 		);
-		$objSaveSubmit = new \FormSubmit($arr);
+		$objSaveSubmit = new FormSubmit($arr);
 		$objSaveSubmit->addAttribute('value',$arr['value']);
 		$objSaveSubmit->tableless = true;
 		$this->Template->saveSubmit = $objSaveSubmit->parse();
@@ -195,7 +203,7 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 			'class' => 'submit',
 			'tableless' => true,
 		);
-		$objSaveNcloseSubmit = new \FormSubmit($arr);
+		$objSaveNcloseSubmit = new FormSubmit($arr);
 		$objSaveNcloseSubmit->addAttribute('value',$arr['value']);
 		$this->Template->saveNcloseSubmit = $objSaveNcloseSubmit->parse();
 		$this->Template->saveNcloseLabel = $GLOBALS['TL_LANG']['PCT_CUSTOMCATALOG_FRONTEDIT']['MSC']['submit_saveNclose'] ?: 'Save and go back';
@@ -204,8 +212,8 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		// hidden fields
 		$arrHidden = array
 		(
-			'id'	=> \Input::get('id'),
-			'pid'	=> \Input::get('pid') ?: 0,
+			'id'	=> Input::get('id'),
+			'pid'	=> Input::get('pid') ?: 0,
 			'table'	=> $objCC->getTable(),
 			'mod'	=> $this->id,
 		);
@@ -220,29 +228,32 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 		$this->Template->formId = $formName;
 		$this->Template->formName = $formName;
 		$this->Template->method = 'post';
-		$this->Template->action = \Environment::get('request');
+		$this->Template->action = Environment::get('request');
 		$this->Template->tableless = true;
 		$this->Template->formClass = 'cc_frontedit_form';
 		$this->Template->hidden = $strHidden;
 		
 		// rewrite the module back link
-		if(\Input::get('act') == 'edit')
+		if(Input::get('act') == 'edit')
 		{
 			// remove parameters from url
-			$url = \Controller::getReferer();
+			$url = Controller::getReferer();
 			foreach(array('act','jumpto','mode') as $v)
 			{
 				$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 			}
 			// add the clear clipboard parameter
 			$href = \PCT\CustomElements\Helper\Functions::addToUrl('clear_clipboard=1',$url);
-			\Environment::set('httpReferer',$url);
-			$this->Template->referer = \Environment::get('httpReferer');
+			Environment::set('httpReferer',$url);
+			$this->Template->referer = Environment::get('httpReferer');
 		}
 		
 		//-- handle form actions
-		if(\Input::post('FORM_SUBMIT') == $formName && \Input::post('table') == $objCC->getTable() && \Input::get('id') == \Input::post('id') )
+		if(Input::post('FORM_SUBMIT') == $formName && Input::post('table') == $objCC->getTable() && Input::get('id') == Input::post('id') )
 		{
+			// render the CC to get POST data from attribute widgets
+			$this->CustomCatalog->render();
+		
 			if($_POST[$this->saveSubmitName] || isset($_POST[$this->saveNcloseSubmitName]) )
 			{
 				$strTable = $objCC->getTable();
@@ -253,16 +264,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 				// load datacontainer
 				if(!$GLOBALS['loadDataContainer'][$strTable])
 				{
-					\Controller::loadDataContainer($strTable);
+					Controller::loadDataContainer($strTable);
 				}
 				
 				// hook here
 				$arrSet = \PCT\CustomCatalog\FrontEdit\Hooks::callstatic('storeDatabaseHook',array($arrSet,$objCC->getTable(),$this));
 				
 				// if set list is empty but user wants to save, set atleast the timestamp so the reviseTable will not delete the entry
-				if(empty($arrSet) && (int)\Input::get('id') > 0)
+				if(empty($arrSet) && (int)Input::get('id') > 0)
 				{
-					$id = (int)\Input::get('id');
+					$id = (int)Input::get('id');
 					
 					$arrSet[$id]['tstamp'] = time();
 				}
@@ -282,10 +293,10 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 						// set pid from GET respectitive from POST
 						if(!isset($set['pid']) && !empty($GLOBALS['TL_DCA'][$strTable]['config']['ptable']))
 						{
-							$set['pid'] = \Input::get('pid') ?: \Input::post('pid');
+							$set['pid'] = Input::get('pid') ?: Input::post('pid');
 						}
 						
-						$objUpdate = \Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
+						$objUpdate = Database::getInstance()->prepare("UPDATE ".$objCC->getTable()." %s WHERE id=?")->set($set)->execute($id);
 					}
 					
 					// empty set list
@@ -294,16 +305,16 @@ class ModuleReader extends \PCT\CustomElements\Plugins\CustomCatalog\Frontend\Mo
 					// go back to regular list view
 					if(isset($_POST[$this->saveNcloseSubmitName]))
 					{
-						$url = \Controller::getReferer();
+						$url = \Contao\Controller::getReferer();
 						foreach(array('act','jumpto','mode','table','do','rt','switchToEdit') as $v)
 						{
 							$url = \PCT\CustomElements\Helper\Functions::removeFromUrl($v,$url);
 						}
-						\Controller::redirect($url);
+						\Contao\Controller::redirect($url);
 					}
 					
 					// reload the page so changes take effect immediately
-					\Controller::reload();
+					\Contao\Controller::reload();
 				}
 			}
 		}
