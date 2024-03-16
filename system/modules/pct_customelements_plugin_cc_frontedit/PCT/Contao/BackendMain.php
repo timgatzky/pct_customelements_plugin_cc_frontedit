@@ -79,6 +79,8 @@ class BackendMain extends \Contao\BackendMain
 		$strBuffer = str_replace(PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/', '', $strBuffer);
 		// form action must point to full path
 		$strBuffer = str_replace('main.php?',PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/main.php?',$strBuffer);
+		// folder link must be changed
+		$strBuffer = str_replace('app.php?',PCT_CUSTOMELEMENTS_PLUGIN_CC_FRONTEDIT_PATH.'/assets/html/main.php?',$strBuffer);
 		// set header
 		header('Content-Type: text/html; charset=' . \Contao\Config::get('characterSet'));
 		// print it and exit script
